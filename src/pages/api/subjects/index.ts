@@ -1,0 +1,130 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import { query } from '@/lib/db';
+import { z } from 'zod';
+
+// Validation schema for creating/updating subjects
+const subjectSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(255),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex color'),
+  startDate: z.string().transform(str => new Date(str)),
+  examDate: z.string().transform(str => new Date(str)).optional(),
+  hoursPerWeek: z.number().min(1).max(168),
+  daysPerWeek: z.number().min(1).max(7),
+  intensityWeeks: z.number().min(1).max(52).default(2),
+  targetHours: z.number().min(1),
+});
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    switch (req.method) {
+      case 'GET':
+        return await getSubjects(req, res);
+      case 'POST':
+        return await createSubject(req, res);
+      default:
+        res.setHeader('Allow', ['GET', 'POST']);
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('Subjects API error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
+  const { userId } = req.query;
+
+  // For now, use a default user ID until authentication is implemented
+  const userIdToUse = userId as string || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+
+  const result = await query(`
+    SELECT 
+      id,
+      user_id as "userId",
+      name,
+      color,
+      start_date as "startDate",
+      exam_date as "examDate",
+      hours_per_week as "hoursPerWeek",
+      days_per_week as "daysPerWeek",
+      intensity_weeks as "intensityWeeks",
+      completed_hours as "completedHours",
+      target_hours as "targetHours",
+      created_at as "createdAt",
+      updated_at as "updatedAt"
+    FROM subjects 
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+  `, [userIdToUse]);
+
+  // Convert dates to ISO strings for JSON serialization
+  const subjects = result.rows.map(subject => ({
+    ...subject,
+    startDate: subject.startDate?.toISOString(),
+    examDate: subject.examDate?.toISOString(),
+    createdAt: subject.createdAt?.toISOString(),
+    updatedAt: subject.updatedAt?.toISOString(),
+  }));
+
+  return res.status(200).json(subjects);
+}
+
+async function createSubject(req: NextApiRequest, res: NextApiResponse) {
+  const validation = subjectSchema.safeParse(req.body);
+  
+  if (!validation.success) {
+    return res.status(400).json({ 
+      error: 'Validation failed',
+      details: validation.error.errors 
+    });
+  }
+
+  const data = validation.data;
+  const userId = req.body.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557'; // Use provided userId or default
+
+  const result = await query(`
+    INSERT INTO subjects (
+      user_id, name, color, start_date, exam_date, 
+      hours_per_week, days_per_week, intensity_weeks, 
+      completed_hours, target_hours
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING 
+      id,
+      user_id as "userId",
+      name,
+      color,
+      start_date as "startDate",
+      exam_date as "examDate",
+      hours_per_week as "hoursPerWeek",
+      days_per_week as "daysPerWeek",
+      intensity_weeks as "intensityWeeks",
+      completed_hours as "completedHours",
+      target_hours as "targetHours",
+      created_at as "createdAt",
+      updated_at as "updatedAt"
+  `, [
+    userId,
+    data.name,
+    data.color,
+    data.startDate,
+    data.examDate || null,
+    data.hoursPerWeek,
+    data.daysPerWeek,
+    data.intensityWeeks,
+    0, // completedHours starts at 0
+    data.targetHours
+  ]);
+
+  const subject = result.rows[0];
+  
+  // Convert dates for JSON serialization
+  const responseSubject = {
+    ...subject,
+    startDate: subject.startDate?.toISOString(),
+    examDate: subject.examDate?.toISOString(),
+    createdAt: subject.createdAt?.toISOString(),
+    updatedAt: subject.updatedAt?.toISOString(),
+  };
+
+  return res.status(201).json(responseSubject);
+}

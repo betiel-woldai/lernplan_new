@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { CalendarView, CalendarSession, CalendarViewState } from '../../types/calendar';
 import CalendarGrid from './CalendarGrid';
 import CalendarViewToggle from './CalendarViewToggle';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
+import useCalendarSessions from '../../hooks/useCalendarSessions';
 
 interface CalendarProps {
   onSessionClick?: (session: CalendarSession) => void;
@@ -21,6 +22,21 @@ export default function Calendar({
     currentDate: new Date(),
     selectedDate: null
   });
+
+  const { 
+    sessions, 
+    loading, 
+    error, 
+    fetchSessionsForMonth, 
+    getSessionsForDate 
+  } = useCalendarSessions();
+
+  // Load sessions for current month on mount and when month changes
+  useEffect(() => {
+    const currentYear = viewState.currentDate.getFullYear();
+    const currentMonth = viewState.currentDate.getMonth() + 1; // API expects 1-based month
+    fetchSessionsForMonth(currentYear, currentMonth);
+  }, [viewState.currentDate, fetchSessionsForMonth]);
 
   const handleViewChange = useCallback((view: CalendarView) => {
     setViewState(prev => ({ ...prev, currentView: view }));
@@ -133,6 +149,9 @@ export default function Calendar({
             selectedDate={viewState.selectedDate}
             onDateClick={handleDateClick}
             onSessionClick={onSessionClick}
+            getSessionsForDate={getSessionsForDate}
+            loading={loading}
+            error={error}
           />
         )}
         

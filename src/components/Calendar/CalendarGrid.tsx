@@ -1,6 +1,5 @@
 import React from 'react';
 import { CalendarDay, CalendarSession } from '../../types/calendar';
-import { getSessionsForDate } from '../../utils/mockCalendarData';
 
 interface CalendarGridProps {
   month: number;
@@ -8,6 +7,9 @@ interface CalendarGridProps {
   selectedDate: Date | null;
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
+  getSessionsForDate: (date: Date) => CalendarSession[];
+  loading: boolean;
+  error: string | null;
 }
 
 export default function CalendarGrid({ 
@@ -15,7 +17,10 @@ export default function CalendarGrid({
   year, 
   selectedDate, 
   onDateClick, 
-  onSessionClick 
+  onSessionClick,
+  getSessionsForDate,
+  loading,
+  error
 }: CalendarGridProps) {
   
   const getDaysInMonth = (month: number, year: number): CalendarDay[] => {
@@ -54,8 +59,26 @@ export default function CalendarGrid({
   const days = getDaysInMonth(month, year);
   const weekDays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="calendar-grid bg-white rounded-xl border border-red-200 p-8 text-center">
+        <p className="text-red-600">Fehler beim Laden der Kalenderdaten: {error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="calendar-grid bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="calendar-grid bg-white rounded-xl border border-gray-200 overflow-hidden relative">
+      {/* Loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/75 flex items-center justify-center z-10">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-gray-600">Lade Kalenderdaten...</span>
+          </div>
+        </div>
+      )}
       {/* Header with weekdays */}
       <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekDays.map((day) => (

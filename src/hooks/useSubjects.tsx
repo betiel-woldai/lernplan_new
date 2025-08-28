@@ -2,50 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Subject } from '../types';
 import { SubjectFormData } from '../schemas/subjectSchema';
 
-const STORAGE_KEY = 'lernplaner_subjects';
-
-// Initial mock subjects for demo
-const mockSubjects: Subject[] = [
-  {
-    id: '1',
-    userId: 'user-1',
-    name: 'Mathematics',
-    color: '#3B82F6',
-    startDate: new Date('2024-01-15'),
-    examDate: new Date('2024-06-15'),
-    hoursPerWeek: 8,
-    daysPerWeek: 4,
-    intensityWeeks: 6,
-    completedHours: 45,
-    targetHours: 120
-  },
-  {
-    id: '2',
-    userId: 'user-1',
-    name: 'Physics',
-    color: '#10B981',
-    startDate: new Date('2024-01-20'),
-    examDate: new Date('2024-06-20'),
-    hoursPerWeek: 6,
-    daysPerWeek: 3,
-    intensityWeeks: 4,
-    completedHours: 32,
-    targetHours: 96
-  },
-  {
-    id: '3',
-    userId: 'user-1',
-    name: 'Chemistry',
-    color: '#F59E0B',
-    startDate: new Date('2024-02-01'),
-    examDate: new Date('2024-06-25'),
-    hoursPerWeek: 5,
-    daysPerWeek: 3,
-    intensityWeeks: 3,
-    completedHours: 18,
-    targetHours: 75
-  }
-];
+// Default user ID until authentication is implemented
+const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
 
 export interface UseSubjectsReturn {
   subjects: Subject[];
@@ -58,7 +16,7 @@ export interface UseSubjectsReturn {
   updateSubject: (id: string, data: SubjectFormData) => Promise<void>;
   deleteSubject: (id: string) => Promise<void>;
   getSubjectById: (id: string) => Subject | undefined;
-  resetSubjects: () => void;
+  refreshSubjects: () => Promise<void>;
 }
 
 export const useSubjects = (): UseSubjectsReturn => {
@@ -67,43 +25,42 @@ export const useSubjects = (): UseSubjectsReturn => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Load subjects from localStorage on mount
-  useEffect(() => {
+  // Fetch subjects from API
+  const fetchSubjects = useCallback(async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsedSubjects = JSON.parse(stored);
-        // Convert date strings back to Date objects
-        const subjectsWithDates = parsedSubjects.map((subject: any) => ({
-          ...subject,
-          startDate: new Date(subject.startDate),
-          examDate: subject.examDate ? new Date(subject.examDate) : undefined
-        }));
-        setSubjects(subjectsWithDates);
-      } else {
-        // Use mock data on first load
-        setSubjects(mockSubjects);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockSubjects));
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/subjects?userId=${DEFAULT_USER_ID}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch subjects: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      
+      // Convert date strings back to Date objects
+      const subjectsWithDates = data.map((subject: any) => ({
+        ...subject,
+        startDate: new Date(subject.startDate),
+        examDate: subject.examDate ? new Date(subject.examDate) : undefined
+      }));
+
+      setSubjects(subjectsWithDates);
     } catch (err) {
-      console.error('Failed to load subjects from localStorage:', err);
-      setSubjects(mockSubjects);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load subjects';
+      console.error('Failed to fetch subjects:', err);
+      setError(errorMessage);
+      setSubjects([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Save subjects to localStorage whenever subjects change
+  // Load subjects on mount
   useEffect(() => {
-    if (!loading) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects));
-      } catch (err) {
-        console.error('Failed to save subjects to localStorage:', err);
-        setError('Failed to save subjects to local storage');
-      }
-    }
-  }, [subjects, loading]);
+    fetchSubjects();
+  }, [fetchSubjects]);
 
   // Filter subjects based on search term
   const filteredSubjects = subjects.filter(subject =>
@@ -117,23 +74,40 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
 
-      const newSubject: Subject = {
-        id: Math.random().toString(36).substr(2, 9),
-        userId: 'user-1', // Mock user ID
-        name: data.name,
-        color: data.color,
-        startDate: new Date(data.startDate),
-        examDate: new Date(data.examDate),
-        hoursPerWeek: data.hoursPerWeek,
-        daysPerWeek: data.daysPerWeek,
-        intensityWeeks: data.intensityWeeks,
-        completedHours: 0,
+      const requestBody = {
+        ...data,
+        userId: DEFAULT_USER_ID,
+        startDate: data.startDate,
+        examDate: data.examDate,
         targetHours: calculateTargetHours(data)
       };
 
-      setSubjects(prev => [...prev, newSubject]);
+      const response = await fetch('/api/subjects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create subject');
+      }
+
+      const newSubject = await response.json();
+      
+      // Convert dates and add to local state
+      const subjectWithDates = {
+        ...newSubject,
+        startDate: new Date(newSubject.startDate),
+        examDate: newSubject.examDate ? new Date(newSubject.examDate) : undefined
+      };
+
+      setSubjects(prev => [...prev, subjectWithDates]);
     } catch (err) {
-      setError('Failed to create subject');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create subject';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -146,23 +120,41 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
 
+      const requestBody = {
+        ...data,
+        startDate: data.startDate,
+        examDate: data.examDate,
+        targetHours: calculateTargetHours(data)
+      };
+
+      const response = await fetch(`/api/subjects/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update subject');
+      }
+
+      const updatedSubject = await response.json();
+
+      // Convert dates and update local state
+      const subjectWithDates = {
+        ...updatedSubject,
+        startDate: new Date(updatedSubject.startDate),
+        examDate: updatedSubject.examDate ? new Date(updatedSubject.examDate) : undefined
+      };
+
       setSubjects(prev => prev.map(subject => 
-        subject.id === id 
-          ? {
-              ...subject,
-              name: data.name,
-              color: data.color,
-              startDate: new Date(data.startDate),
-              examDate: new Date(data.examDate),
-              hoursPerWeek: data.hoursPerWeek,
-              daysPerWeek: data.daysPerWeek,
-              intensityWeeks: data.intensityWeeks,
-              targetHours: calculateTargetHours(data)
-            }
-          : subject
+        subject.id === id ? subjectWithDates : subject
       ));
     } catch (err) {
-      setError('Failed to update subject');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update subject';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -175,9 +167,19 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
 
+      const response = await fetch(`/api/subjects/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete subject');
+      }
+
       setSubjects(prev => prev.filter(subject => subject.id !== id));
     } catch (err) {
-      setError('Failed to delete subject');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete subject';
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -189,11 +191,10 @@ export const useSubjects = (): UseSubjectsReturn => {
     return subjects.find(subject => subject.id === id);
   }, [subjects]);
 
-  // Reset to mock data
-  const resetSubjects = useCallback(() => {
-    setSubjects(mockSubjects);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mockSubjects));
-  }, []);
+  // Refresh subjects from API
+  const refreshSubjects = useCallback(async () => {
+    await fetchSubjects();
+  }, [fetchSubjects]);
 
   return {
     subjects,
@@ -206,7 +207,7 @@ export const useSubjects = (): UseSubjectsReturn => {
     updateSubject,
     deleteSubject,
     getSubjectById,
-    resetSubjects
+    refreshSubjects
   };
 };
 
