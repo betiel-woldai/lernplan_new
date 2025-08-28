@@ -28,7 +28,7 @@ export default function XPBar({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-testid="xp-bar">
       {showNumbers && (
         <div className="flex justify-between items-center mb-2">
           <span className="text-xs font-medium text-gray-600">
@@ -48,6 +48,7 @@ export default function XPBar({
             transition-all duration-1000 ease-out
           `}
           style={{ width: `${progress}%` }}
+          data-testid="xp-progress-bar"
         />
       </div>
       

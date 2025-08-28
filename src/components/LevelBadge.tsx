@@ -16,17 +16,20 @@ export default function LevelBadge({
   };
 
   return (
-    <div className={`
-      ${sizeClasses[size]}
-      bg-gradient-to-br from-yellow-400 to-orange-500
-      rounded-full
-      flex items-center justify-center
-      font-bold text-white
-      shadow-lg
-      border-2 border-yellow-300
-      ${animated ? 'animate-pulse-xp' : ''}
-      transition-all duration-300 hover:scale-110
-    `}>
+    <div 
+      className={`
+        ${sizeClasses[size]}
+        bg-gradient-to-br from-yellow-400 to-orange-500
+        rounded-full
+        flex items-center justify-center
+        font-bold text-white
+        shadow-lg
+        border-2 border-yellow-300
+        ${animated ? 'animate-pulse-xp' : ''}
+        transition-all duration-300 hover:scale-110
+      `}
+      data-testid="level-badge"
+    >
       <span>{level}</span>
     </div>
   );
