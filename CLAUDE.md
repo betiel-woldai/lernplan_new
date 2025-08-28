@@ -6,6 +6,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 1. ALWAYS write secure best practice Python code.
 2. Always try to write as lean as possible code. Don't blow up the repo.
+3. Always organize all files in main folders for a clearer explanation and classification for beginners. Use subfolders only when absolutely necessary. Start with the existing documents.
 4 Iterate function based on test results
 5. MOVE Test scripts to the tests folder if they are not already there and ensure that they could be reused for later Tests for code coverage or reruns.
 6. ALWAYS commit after each new function is added to our codebase
