@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for User Data
+  postgres-userdata:
+    image: postgres:15
+    container_name: lernplaner-db
+    environment:
+      POSTGRES_DB: lernplaner
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_userdata:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./sql/seeds:/docker-entrypoint-initdb.d/seeds
+    networks:
+      - lernplaner-network
+
+  # PostgreSQL for Keycloak
+  postgres-keycloak:
+    image: postgres:15
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_keycloak:/var/lib/postgresql/data
+    networks:
+      - lernplaner-network
+
+  # Keycloak Server
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: lernplaner-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-keycloak
+    command:
+      - start-dev
+    networks:
+      - lernplaner-network
+
+  # Next.js Application (Development)
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: lernplaner-app
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres-userdata
+      - DB_PORT=5432
+      - DB_NAME=lernplaner
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - KEYCLOAK_DB_HOST=postgres-keycloak
+      - KEYCLOAK_DB_PORT=5432
+      - KEYCLOAK_DB_NAME=keycloak
+      - KEYCLOAK_DB_USER=keycloak
+      - KEYCLOAK_DB_PASSWORD=keycloak
+      - KEYCLOAK_CLIENT_ID=lernplaner-client
+      - KEYCLOAK_CLIENT_SECRET=your-client-secret
+      - KEYCLOAK_ISSUER=http://keycloak:8080/realms/lernplaner
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=development-secret-key
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    depends_on:
+      - postgres-userdata
+      - keycloak
+    networks:
+      - lernplaner-network
+
+volumes:
+  postgres_userdata:
+  postgres_keycloak:
+
+networks:
+  lernplaner-network:
+    driver: bridge
