@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getLevel } from '../utils/formatters';
+import { playXPGainSound, playAchievementSound, playLevelUpSound } from '../utils/audio';
 
 export interface GamificationEvent {
   type: 'xp_gain' | 'level_up' | 'achievement_unlock' | 'streak_milestone';
@@ -79,9 +80,17 @@ export const useGamification = () => {
       };
     });
 
-    // Trigger XP toast
+    // Trigger XP toast and sound
     if ((window as any).triggerXPToast) {
       (window as any).triggerXPToast(amount, 'xp');
+    }
+    
+    // Play appropriate sound
+    const newLevel = getLevel(state.currentXP + amount);
+    if (newLevel > state.currentLevel) {
+      playLevelUpSound();
+    } else {
+      playXPGainSound();
     }
   }, []);
 
@@ -108,10 +117,13 @@ export const useGamification = () => {
         timestamp: Date.now()
       };
 
-      // Trigger achievement toast
+      // Trigger achievement toast and sound
       if ((window as any).triggerXPToast) {
         (window as any).triggerXPToast(0, 'achievement', `Unlocked: ${achievement.name}`);
       }
+      
+      // Play achievement sound
+      playAchievementSound();
 
       return {
         ...prevState,

@@ -9,6 +9,7 @@ import StreakDisplay from '@/components/StreakDisplay';
 import useGamification from '@/hooks/useGamification';
 import { mockUserStats } from '@/utils/mockData';
 import { formatLearningTime, formatStreak, getXPProgress } from '@/utils/formatters';
+import { formatNumber, formatXPTotal, formatRemainingXP } from '@/utils/format';
 
 // React Icons
 import { 
@@ -48,7 +49,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-900">Level Fortschritt</h2>
             <span className="text-sm text-gray-500" data-testid="total-xp">
-              {gamification.currentXP.toLocaleString()} XP Total
+              {formatXPTotal(gamification.currentXP)}
             </span>
           </div>
           <XPBar
@@ -98,7 +99,7 @@ export default function Dashboard() {
           }}
         >
           <div className="text-xs text-gray-500">
-            Gesamt: {userStats.totalCompletedTasks.toLocaleString()} Aufgaben
+            Gesamt: {formatNumber(userStats.totalCompletedTasks)} Aufgaben
           </div>
         </StatCard>
 
@@ -129,7 +130,7 @@ export default function Dashboard() {
         <StatCard
           title="Level & XP"
           value={`Level ${gamification.currentLevel}`}
-          subtitle={`${gamification.currentXP.toLocaleString()} XP`}
+          subtitle={`${formatNumber(gamification.currentXP)} XP`}
           icon={FaTrophy}
           iconColor="text-yellow-500"
         >
@@ -144,7 +145,7 @@ export default function Dashboard() {
               showNumbers={false}
             />
             <div className="text-xs text-gray-500">
-              {(userStats.nextLevelXP - gamification.currentXP).toLocaleString()} XP bis Level {gamification.currentLevel + 1}
+              {formatRemainingXP((userStats.nextLevelXP - gamification.currentXP), gamification.currentLevel + 1)}
             </div>
           </div>
         </StatCard>

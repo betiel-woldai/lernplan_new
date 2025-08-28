@@ -1,3 +1,5 @@
+import { formatNumber } from '../utils/format';
+
 interface XPBarProps {
   currentXP: number;
   nextLevelXP: number;
@@ -35,7 +37,7 @@ export default function XPBar({
             Level {currentLevel}
           </span>
           <span className="text-xs text-gray-500">
-            {progressXP.toLocaleString()} / {neededXP.toLocaleString()} XP
+            {formatNumber(progressXP)} / {formatNumber(neededXP)} XP
           </span>
         </div>
       )}
@@ -58,7 +60,7 @@ export default function XPBar({
             {progress.toFixed(1)}% bis Level {currentLevel + 1}
           </span>
           <span className="text-xs font-semibold text-blue-600">
-            {(neededXP - progressXP).toLocaleString()} XP verbleibend
+            {formatNumber(neededXP - progressXP)} XP verbleibend
           </span>
         </div>
       )}
