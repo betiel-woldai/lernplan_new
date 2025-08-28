@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Head from 'next/head';
+import { getVersionString } from '../utils/version';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +35,9 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Fächer</a>
                 <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Kalender</a>
                 <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Fortschritt</a>
+                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title="Version and build info">
+                  {getVersionString()}
+                </div>
               </nav>
             </div>
           </div>
