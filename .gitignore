@@ -68,4 +68,4 @@ logs
 
 # PostgreSQL
 *.dump
-*.sql.gz
+*.sql.gztmp/
