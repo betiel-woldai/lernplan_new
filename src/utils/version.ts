@@ -2,7 +2,7 @@ import packageJson from '../../package.json';
 
 // Get build information
 export const VERSION = packageJson.version;
-export const BUILD_HASH = '2ebbc47'; // Current commit hash
+export const BUILD_HASH = 'dd69d0e'; // Current commit hash
 export const BUILD_DATE = '28.08.2024'; // Fixed build date to prevent hydration issues
 
 export const getVersionString = () => {

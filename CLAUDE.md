@@ -25,6 +25,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 19. Always update the version build number and show it on the front-end with a build number so that it's clear which version is deployed right now.
 20. Before using a API key explain what you want to do with it and ALWAYS ask me for permission.
 21. after implementing a new feature successfully. commit ALWAYS after every succesfully implemented feature.
+22. Every time before closing an issue, show me the frontend of starting the web UI.
 
 
 ## Make a notification with beep sound when waiting user input or the task is complete.
