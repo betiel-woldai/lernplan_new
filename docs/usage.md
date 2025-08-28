@@ -1,8 +1,11 @@
-# Usage Guide - Gamification System
+# Usage Guide - Lernplaner Features
 
 ## Overview
 
-The Lernplaner application now includes a comprehensive gamification system that motivates users through XP (Experience Points), levels, achievements, and streak tracking. This system was implemented as part of Issue #2.
+The Lernplaner application includes a comprehensive gamification system and subject management interface that helps users organize their learning with motivation and structure.
+
+**Current Version**: 1.2.0  
+**Latest Features**: Gamification System (Issue #2) + Subject Management Interface (Issue #3)
 
 ## Gamification Features
 
@@ -178,4 +181,127 @@ Potential improvements for future versions:
 
 ---
 
-*Last updated: Implementation of Issue #2 - Gamification UI System*
+## 📚 Subject Management Interface (Issue #3)
+
+### Overview
+The Subject Management Interface allows you to create, organize, and track your study subjects with personalized settings, color coding, and progress tracking.
+
+### 🎯 Key Features
+
+#### **Subject Creation**
+- **Add Subject Button**: Prominently placed for easy access
+- **Comprehensive Form**: All required fields with validation
+- **Color Customization**: Full color picker with preset options optimized for light mode
+- **Date Management**: Start date and exam date with validation
+- **Study Planning**: Hours per week, days per week, and intensity weeks
+
+#### **Subject Cards**
+- **Color-coded Design**: Left border and progress bars match subject color
+- **Progress Tracking**: Visual progress bars showing completed vs target hours
+- **Study Metrics**: Hours per week, days per week, intensity weeks display
+- **Exam Countdown**: Shows time remaining until exam date
+- **Hover Actions**: Edit and delete buttons appear on card hover
+
+#### **Form Validation**
+- **Required Fields**: Subject name, color, dates, and numeric values
+- **Date Validation**: Exam date must be after start date
+- **Numeric Constraints**: Hours per week (1-40), days per week (1-7), intensity weeks (1-20)
+- **Real-time Feedback**: Error messages display immediately
+
+#### **Search & Filter**
+- **Search by Name**: Filter subjects by typing subject names
+- **Search by Color**: Filter subjects by color hex codes
+- **Real-time Results**: Immediate filtering as you type
+- **Empty State**: Helpful messages when no results found
+
+### 🚀 How to Use
+
+#### **Creating a New Subject**
+1. Navigate to **Subjects** page via top navigation
+2. Click **"Add Subject"** button 
+3. Fill out the form:
+   - **Subject Name**: e.g., "Mathematics", "Physics"
+   - **Color**: Choose from presets or use custom color picker
+   - **Start Date**: When you begin studying this subject
+   - **Exam Date**: Your target exam date
+   - **Hours per Week**: Planned study hours (1-40)
+   - **Days per Week**: Study days (1-7)
+   - **Intensity Weeks**: Weeks before exam for intensive study (1-20)
+4. Click **"Create Subject"** to save
+
+#### **Editing Subjects**
+1. Hover over any subject card
+2. Click the **Edit** button (pencil icon)
+3. Modify any fields in the modal form
+4. Click **"Update Subject"** to save changes
+
+#### **Deleting Subjects**
+1. Hover over the subject card you want to remove
+2. Click the **Delete** button (trash icon)
+3. Confirm deletion in the popup
+4. Subject will be permanently removed
+
+#### **Searching Subjects**
+1. Use the search box at the top of the subjects page
+2. Type subject name (e.g., "Math") or color code (e.g., "#3B82F6")
+3. Results filter in real-time
+4. Clear search to show all subjects
+
+### 💾 Data Storage
+- **Local Storage**: Subjects are saved in browser local storage
+- **Demo Reset**: Use "Reset Demo" button to restore mock data
+- **Persistence**: Data persists between browser sessions
+
+### 📱 Responsive Design
+- **Desktop**: Multi-column grid layout with full functionality
+- **Tablet**: Responsive grid adjusts to screen size
+- **Mobile**: Single column layout optimized for touch
+
+### 🎨 Color System
+The color picker includes light mode optimized colors:
+- **White/Light**: #FFFFFF, #F8FAFC, #F1F5F9, #E2E8F0
+- **Blue Theme**: #3B82F6, #60A5FA, #93C5FD, #DBEAFE, #EFF6FF
+- **Vibrant Options**: Red, green, yellow, purple, orange, cyan, lime, pink
+- **Custom Colors**: Full hex color picker for unlimited options
+
+### 🧪 Testing Your Setup
+
+**Manual Testing Steps**:
+1. **Navigate to Subjects**: Click "Subjects" in top navigation
+2. **View Mock Data**: See 3 pre-loaded subjects (Mathematics, Physics, Chemistry)
+3. **Test Creation**: Add a new subject with custom color
+4. **Test Search**: Search by name "Math" or color "#3B82F6"
+5. **Test Editing**: Modify an existing subject
+6. **Test Responsive**: Resize browser window
+7. **Test Deletion**: Remove a subject (use Reset Demo to restore)
+
+### 🔧 Technical Implementation
+
+#### **Dependencies Added**
+- **react-hook-form**: Form state management and validation
+- **zod**: Schema validation
+- **@hookform/resolvers**: Zod integration with React Hook Form  
+- **react-colorful**: Color picker component
+
+#### **Components Created**
+- **SubjectForm**: Complete form with validation
+- **SubjectCard**: Individual subject display with actions
+- **SubjectModal**: Modal wrapper for create/edit operations
+- **SubjectsList**: Main subjects page with grid and search
+- **ColorPicker**: Custom color selection component
+
+#### **State Management**
+- **useSubjects Hook**: Complete CRUD operations with local storage
+- **Form Validation**: Zod schema with comprehensive validation rules
+- **Search Functionality**: Real-time filtering by name and color
+
+### 🎯 Next Steps
+After mastering subject management, you can:
+1. Create learning sessions for your subjects
+2. Track progress through the gamification system
+3. Use the dashboard to monitor overall learning metrics
+4. Set up calendar integration for scheduling
+
+---
+
+*Last updated: Implementation of Issue #3 - Subject Management Interface (Version 1.2.0)*

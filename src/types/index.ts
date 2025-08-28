@@ -42,6 +42,7 @@ export interface Subject {
   examDate?: Date;
   hoursPerWeek: number;
   daysPerWeek: number;
+  intensityWeeks: number;
   completedHours: number;
   targetHours: number;
 }

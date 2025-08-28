@@ -5,7 +5,7 @@ export interface Achievement {
   icon: string;
   category: string;
   description?: string;
-  unlockedAt?: Date;
+  unlockedAt?: Date | number;
   isNew?: boolean;
   progress?: number;
   maxProgress?: number;
@@ -143,7 +143,10 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
             )}
             {achievement.unlockedAt && (
               <p className="text-xs text-green-400">
-                Unlocked: {achievement.unlockedAt.toLocaleDateString()}
+                Unlocked: {typeof achievement.unlockedAt === 'number' 
+                  ? new Date(achievement.unlockedAt).toLocaleDateString()
+                  : achievement.unlockedAt.toLocaleDateString()
+                }
               </p>
             )}
           </div>
@@ -182,7 +185,10 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
             )}
             {achievement.unlockedAt && (
               <p className="text-xs text-green-400">
-                Unlocked: {achievement.unlockedAt.toLocaleDateString()}
+                Unlocked: {typeof achievement.unlockedAt === 'number' 
+                  ? new Date(achievement.unlockedAt).toLocaleDateString()
+                  : achievement.unlockedAt.toLocaleDateString()
+                }
               </p>
             )}
           </div>

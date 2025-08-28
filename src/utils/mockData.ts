@@ -66,6 +66,7 @@ export const mockSubjects: Subject[] = [
     examDate: new Date('2024-06-15'),
     hoursPerWeek: 10,
     daysPerWeek: 5,
+    intensityWeeks: 6,
     completedHours: 45,
     targetHours: 120
   },
@@ -78,6 +79,7 @@ export const mockSubjects: Subject[] = [
     examDate: new Date('2024-06-20'),
     hoursPerWeek: 8,
     daysPerWeek: 4,
+    intensityWeeks: 4,
     completedHours: 32,
     targetHours: 96
   },
@@ -90,6 +92,7 @@ export const mockSubjects: Subject[] = [
     examDate: new Date('2024-06-25'),
     hoursPerWeek: 6,
     daysPerWeek: 3,
+    intensityWeeks: 3,
     completedHours: 28,
     targetHours: 72
   }
