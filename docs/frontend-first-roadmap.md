@@ -2,6 +2,8 @@
 
 > **Philosophy**: Build UI first with mock data, then progressively enhance with real functionality. This ensures immediate visual feedback and stakeholder engagement throughout development.
 
+> 📁 **Hinweis:** Diese Datei befindet sich jetzt in `docs/frontend-first-roadmap.md` für bessere Organisation.
+
 ## 🚀 Development Strategy Overview
 
 ### Core Principles

@@ -1,5 +1,7 @@
 ## Entwicklungsanleitung: Interaktive Lernplattform "Lernplaner"
 
+> 📁 **Hinweis:** Diese Datei befindet sich jetzt in `specs/idea.md` für bessere Organisation.
+
 Develop an interactive learning management platform accessible via web and mobile interfaces. Users must register, verify accounts, and access their personalized learning dashboard with gamification elements.
 
 ### Core Features

@@ -1,5 +1,7 @@
 # 🎯 Lernplaner GitHub Issues - Frontend-First Development Strategy
 
+> 📁 **Hinweis:** Diese Datei befindet sich jetzt in `docs/github-issues.md` für bessere Organisation.
+
 ## Issue #1: 🎨 Dashboard UI Components with Mock Data
 **Labels:** `frontend`, `ui`, `priority-high`, `good-first-issue`
 

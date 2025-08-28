@@ -2,6 +2,8 @@
 
 > Complete guide for setting up the Lernplaner repository, development environment, and initial project structure.
 
+> 📁 **Hinweis:** Diese Datei befindet sich jetzt in `setup/repository-setup.md` für bessere Organisation.
+
 ## 🎯 Repository Creation Steps
 
 ### 1. Create New GitHub Repository

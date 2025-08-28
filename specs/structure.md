@@ -1,5 +1,7 @@
 ## Entwicklungsanleitung: Gamifizierte Multi-Fächer Lernplattform
 
+> 📁 **Hinweis:** Diese Datei befindet sich jetzt in `specs/structure.md` für bessere Organisation.
+
 Entwicklung einer interaktiven Lernplattform mit Gamification-Elementen, automatischer Lernplan-Generierung und intelligentem Tracking-System. Die Plattform ermöglicht das Management mehrerer Fächer mit automatischer Intensitätssteigerung vor Prüfungen.
 
 ### Core Architecture
