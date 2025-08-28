@@ -1,0 +1,37 @@
+import React from 'react';
+import { CalendarView } from '../../types/calendar';
+import { FaCalendarAlt, FaCalendarWeek, FaCalendarDay } from 'react-icons/fa';
+
+interface CalendarViewToggleProps {
+  currentView: CalendarView;
+  onViewChange: (view: CalendarView) => void;
+}
+
+export default function CalendarViewToggle({ currentView, onViewChange }: CalendarViewToggleProps) {
+  const views: { value: CalendarView; label: string; icon: React.ReactNode }[] = [
+    { value: 'month', label: 'Monat', icon: <FaCalendarAlt className="w-4 h-4" /> },
+    { value: 'week', label: 'Woche', icon: <FaCalendarWeek className="w-4 h-4" /> },
+    { value: 'day', label: 'Tag', icon: <FaCalendarDay className="w-4 h-4" /> }
+  ];
+
+  return (
+    <div className="flex bg-gray-100 rounded-lg p-1">
+      {views.map(({ value, label, icon }) => (
+        <button
+          key={value}
+          onClick={() => onViewChange(value)}
+          className={`
+            flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all
+            ${currentView === value
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }
+          `}
+        >
+          {icon}
+          <span className="hidden sm:inline">{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}

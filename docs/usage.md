@@ -4,8 +4,8 @@
 
 The Lernplaner application includes a comprehensive gamification system and subject management interface that helps users organize their learning with motivation and structure.
 
-**Current Version**: 1.2.0  
-**Latest Features**: Gamification System (Issue #2) + Subject Management Interface (Issue #3)
+**Current Version**: 1.3.0  
+**Latest Features**: Gamification System (Issue #2) + Subject Management Interface (Issue #3) + Interactive Calendar Component (Issue #4)
 
 ## Gamification Features
 
@@ -304,4 +304,115 @@ After mastering subject management, you can:
 
 ---
 
-*Last updated: Implementation of Issue #3 - Subject Management Interface (Version 1.2.0)*
+## 📅 Interactive Calendar Component (Issue #4)
+
+### Overview
+The Interactive Calendar Component provides a comprehensive scheduling and session management system with multiple view modes and responsive design.
+
+### 🗓️ Key Features
+
+#### **Calendar Views**
+- **Month View**: Full monthly calendar with CSS Grid layout
+- **Week View**: Weekly schedule view (placeholder implemented)
+- **Day View**: Daily agenda view (placeholder implemented)
+- **View Toggle**: Easy switching between Month/Week/Day views
+
+#### **Interactive Features**
+- **Date Selection**: Click any date to select and highlight it
+- **Session Display**: Color-coded sessions appear on calendar dates
+- **Navigation**: Previous/Next month arrows and "Heute" (Today) button
+- **Session Creation**: "Session" button enables when date is selected
+
+#### **Session Management**
+- **Color Coding**: Sessions inherit subject colors (Blue=Math, Green=Physics, Orange=Chemistry)
+- **Session Details**: Click sessions to view title, time, subject, description
+- **Visual Status**: Completed sessions shown with reduced opacity
+- **Session Types**: Support for study, exam, assignment, and break sessions
+
+### 🚀 How to Use
+
+#### **Navigating the Calendar**
+1. Navigate to **Calendar** page via top navigation
+2. Use **arrow buttons** to navigate between months
+3. Click **"Heute"** to jump to current date
+4. Select **view mode** using Month/Week/Day toggle buttons
+
+#### **Working with Sessions**
+1. **View Sessions**: Sessions appear as colored blocks on calendar dates
+2. **Select Date**: Click any date to select it (highlights in blue)
+3. **Session Details**: Click on any session to view full details below calendar
+4. **Create Session**: Select a date and click the blue "Session" button (placeholder)
+
+#### **Understanding Session Colors**
+- **Blue Sessions** (#3B82F6): Mathematics subjects
+- **Green Sessions** (#10B981): Physics subjects  
+- **Orange Sessions** (#F59E0B): Chemistry subjects
+- **Dimmed Appearance**: Completed sessions (reduced opacity)
+
+### 📱 Responsive Design
+- **Desktop**: Full calendar grid with complete navigation
+- **Tablet**: Responsive grid adapts to available screen space
+- **Mobile**: Compact layout with icon-only navigation buttons
+- **Touch-Friendly**: Optimized for mobile touch interactions
+
+### 🎨 Technical Implementation
+
+#### **Components Created**
+- **Calendar.tsx**: Main calendar container with state management
+- **CalendarGrid.tsx**: CSS Grid-based monthly calendar display
+- **CalendarViewToggle.tsx**: View mode switching component
+- **calendar.tsx**: Full calendar page with session details
+
+#### **Data Management**
+- **TypeScript Types**: Comprehensive calendar and session interfaces
+- **Mock Data**: Sample sessions for demonstration
+- **Date Utilities**: Helper functions for date manipulation and formatting
+- **State Management**: React hooks for view state and date selection
+
+#### **CSS Grid Layout**
+```css
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+```
+
+#### **Color Integration**
+Sessions automatically inherit subject colors using CSS custom properties and inline styles for dynamic color application.
+
+### 🧪 Testing Your Setup
+
+**Manual Testing Steps**:
+1. **Navigate to Calendar**: Click "Calendar" in top navigation
+2. **Test Month View**: Default view shows current month with proper grid layout
+3. **Test Date Selection**: Click any date to see selection highlight and info banner
+4. **Test Session Display**: Mock sessions should appear with proper colors
+5. **Test Navigation**: Use arrows to navigate months, "Heute" to return to today
+6. **Test View Toggle**: Month/Week/Day buttons should be clickable (Week/Day show placeholders)
+7. **Test Responsive**: Resize browser window to test mobile/tablet layouts
+8. **Test Session Details**: Click any session to see details panel below calendar
+
+### 🎯 Expected Behaviors
+
+- ✅ Calendar displays current month by default
+- ✅ Date selection highlights selected date in blue
+- ✅ Sessions appear with correct subject colors
+- ✅ Navigation arrows change months smoothly
+- ✅ "Heute" button returns to current date
+- ✅ View toggle shows active state (Month highlighted)
+- ✅ Responsive design works across all screen sizes
+- ✅ Session click shows details panel
+- ✅ German localization throughout interface
+
+### 🔧 Future Enhancements
+- Complete Week and Day view implementations
+- Session creation and editing modals
+- Drag-and-drop session rescheduling
+- Calendar integration with actual subject data
+- Export calendar events to external calendars
+- Recurring session support
+
+---
+
+*Last updated: Implementation of Issue #4 - Interactive Calendar Component (Version 1.3.0)*
