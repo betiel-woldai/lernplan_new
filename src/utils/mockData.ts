@@ -1,99 +1,34 @@
 import { UserStats, Achievement, Subject } from '@/types';
 
-// Mock achievements data
-export const mockAchievements: Achievement[] = [
-  {
-    id: '1',
-    name: 'First Steps',
-    description: 'Complete your first learning session',
-    icon: '🏆',
-    unlockedAt: new Date('2024-01-15'),
-    category: 'tasks'
-  },
-  {
-    id: '2', 
-    name: 'Week Warrior',
-    description: 'Maintain a 7-day learning streak',
-    icon: '⚡',
-    unlockedAt: new Date('2024-01-22'),
-    category: 'streak'
-  },
-  {
-    id: '3',
-    name: 'Study Master',
-    description: 'Complete 100 hours of learning',
-    icon: '🎓',
-    unlockedAt: new Date('2024-02-01'),
-    category: 'time'
-  }
-];
+// Empty achievements - ready for user to unlock
+export const mockAchievements: Achievement[] = [];
 
-// Mock user stats data
+// Fresh user stats - ready for new user to start
 export const mockUserStats: UserStats = {
   id: 'user-1',
-  name: 'Max Mustermann',
-  email: 'max@example.com',
+  name: 'New User',
+  email: 'user@example.com',
   
-  // Gamification Stats
-  currentLevel: 8,
-  currentXP: 1250,
-  nextLevelXP: 1600,
-  learningStreak: 12,
+  // Gamification Stats - starting from zero
+  currentLevel: 1,
+  currentXP: 0,
+  nextLevelXP: 100,
+  learningStreak: 0,
   
-  // Learning Stats  
-  dailyLearningTime: 87, // 1h 27min today
-  weeklyLearningTime: 420, // 7 hours this week
-  totalHours: 156,
-  completedTasks: 3, // today
-  totalCompletedTasks: 48,
+  // Learning Stats - all empty
+  dailyLearningTime: 0,
+  weeklyLearningTime: 0,
+  totalHours: 0,
+  completedTasks: 0,
+  totalCompletedTasks: 0,
   
   // Achievements
   achievements: mockAchievements,
   
   // Timestamps
-  createdAt: new Date('2024-01-01'),
+  createdAt: new Date(),
   lastActiveAt: new Date()
 };
 
-// Mock subjects data
-export const mockSubjects: Subject[] = [
-  {
-    id: '1',
-    userId: 'user-1',
-    name: 'Mathematik',
-    color: '#3B82F6',
-    startDate: new Date('2024-01-01'),
-    examDate: new Date('2024-06-15'),
-    hoursPerWeek: 10,
-    daysPerWeek: 5,
-    intensityWeeks: 6,
-    completedHours: 45,
-    targetHours: 120
-  },
-  {
-    id: '2',
-    userId: 'user-1', 
-    name: 'Physik',
-    color: '#10B981',
-    startDate: new Date('2024-01-01'),
-    examDate: new Date('2024-06-20'),
-    hoursPerWeek: 8,
-    daysPerWeek: 4,
-    intensityWeeks: 4,
-    completedHours: 32,
-    targetHours: 96
-  },
-  {
-    id: '3',
-    userId: 'user-1',
-    name: 'Chemie', 
-    color: '#F59E0B',
-    startDate: new Date('2024-01-01'),
-    examDate: new Date('2024-06-25'),
-    hoursPerWeek: 6,
-    daysPerWeek: 3,
-    intensityWeeks: 3,
-    completedHours: 28,
-    targetHours: 72
-  }
-];
+// Empty subjects array - ready for user to add their subjects
+export const mockSubjects: Subject[] = [];

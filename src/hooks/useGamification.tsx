@@ -25,14 +25,10 @@ export interface GamificationState {
 }
 
 const INITIAL_STATE: GamificationState = {
-  currentXP: 1250,
-  currentLevel: 8,
-  streak: 12,
-  achievements: [
-    { name: 'First Steps', icon: '🏆', category: 'tasks' },
-    { name: 'Week Warrior', icon: '⚡', category: 'streak' },
-    { name: 'Study Master', icon: '🎓', category: 'time' }
-  ],
+  currentXP: 0,
+  currentLevel: 1,
+  streak: 0,
+  achievements: [],
   events: [],
   levelUpModalOpen: false
 };
