@@ -30,24 +30,24 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
     const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
     const userId = params.userId || defaultUserId;
 
-    let whereConditions = ['user_id = $1'];
+    let whereConditions = ['ls.user_id = $1'];
     let queryParams: any[] = [userId];
     let paramIndex = 2;
 
     if (params.subjectId) {
-      whereConditions.push(`subject_id = $${paramIndex}`);
+      whereConditions.push(`ls.subject_id = $${paramIndex}`);
       queryParams.push(params.subjectId);
       paramIndex++;
     }
 
     if (params.startDate) {
-      whereConditions.push(`date >= $${paramIndex}`);
+      whereConditions.push(`ls.date >= $${paramIndex}`);
       queryParams.push(params.startDate);
       paramIndex++;
     }
 
     if (params.endDate) {
-      whereConditions.push(`date <= $${paramIndex}`);
+      whereConditions.push(`ls.date <= $${paramIndex}`);
       queryParams.push(params.endDate);
       paramIndex++;
     }
@@ -77,7 +77,8 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
     const countQuery = `
       SELECT COUNT(*) as total
       FROM learning_sessions ls
-      WHERE ${whereConditions.slice(0, -2).join(' AND ') || 'user_id = $1'}
+      JOIN subjects s ON ls.subject_id = s.id
+      WHERE ${whereConditions.slice(0, -2).join(' AND ') || 'ls.user_id = $1'}
     `;
 
     const [sessionsResult, countResult] = await Promise.all([
