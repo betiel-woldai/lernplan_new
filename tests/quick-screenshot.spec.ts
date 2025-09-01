@@ -1,27 +1,26 @@
 import { test } from '@playwright/test';
 
-test('Current Frontend State', async ({ page }) => {
-  // Dashboard
-  await page.goto('http://localhost:3000');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ 
-    path: 'tmp/dashboard-current.png', 
-    fullPage: true 
-  });
-  
-  // Subjects
-  await page.goto('http://localhost:3000/subjects');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ 
-    path: 'tmp/subjects-current.png', 
-    fullPage: true 
-  });
-  
-  // Calendar
-  await page.goto('http://localhost:3000/calendar');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ 
-    path: 'tmp/calendar-current.png', 
-    fullPage: true 
-  });
+test('Quick Analytics Screenshot', async ({ page }) => {
+  try {
+    console.log('📊 Navigating to analytics page...');
+    await page.goto('http://localhost:3000/analytics', { timeout: 10000 });
+    
+    console.log('⏱️ Waiting a moment for loading...');
+    await page.waitForTimeout(3000);
+    
+    console.log('📸 Taking screenshot...');
+    await page.screenshot({ 
+      path: 'tmp/analytics-current.png', 
+      fullPage: true 
+    });
+    
+    console.log('✅ Screenshot saved to tmp/analytics-current.png');
+  } catch (error) {
+    console.log('❌ Error:', error);
+    // Take screenshot anyway
+    await page.screenshot({ 
+      path: 'tmp/analytics-error.png', 
+      fullPage: true 
+    });
+  }
 });

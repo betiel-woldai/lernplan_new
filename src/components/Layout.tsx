@@ -69,7 +69,16 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 >
                   Calendar
                 </Link>
-                <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Progress</a>
+                <Link 
+                  href="/analytics" 
+                  className={`transition-colors ${
+                    isActive('/analytics') 
+                      ? 'text-blue-600 font-medium' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Analytics
+                </Link>
                 <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title="Version and build info">
                   {getVersionString()}
                 </div>

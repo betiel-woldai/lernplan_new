@@ -6,7 +6,11 @@ import SubjectCard from './SubjectCard';
 import SubjectModal from './SubjectModal';
 import useSubjects from '../hooks/useSubjects';
 
-export const SubjectsList: React.FC = () => {
+interface SubjectsListProps {
+  onStartSession?: (subject: Subject) => void;
+}
+
+export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) => {
   const {
     filteredSubjects,
     loading,
@@ -143,6 +147,7 @@ export const SubjectsList: React.FC = () => {
               subject={subject}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onStartSession={onStartSession}
             />
           ))}
         </div>
