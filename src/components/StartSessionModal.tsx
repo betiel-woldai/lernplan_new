@@ -144,7 +144,7 @@ export default function StartSessionModal({
             <select
               value={targetDuration}
               onChange={(e) => setTargetDuration(Number(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {durationOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -163,7 +163,7 @@ export default function StartSessionModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="What do you plan to work on during this session?"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
               maxLength={500}
             />

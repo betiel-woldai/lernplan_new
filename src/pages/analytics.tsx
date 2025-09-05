@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import { useLanguage } from '../contexts/LanguageContext';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -14,7 +15,15 @@ import {
   Filler 
 } from 'chart.js';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { Calendar, TrendingUp, Target, Award, Filter } from 'lucide-react';
+import { 
+  FaCalendar, 
+  FaChartLine,
+  FaBullseye, 
+  FaAward, 
+  FaFilter,
+  FaClock,
+  FaArrowUp 
+} from 'react-icons/fa';
 
 // Register Chart.js components
 ChartJS.register(
@@ -76,6 +85,7 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useLanguage();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
@@ -285,26 +295,26 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <Layout title="Progress Analytics - Lernplaner">
+    <Layout title={`${t('analytics.title')} - Lernplaner`}>
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Progress Analytics</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('analytics.title')}</h1>
             <p className="text-gray-600 mt-2">Track your learning progress and insights</p>
           </div>
           
           {/* Period Filter */}
           <div className="flex items-center space-x-2">
-            <Filter size={20} className="text-gray-500" />
+            <FaFilter className="w-5 h-5 text-gray-500" />
             <select 
               value={period} 
               onChange={(e) => setPeriod(e.target.value as 'week' | 'month' | 'year')}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
+              <option value="week">{t('period.thisWeek')}</option>
+              <option value="month">{t('period.thisMonth')}</option>
+              <option value="year">{t('period.thisYear')}</option>
             </select>
           </div>
         </div>
@@ -315,30 +325,30 @@ export default function AnalyticsPage() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Hours</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.totalHours')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.totalHours}h</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-600" />
+                <FaArrowUp className="h-8 w-8 text-blue-600" />
               </div>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sessions</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.sessions')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.totalSessions}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-green-600" />
+                <FaCalendar className="h-8 w-8 text-green-600" />
               </div>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total XP</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.totalXP')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.totalXP}</p>
                 </div>
-                <Award className="h-8 w-8 text-purple-600" />
+                <FaAward className="h-8 w-8 text-purple-600" />
               </div>
             </div>
             
@@ -348,7 +358,7 @@ export default function AnalyticsPage() {
                   <p className="text-sm font-medium text-gray-600">Avg Session</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.averageSessionLength}h</p>
                 </div>
-                <Target className="h-8 w-8 text-orange-600" />
+                <FaBullseye className="h-8 w-8 text-orange-600" />
               </div>
             </div>
           </div>

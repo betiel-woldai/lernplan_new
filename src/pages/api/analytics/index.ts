@@ -289,7 +289,7 @@ async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Invalid query parameters',
-        details: error.errors
+        details: error.issues
       });
     }
 

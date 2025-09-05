@@ -31,6 +31,7 @@ export interface Achievement {
   icon: string;
   unlockedAt: Date;
   category: 'streak' | 'time' | 'tasks' | 'level';
+  isNew?: boolean;
 }
 
 export interface Subject {

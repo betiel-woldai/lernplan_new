@@ -1,5 +1,5 @@
 // Database connection utilities for Lernplaner PostgreSQL setup
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 // Database configuration type
 interface DatabaseConfig {
@@ -67,7 +67,7 @@ export function getPool(): Pool {
 }
 
 // Query helper function with error handling
-export async function query<T = any>(
+export async function query<T extends QueryResultRow = any>(
   text: string, 
   params?: any[]
 ): Promise<QueryResult<T>> {

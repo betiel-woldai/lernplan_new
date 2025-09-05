@@ -6,7 +6,7 @@ const xpUpdateSchema = z.object({
   userId: z.string(),
   xpGain: z.number().min(1).max(1000),
   reason: z.string().max(255),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,7 +30,7 @@ async function addXP(req: NextApiRequest, res: NextApiResponse) {
   if (!validation.success) {
     return res.status(400).json({ 
       error: 'Validation failed',
-      details: validation.error.errors 
+      details: validation.error.issues 
     });
   }
 

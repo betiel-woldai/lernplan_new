@@ -1,8 +1,11 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { FaCog } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
+import { useLanguage } from '../contexts/LanguageContext';
+import SettingsModal from './SettingsModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +14,8 @@ interface LayoutProps {
 
 export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) {
   const router = useRouter();
+  const { t } = useLanguage();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isActive = (path: string) => {
     return router.pathname === path;
@@ -47,7 +52,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
                 <Link 
                   href="/subjects" 
@@ -57,7 +62,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Subjects
+                  {t('nav.subjects')}
                 </Link>
                 <Link 
                   href="/calendar" 
@@ -67,7 +72,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Calendar
+                  {t('nav.calendar')}
                 </Link>
                 <Link 
                   href="/analytics" 
@@ -77,9 +82,18 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Analytics
+                  {t('nav.analytics')}
                 </Link>
-                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title="Version and build info">
+                {/* Settings Button */}
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title={t('nav.settings')}
+                >
+                  <FaCog className="w-4 h-4" />
+                </button>
+                
+                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title={t('version.title')}>
                   {getVersionString()}
                 </div>
               </nav>
@@ -100,6 +114,12 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
             </div>
           </div>
         </footer>
+
+        {/* Settings Modal */}
+        <SettingsModal 
+          isOpen={isSettingsOpen} 
+          onClose={() => setIsSettingsOpen(false)} 
+        />
       </div>
     </>
   );

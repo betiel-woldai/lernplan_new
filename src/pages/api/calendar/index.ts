@@ -88,7 +88,7 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
   if (!validation.success) {
     return res.status(400).json({ 
       error: 'Validation failed',
-      details: validation.error.errors 
+      details: validation.error.issues 
     });
   }
 
