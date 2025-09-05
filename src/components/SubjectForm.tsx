@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { subjectSchema, type SubjectFormData } from '../schemas/subjectSchema';
 import { Subject } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 import ColorPicker from './ColorPicker';
 
 export interface SubjectFormProps {
@@ -18,6 +19,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
   initialData, 
   mode 
 }) => {
+  const { t } = useLanguage();
   const {
     register,
     handleSubmit,
@@ -40,12 +42,12 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          {mode === 'create' ? 'Add New Subject' : 'Edit Subject'}
+          {mode === 'create' ? t('subjects.addNew') : t('subjects.edit')}
         </h2>
         <p className="text-gray-600 mt-1">
           {mode === 'create' 
-            ? 'Create a new subject with your preferred settings and color.' 
-            : 'Update your subject details and preferences.'
+            ? t('subject.createDescription') 
+            : t('subject.editDescription')
           }
         </p>
       </div>
@@ -54,17 +56,18 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
         {/* Subject Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Subject Name *
+            {t('subject.name')} *
           </label>
           <input
             {...register('name')}
             type="text"
             id="name"
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+            className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
               errors.name ? 'border-red-500' : 'border-gray-300'
             }`}
-            placeholder="e.g., Mathematics, Physics, Chemistry"
+            placeholder={t('subject.name.placeholder')}
           />
+          {/* FIXED: Added text-gray-900 class to all input fields for proper visibility */}
           {errors.name && (
             <p className="mt-1 text-sm text-red-600" role="alert">
               {errors.name.message}
@@ -75,7 +78,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
         {/* Color Picker */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Subject Color *
+            {t('subject.color')} *
           </label>
           <Controller
             name="color"
@@ -94,13 +97,13 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date *
+              {t('subject.startDate')} *
             </label>
             <input
               {...register('startDate')}
               type="date"
               id="startDate"
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.startDate ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -113,13 +116,13 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
 
           <div>
             <label htmlFor="examDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Exam Date *
+              {t('subject.examDate')} *
             </label>
             <input
               {...register('examDate')}
               type="date"
               id="examDate"
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.examDate ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -135,7 +138,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="hoursPerWeek" className="block text-sm font-medium text-gray-700 mb-2">
-              Hours per Week *
+              {t('subject.hoursPerWeek')} *
             </label>
             <input
               {...register('hoursPerWeek', { valueAsNumber: true })}
@@ -143,7 +146,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
               id="hoursPerWeek"
               min="1"
               max="40"
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.hoursPerWeek ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -156,7 +159,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
 
           <div>
             <label htmlFor="daysPerWeek" className="block text-sm font-medium text-gray-700 mb-2">
-              Days per Week *
+              {t('subject.daysPerWeek')} *
             </label>
             <input
               {...register('daysPerWeek', { valueAsNumber: true })}
@@ -164,7 +167,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
               id="daysPerWeek"
               min="1"
               max="7"
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.daysPerWeek ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -177,7 +180,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
 
           <div>
             <label htmlFor="intensityWeeks" className="block text-sm font-medium text-gray-700 mb-2">
-              Intensity Weeks *
+              {t('subject.intensityWeeks')} *
             </label>
             <input
               {...register('intensityWeeks', { valueAsNumber: true })}
@@ -185,12 +188,12 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
               id="intensityWeeks"
               min="1"
               max="20"
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.intensityWeeks ? 'border-red-500' : 'border-gray-300'
               }`}
             />
             <p className="mt-1 text-xs text-gray-500">
-              Weeks before exam for intensive study
+              {t('subject.intensityWeeks.help')}
             </p>
             {errors.intensityWeeks && (
               <p className="mt-1 text-sm text-red-600" role="alert">
@@ -208,7 +211,7 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             disabled={isSubmitting}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -216,10 +219,10 @@ export const SubjectForm: React.FC<SubjectFormProps> = ({
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting 
-              ? 'Saving...' 
+              ? t('common.saving') 
               : mode === 'create' 
-                ? 'Create Subject' 
-                : 'Update Subject'
+                ? t('subjects.addNew') 
+                : t('subjects.edit')
             }
           </button>
         </div>

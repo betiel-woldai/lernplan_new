@@ -59,9 +59,9 @@ export const useUserStats = (): UseUserStatsReturn => {
         completedTasks: 3,
         totalCompletedTasks: 48,
         achievements: [
-          { id: '1', name: 'First Steps', icon: '🏆', category: 'tasks', unlockedAt: new Date(), isNew: false },
-          { id: '2', name: 'Week Warrior', icon: '⚡', category: 'streak', unlockedAt: new Date(), isNew: false },
-          { id: '3', name: 'Study Master', icon: '🎓', category: 'time', unlockedAt: new Date(), isNew: true }
+          { id: '1', name: 'First Steps', description: 'Complete your first task', icon: '🏆', category: 'tasks', unlockedAt: new Date(), isNew: false },
+          { id: '2', name: 'Week Warrior', description: '7-day learning streak', icon: '⚡', category: 'streak', unlockedAt: new Date(), isNew: false },
+          { id: '3', name: 'Study Master', description: '50 hours of study time', icon: '🎓', category: 'time', unlockedAt: new Date(), isNew: true }
         ],
         createdAt: new Date(),
         lastActiveAt: new Date(),
