@@ -5,12 +5,14 @@ import { SubjectFormData } from '../schemas/subjectSchema';
 import SubjectCard from './SubjectCard';
 import SubjectModal from './SubjectModal';
 import useSubjects from '../hooks/useSubjects';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SubjectsListProps {
   onStartSession?: (subject: Subject) => void;
 }
 
 export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) => {
+  const { t } = useLanguage();
   const {
     filteredSubjects,
     loading,
@@ -69,7 +71,7 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading subjects...</span>
+        <span className="ml-2 text-gray-600">{t('common.loading')}</span>
       </div>
     );
   }
@@ -79,9 +81,9 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Subjects</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('subjects.title')}</h1>
           <p className="text-gray-600 mt-1">
-            Manage your subjects with personalized settings and track your progress.
+            {t('subjects.description')}
           </p>
         </div>
         <button
@@ -89,7 +91,7 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
         >
           <FaPlus className="w-4 h-4 mr-2" />
-          Add Subject
+          {t('subjects.add')}
         </button>
       </div>
 
@@ -99,10 +101,10 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="Search subjects by name or color..."
+            placeholder={t('subjects.search.placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -121,12 +123,12 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
             <FaFilter className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm ? 'No subjects found' : 'No subjects yet'}
+            {searchTerm ? t('subjects.noResults') : t('subjects.noSubjects')}
           </h3>
           <p className="text-gray-600 mb-6">
             {searchTerm 
-              ? 'Try adjusting your search terms or filters.' 
-              : 'Get started by adding your first subject.'
+              ? t('subjects.noResultsHelp')
+              : t('subjects.noSubjectsHelp')
             }
           </p>
           {!searchTerm && (
@@ -135,7 +137,7 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <FaPlus className="w-4 h-4 mr-2" />
-              Add Your First Subject
+              {t('subjects.addFirst')}
             </button>
           )}
         </div>
