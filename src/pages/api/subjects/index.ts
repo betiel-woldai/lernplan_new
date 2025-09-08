@@ -149,12 +149,12 @@ async function syncSubjectToCalendar(subject: any) {
     targetHours: subject.targetHours
   };
 
-  // Generate calendar events (exams and assignments only, no study sessions)
+  // Generate calendar events (exams, assignments, and study sessions)
   const calendarEvents = generateCalendarEventsFromSubjects([formattedSubject], {
     includeExams: true,
     includeTaskDeadlines: true,
-    includeStudySessions: false,
-    studySessionsWeeksAhead: 2
+    includeStudySessions: true,
+    studySessionsWeeksAhead: 4  // Generate 4 weeks ahead of study sessions
   });
 
   // Save calendar events to database

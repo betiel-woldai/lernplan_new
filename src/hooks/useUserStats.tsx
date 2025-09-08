@@ -44,28 +44,8 @@ export const useUserStats = (): UseUserStatsReturn => {
       console.error('Failed to fetch user stats:', err);
       setError(errorMessage);
       
-      // Set fallback mock data if API fails
-      setUserStats({
-        id: 'default-user',
-        name: 'Max Mustermann',
-        email: 'max@example.com',
-        currentLevel: 8,
-        currentXP: 1250,
-        nextLevelXP: 1600,
-        learningStreak: 12,
-        dailyLearningTime: 87, // minutes
-        weeklyLearningTime: 420, // minutes
-        totalHours: 25,
-        completedTasks: 3,
-        totalCompletedTasks: 48,
-        achievements: [
-          { id: '1', name: 'First Steps', description: 'Complete your first task', icon: '🏆', category: 'tasks', unlockedAt: new Date(), isNew: false },
-          { id: '2', name: 'Week Warrior', description: '7-day learning streak', icon: '⚡', category: 'streak', unlockedAt: new Date(), isNew: false },
-          { id: '3', name: 'Study Master', description: '50 hours of study time', icon: '🎓', category: 'time', unlockedAt: new Date(), isNew: true }
-        ],
-        createdAt: new Date(),
-        lastActiveAt: new Date(),
-      });
+      // No fallback data - user needs to set up their account
+      setUserStats(null);
     } finally {
       setLoading(false);
     }

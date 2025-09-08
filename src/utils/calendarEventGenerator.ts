@@ -80,8 +80,19 @@ export function generateExamEvent(subject: Subject): CalendarSession | null {
 }
 
 export function generateTaskDeadlineEvent(task: SubjectTask, subject: Subject): CalendarSession {
+  // Generate a deterministic UUID for the task deadline
+  const crypto = require('crypto');
+  const hash = crypto.createHash('sha256').update(`task-${task.id}`).digest('hex');
+  const uuid = [
+    hash.substring(0, 8),
+    hash.substring(8, 12),
+    hash.substring(12, 16),
+    hash.substring(16, 20),
+    hash.substring(20, 32)
+  ].join('-');
+
   return {
-    id: `task-${task.id}`,
+    id: uuid,
     title: `${subject.name} ${task.title} Due`,
     subjectId: subject.id,
     subjectName: subject.name,
@@ -122,8 +133,20 @@ function generateStudySessionsForSubject(subject: Subject, weeksAhead: number): 
       
       const endTime = new Date(sessionDate.getTime() + hoursPerSession * 60 * 60 * 1000);
       
+      // Generate a deterministic UUID for the study session
+      const crypto = require('crypto');
+      const sessionId = `${subject.id}-${sessionDate.toISOString().split('T')[0]}-${sessionCount}`;
+      const hash = crypto.createHash('sha256').update(`study-${sessionId}`).digest('hex');
+      const uuid = [
+        hash.substring(0, 8),
+        hash.substring(8, 12),
+        hash.substring(12, 16),
+        hash.substring(16, 20),
+        hash.substring(20, 32)
+      ].join('-');
+
       sessions.push({
-        id: `study-${subject.id}-${sessionDate.toISOString().split('T')[0]}-${sessionCount}`,
+        id: uuid,
         title: `${subject.name} Study Session`,
         subjectId: subject.id,
         subjectName: subject.name,

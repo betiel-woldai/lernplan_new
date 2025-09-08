@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import Calendar from '@/components/Calendar/Calendar';
 import { CalendarSession } from '@/types/calendar';
+import { useSubjects } from '@/hooks/useSubjects';
 
 export default function CalendarPage() {
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
+  const { subjects, loading: subjectsLoading } = useSubjects();
   
   const handleSessionClick = (session: CalendarSession) => {
     setSelectedSession(session);
@@ -97,24 +99,32 @@ export default function CalendarPage() {
         {/* Calendar Legend */}
         <div className="bg-gray-50 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Legende</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-blue-500"></div>
-              <span className="text-sm text-gray-700">Mathematik</span>
+          {subjectsLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-pulse text-gray-500">Lade Fächer...</div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-green-500"></div>
-              <span className="text-sm text-gray-700">Physik</span>
+          ) : subjects.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {subjects.map((subject) => (
+                <div key={subject.id} className="flex items-center space-x-2">
+                  <div 
+                    className="w-4 h-4 rounded"
+                    style={{ backgroundColor: subject.color }}
+                  ></div>
+                  <span className="text-sm text-gray-700 truncate">{subject.name}</span>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded bg-gray-400 opacity-70"></div>
+                <span className="text-sm text-gray-700">Abgeschlossen</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-yellow-500"></div>
-              <span className="text-sm text-gray-700">Chemie</span>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-500 text-sm">Keine Fächer vorhanden.</p>
+              <p className="text-gray-400 text-xs mt-1">Füge Fächer hinzu, um sie hier zu sehen.</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded bg-gray-400 opacity-70"></div>
-              <span className="text-sm text-gray-700">Abgeschlossen</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </Layout>

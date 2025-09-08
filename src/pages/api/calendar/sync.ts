@@ -30,9 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const subject of subjectsResult.rows) {
       const calendarEvents = generateCalendarEventsFromSubjects([subject], {
         includeExams: true,
-        includeTaskDeadlines: false,
-        includeStudySessions: false,
-        studySessionsWeeksAhead: 2
+        includeTaskDeadlines: true,
+        includeStudySessions: true,
+        studySessionsWeeksAhead: 4  // Generate 4 weeks ahead of study sessions
       });
 
       for (const event of calendarEvents) {
