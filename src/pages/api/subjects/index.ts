@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { z } from 'zod';
+import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
 
 // Validation schema for creating/updating subjects
 const subjectSchema = z.object({
@@ -117,6 +118,9 @@ async function createSubject(req: NextApiRequest, res: NextApiResponse) {
 
   const subject = result.rows[0];
   
+  // Generate and save calendar events for the new subject
+  await syncSubjectToCalendar(subject);
+  
   // Convert dates for JSON serialization
   const responseSubject = {
     ...subject,
@@ -127,4 +131,55 @@ async function createSubject(req: NextApiRequest, res: NextApiResponse) {
   };
 
   return res.status(201).json(responseSubject);
+}
+
+async function syncSubjectToCalendar(subject: any) {
+  // Convert database subject format to Subject interface format
+  const formattedSubject = {
+    id: subject.id,
+    userId: subject.userId,
+    name: subject.name,
+    color: subject.color,
+    startDate: subject.startDate,
+    examDate: subject.examDate,
+    hoursPerWeek: subject.hoursPerWeek,
+    daysPerWeek: subject.daysPerWeek,
+    intensityWeeks: subject.intensityWeeks,
+    completedHours: subject.completedHours,
+    targetHours: subject.targetHours
+  };
+
+  // Generate calendar events (exams and assignments only, no study sessions)
+  const calendarEvents = generateCalendarEventsFromSubjects([formattedSubject], {
+    includeExams: true,
+    includeTaskDeadlines: true,
+    includeStudySessions: false,
+    studySessionsWeeksAhead: 2
+  });
+
+  // Save calendar events to database
+  for (const event of calendarEvents) {
+    await query(`
+      INSERT INTO calendar_sessions (
+        id, subject_id, user_id, title, start_time, end_time, 
+        duration, session_type, completed, description
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        start_time = EXCLUDED.start_time,
+        end_time = EXCLUDED.end_time,
+        updated_at = NOW()
+    `, [
+      event.id,
+      event.subjectId,
+      subject.userId,
+      event.title,
+      event.startTime,
+      event.endTime,
+      event.duration,
+      event.type,
+      event.completed,
+      event.description || null
+    ]);
+  }
 }

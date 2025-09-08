@@ -33,5 +33,6 @@ This file provides guidance to Claude Code when working with code in this reposi
 Use the command line below to notify the user every signle time Claude Code execution finishes, whether it's waiting for input or a task is complete.
 
 ```
-osascript -e 'display notification "Waiting for your input" with title "Claude Code" sound name "Glass"'
+osascript -e 'display noti
+fication "Waiting for your input" with title "Claude Code" sound name "Glass"'
 ```

@@ -1,0 +1,67 @@
+{
+    "NPI": [
+      {
+        "id": 1,
+        "A": "I have a natural talent for influencing people.",
+        "B": "I am not good at influencing people.",
+        "key": "A"
+      },
+      {
+        "id": 2,
+        "A": "Modesty doesn’t become me.",
+        "B": "I am essentially a modest person.",
+        "key": "A"
+      },
+      {
+        "id": 3,
+        "A": "I would do almost anything on a dare.",
+        "B": "I tend to be a fairly cautious person.",
+        "key": "A"
+      },
+      {
+        "id": 4,
+        "A": "When people compliment me I sometimes get embarrassed.",
+        "B": "I know that I am good because everybody keeps telling me so.",
+        "key": "B"
+      },
+      {
+        "id": 5,
+        "A": "The thought of ruling the world frightens the hell out of me.",
+        "B": "If I ruled the world it would be a better place.",
+        "key": "B"
+      },
+      {
+        "id": 6,
+        "A": "I can usually talk my way out of anything.",
+        "B": "I try to accept the consequences of my behavior.",
+        "key": "A"
+      },
+      {
+        "id": 7,
+        "A": "I prefer to blend in with the crowd.",
+        "B": "I like to be the center of attention.",
+        "key": "B"
+      },
+      {
+        "id": 8,
+        "A": "I will be a success.",
+        "B": "I am not too concerned about success.",
+        "key": "A"
+      },
+      {
+        "id": 9,
+        "A": "I am no better or worse than most people.",
+        "B": "I think I am a special person.",
+        "key": "B"
+      },
+      {
+        "id": 10,
+        "A": "I am not sure if I would make a good leader.",
+        "B": "I see myself as a good leader.",
+        "key": "B"
+      }
+      // ... kann auf die restlichen 30 Fragen fortgesetzt werden
+    ],
+    "citation": "Raskin, R.N., & Hall, C.S. (1981). The narcissistic personality inventory: Alternative form reliability and further evidence of construct validity. Journal of Personality Assessment, 45, 159-16."
+  }
+  

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { z } from 'zod';
+import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
 
 const updateSubjectSchema = z.object({
   name: z.string().min(1).max(255).optional(),
@@ -165,6 +166,9 @@ async function updateSubject(id: string, req: NextApiRequest, res: NextApiRespon
 
   const subject = result.rows[0];
   
+  // Sync updated subject to calendar
+  await syncSubjectToCalendar(subject);
+  
   // Convert dates for JSON serialization
   const responseSubject = {
     ...subject,
@@ -178,6 +182,9 @@ async function updateSubject(id: string, req: NextApiRequest, res: NextApiRespon
 }
 
 async function deleteSubject(id: string, res: NextApiResponse) {
+  // Delete associated calendar sessions first
+  await query('DELETE FROM calendar_sessions WHERE subject_id = $1', [id]);
+  
   const result = await query('DELETE FROM subjects WHERE id = $1 RETURNING id', [id]);
 
   if (result.rows.length === 0) {
@@ -185,4 +192,53 @@ async function deleteSubject(id: string, res: NextApiResponse) {
   }
 
   return res.status(200).json({ message: 'Subject deleted successfully' });
+}
+
+async function syncSubjectToCalendar(subject: any) {
+  // First, delete existing calendar events for this subject
+  await query('DELETE FROM calendar_sessions WHERE subject_id = $1', [subject.id]);
+  
+  // Convert database subject format to Subject interface format
+  const formattedSubject = {
+    id: subject.id,
+    userId: subject.userId,
+    name: subject.name,
+    color: subject.color,
+    startDate: subject.startDate,
+    examDate: subject.examDate,
+    hoursPerWeek: subject.hoursPerWeek,
+    daysPerWeek: subject.daysPerWeek,
+    intensityWeeks: subject.intensityWeeks,
+    completedHours: subject.completedHours,
+    targetHours: subject.targetHours
+  };
+
+  // Generate calendar events (exams only)
+  const calendarEvents = generateCalendarEventsFromSubjects([formattedSubject], {
+    includeExams: true,
+    includeTaskDeadlines: false,
+    includeStudySessions: false,
+    studySessionsWeeksAhead: 2
+  });
+
+  // Save calendar events to database
+  for (const event of calendarEvents) {
+    await query(`
+      INSERT INTO calendar_sessions (
+        id, subject_id, user_id, title, start_time, end_time, 
+        duration, session_type, completed, description
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `, [
+      event.id,
+      event.subjectId,
+      subject.userId,
+      event.title,
+      event.startTime,
+      event.endTime,
+      event.duration,
+      event.type,
+      event.completed,
+      event.description || null
+    ]);
+  }
 }
