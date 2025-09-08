@@ -28,7 +28,8 @@ export default function Calendar({
     loading, 
     error, 
     fetchSessionsForMonth, 
-    getSessionsForDate 
+    getSessionsForDate,
+    syncFromSubjects
   } = useCalendarSessions();
 
   // Load sessions for current month on mount and when month changes
@@ -37,6 +38,25 @@ export default function Calendar({
     const currentMonth = viewState.currentDate.getMonth() + 1; // API expects 1-based month
     fetchSessionsForMonth(currentYear, currentMonth);
   }, [viewState.currentDate, fetchSessionsForMonth]);
+
+  // Listen for subject changes and auto-sync calendar
+  useEffect(() => {
+    const handleSubjectChange = async () => {
+      console.log('Subject changed, syncing calendar...');
+      await syncFromSubjects();
+    };
+
+    // Listen to custom events from subject hooks
+    window.addEventListener('subjectCreated', handleSubjectChange);
+    window.addEventListener('subjectUpdated', handleSubjectChange);  
+    window.addEventListener('subjectDeleted', handleSubjectChange);
+
+    return () => {
+      window.removeEventListener('subjectCreated', handleSubjectChange);
+      window.removeEventListener('subjectUpdated', handleSubjectChange);
+      window.removeEventListener('subjectDeleted', handleSubjectChange);
+    };
+  }, [syncFromSubjects]);
 
   const handleViewChange = useCallback((view: CalendarView) => {
     setViewState(prev => ({ ...prev, currentView: view }));

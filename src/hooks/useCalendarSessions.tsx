@@ -13,6 +13,7 @@ export interface UseCalendarSessionsReturn {
   getSessionsForDate: (date: Date) => CalendarSession[];
   createSession: (sessionData: Omit<CalendarSession, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   refreshSessions: () => Promise<void>;
+  syncFromSubjects: () => Promise<void>;
 }
 
 export const useCalendarSessions = (): UseCalendarSessionsReturn => {
@@ -153,6 +154,34 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     await fetchSessionsForMonth(now.getFullYear(), now.getMonth() + 1);
   }, [fetchSessionsForMonth]);
 
+  // Force refresh when subjects are updated (for external sync)
+  const syncFromSubjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // First trigger backend sync
+      const syncResponse = await fetch('/api/calendar/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: DEFAULT_USER_ID })
+      });
+      
+      if (!syncResponse.ok) {
+        throw new Error('Failed to sync calendar');
+      }
+      
+      // Then refresh local data
+      await refreshSessions();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync calendar';
+      setError(errorMessage);
+      console.error('Calendar sync error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshSessions]);
+
   return {
     sessions,
     loading,
@@ -162,6 +191,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     getSessionsForDate,
     createSession,
     refreshSessions,
+    syncFromSubjects,
   };
 };
 

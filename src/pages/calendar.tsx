@@ -6,7 +6,24 @@ import { useSubjects } from '@/hooks/useSubjects';
 
 export default function CalendarPage() {
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
-  const { subjects, loading: subjectsLoading } = useSubjects();
+  const { subjects, loading: subjectsLoading, refreshSubjects } = useSubjects();
+
+  // Listen for subject changes to refresh legend
+  React.useEffect(() => {
+    const handleSubjectChange = () => {
+      refreshSubjects();
+    };
+
+    window.addEventListener('subjectCreated', handleSubjectChange);
+    window.addEventListener('subjectUpdated', handleSubjectChange);
+    window.addEventListener('subjectDeleted', handleSubjectChange);
+
+    return () => {
+      window.removeEventListener('subjectCreated', handleSubjectChange);
+      window.removeEventListener('subjectUpdated', handleSubjectChange);
+      window.removeEventListener('subjectDeleted', handleSubjectChange);
+    };
+  }, [refreshSubjects]);
   
   const handleSessionClick = (session: CalendarSession) => {
     setSelectedSession(session);

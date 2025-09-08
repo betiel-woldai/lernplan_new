@@ -105,6 +105,11 @@ export const useSubjects = (): UseSubjectsReturn => {
       };
 
       setSubjects(prev => [...prev, subjectWithDates]);
+
+      // Emit custom event to notify calendar about new subject
+      window.dispatchEvent(new CustomEvent('subjectCreated', { 
+        detail: { subject: subjectWithDates } 
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create subject';
       setError(errorMessage);
@@ -152,6 +157,11 @@ export const useSubjects = (): UseSubjectsReturn => {
       setSubjects(prev => prev.map(subject => 
         subject.id === id ? subjectWithDates : subject
       ));
+
+      // Emit custom event to notify calendar about subject changes
+      window.dispatchEvent(new CustomEvent('subjectUpdated', { 
+        detail: { subjectId: id, updatedSubject: subjectWithDates } 
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update subject';
       setError(errorMessage);
@@ -177,6 +187,11 @@ export const useSubjects = (): UseSubjectsReturn => {
       }
 
       setSubjects(prev => prev.filter(subject => subject.id !== id));
+
+      // Emit custom event to notify calendar about subject deletion
+      window.dispatchEvent(new CustomEvent('subjectDeleted', { 
+        detail: { subjectId: id } 
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete subject';
       setError(errorMessage);
