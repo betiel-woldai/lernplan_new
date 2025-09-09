@@ -1,0 +1,158 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "L Lernplaner" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9] [cursor=pointer]: L
+          - heading "Lernplaner" [level=1] [ref=e10] [cursor=pointer]
+        - navigation [ref=e11]:
+          - link "Übersicht" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - link "Fächer" [ref=e13] [cursor=pointer]:
+            - /url: /subjects
+          - link "Kalender" [ref=e14] [cursor=pointer]:
+            - /url: /calendar
+          - link "Statistiken" [ref=e15] [cursor=pointer]:
+            - /url: /analytics
+          - button "Einstellungen" [ref=e16] [cursor=pointer]:
+            - img [ref=e17] [cursor=pointer]
+          - generic "Version und Build-Info" [ref=e19]: v1.3.0 (dd69d0e)
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e23]:
+          - heading "Kalender" [level=1] [ref=e24]
+          - paragraph [ref=e25]: Verwalte deine Lernsessions und plane deine Studienzeit effektiv.
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - generic [ref=e29]:
+                - button "Vorheriger Monat" [ref=e30] [cursor=pointer]:
+                  - img [ref=e31] [cursor=pointer]
+                - heading "September 2025" [level=2] [ref=e33]
+                - button "Nächster Monat" [ref=e34] [cursor=pointer]:
+                  - img [ref=e35] [cursor=pointer]
+              - button "Heute" [ref=e37] [cursor=pointer]
+            - generic [ref=e38]:
+              - button "Session" [disabled] [ref=e39]:
+                - img [ref=e40]
+                - generic [ref=e42]: Session
+              - generic [ref=e43]:
+                - button "Monat" [ref=e44] [cursor=pointer]:
+                  - img [ref=e45] [cursor=pointer]
+                  - generic [ref=e47] [cursor=pointer]: Monat
+                - button "Woche" [ref=e48] [cursor=pointer]:
+                  - img [ref=e49] [cursor=pointer]
+                  - generic [ref=e51] [cursor=pointer]: Woche
+                - button "Tag" [ref=e52] [cursor=pointer]:
+                  - img [ref=e53] [cursor=pointer]
+                  - generic [ref=e55] [cursor=pointer]: Tag
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - generic [ref=e59]: So
+              - generic [ref=e60]: Mo
+              - generic [ref=e61]: Di
+              - generic [ref=e62]: Mi
+              - generic [ref=e63]: Do
+              - generic [ref=e64]: Fr
+              - generic [ref=e65]: Sa
+            - generic [ref=e66]:
+              - generic [ref=e68] [cursor=pointer]: "31"
+              - generic [ref=e70] [cursor=pointer]: "1"
+              - generic [ref=e72] [cursor=pointer]: "2"
+              - generic [ref=e74] [cursor=pointer]: "3"
+              - generic [ref=e76] [cursor=pointer]: "4"
+              - generic [ref=e78] [cursor=pointer]: "5"
+              - generic [ref=e80] [cursor=pointer]: "6"
+              - generic [ref=e82] [cursor=pointer]: "7"
+              - generic [ref=e84] [cursor=pointer]: "8"
+              - generic [ref=e85] [cursor=pointer]:
+                - generic [ref=e86] [cursor=pointer]: "9"
+                - generic [ref=e87] [cursor=pointer]:
+                  - generic "Chemie Study Session - 14:00" [ref=e88] [cursor=pointer]: Chemie Study Session
+                  - generic "physik Study Session - 14:00" [ref=e89] [cursor=pointer]: physik Study Session
+                  - generic "Mathe Study Session - 14:00" [ref=e90] [cursor=pointer]: Mathe Study Session
+              - generic [ref=e91] [cursor=pointer]:
+                - generic [ref=e92] [cursor=pointer]: "10"
+                - generic [ref=e93] [cursor=pointer]:
+                  - generic "Mathe Study Session - 14:00" [ref=e94] [cursor=pointer]: Mathe Study Session
+                  - generic "physik Study Session - 14:00" [ref=e95] [cursor=pointer]: physik Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e96] [cursor=pointer]: Chemie Study Session
+              - generic [ref=e97] [cursor=pointer]:
+                - generic [ref=e98] [cursor=pointer]: "11"
+                - generic [ref=e99] [cursor=pointer]:
+                  - generic "Mathe Study Session - 14:00" [ref=e100] [cursor=pointer]: Mathe Study Session
+                  - generic "physik Study Session - 14:00" [ref=e101] [cursor=pointer]: physik Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e102] [cursor=pointer]: Chemie Study Session
+              - generic [ref=e104] [cursor=pointer]: "12"
+              - generic [ref=e106] [cursor=pointer]: "13"
+              - generic [ref=e108] [cursor=pointer]: "14"
+              - generic [ref=e110] [cursor=pointer]: "15"
+              - generic [ref=e111] [cursor=pointer]:
+                - generic [ref=e112] [cursor=pointer]: "16"
+                - generic [ref=e113] [cursor=pointer]:
+                  - generic "physik Study Session - 14:00" [ref=e114] [cursor=pointer]: physik Study Session
+                  - generic "Mathe Study Session - 14:00" [ref=e115] [cursor=pointer]: Mathe Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e116] [cursor=pointer]: Chemie Study Session
+              - generic [ref=e117] [cursor=pointer]:
+                - generic [ref=e118] [cursor=pointer]: "17"
+                - generic [ref=e119] [cursor=pointer]:
+                  - generic "Mathe Study Session - 14:00" [ref=e120] [cursor=pointer]: Mathe Study Session
+                  - generic "physik Study Session - 14:00" [ref=e121] [cursor=pointer]: physik Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e122] [cursor=pointer]: Chemie Study Session
+              - generic [ref=e123] [cursor=pointer]:
+                - generic [ref=e124] [cursor=pointer]: "18"
+                - generic [ref=e125] [cursor=pointer]:
+                  - generic "Mathe Study Session - 14:00" [ref=e126] [cursor=pointer]: Mathe Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e127] [cursor=pointer]: Chemie Study Session
+                  - generic "physik Study Session - 14:00" [ref=e128] [cursor=pointer]: physik Study Session
+              - generic [ref=e130] [cursor=pointer]: "19"
+              - generic [ref=e132] [cursor=pointer]: "20"
+              - generic [ref=e134] [cursor=pointer]: "21"
+              - generic [ref=e136] [cursor=pointer]: "22"
+              - generic [ref=e137] [cursor=pointer]:
+                - generic [ref=e138] [cursor=pointer]: "23"
+                - generic [ref=e139] [cursor=pointer]:
+                  - generic "physik Study Session - 14:00" [ref=e140] [cursor=pointer]: physik Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e141] [cursor=pointer]: Chemie Study Session
+                  - generic "Mathe Study Session - 14:00" [ref=e142] [cursor=pointer]: Mathe Study Session
+              - generic [ref=e143] [cursor=pointer]:
+                - generic [ref=e144] [cursor=pointer]: "24"
+                - generic [ref=e145] [cursor=pointer]:
+                  - generic "Chemie Study Session - 14:00" [ref=e146] [cursor=pointer]: Chemie Study Session
+                  - generic "Mathe Study Session - 14:00" [ref=e147] [cursor=pointer]: Mathe Study Session
+                  - generic "physik Study Session - 14:00" [ref=e148] [cursor=pointer]: physik Study Session
+              - generic [ref=e149] [cursor=pointer]:
+                - generic [ref=e150] [cursor=pointer]: "25"
+                - generic [ref=e151] [cursor=pointer]:
+                  - generic "Mathe Study Session - 14:00" [ref=e152] [cursor=pointer]: Mathe Study Session
+                  - generic "physik Study Session - 14:00" [ref=e153] [cursor=pointer]: physik Study Session
+                  - generic "Chemie Study Session - 14:00" [ref=e154] [cursor=pointer]: Chemie Study Session
+              - generic [ref=e156] [cursor=pointer]: "26"
+              - generic [ref=e158] [cursor=pointer]: "27"
+              - generic [ref=e160] [cursor=pointer]: "28"
+              - generic [ref=e162] [cursor=pointer]: "29"
+              - generic [ref=e163] [cursor=pointer]:
+                - generic [ref=e164] [cursor=pointer]: "30"
+                - generic [ref=e165] [cursor=pointer]:
+                  - generic "Chemie Study Session - 14:00" [ref=e166] [cursor=pointer]: Chemie Study Session
+                  - generic "physik Study Session - 14:00" [ref=e167] [cursor=pointer]: physik Study Session
+                  - generic "Mathe Study Session - 14:00" [ref=e168] [cursor=pointer]: Mathe Study Session
+              - generic [ref=e170] [cursor=pointer]: "1"
+              - generic [ref=e172] [cursor=pointer]: "2"
+              - generic [ref=e174] [cursor=pointer]: "3"
+              - generic [ref=e176] [cursor=pointer]: "4"
+        - generic [ref=e177]:
+          - heading "Legende" [level=3] [ref=e178]
+          - generic [ref=e179]:
+            - generic [ref=e182]: physik
+            - generic [ref=e185]: Chemie
+            - generic [ref=e188]: Mathe
+            - generic [ref=e191]: Abgeschlossen
+    - contentinfo [ref=e192]:
+      - paragraph [ref=e195]: © 2024 Lernplaner. Für besseres Lernen mit Gamification.
+  - alert [ref=e196]
+```
