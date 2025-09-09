@@ -16,7 +16,6 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Übersicht',
     'nav.subjects': 'Fächer',
-    'nav.calendar': 'Kalender',
     'nav.analytics': 'Statistiken',
     'nav.settings': 'Einstellungen',
     
@@ -138,7 +137,6 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.subjects': 'Subjects',
-    'nav.calendar': 'Calendar',
     'nav.analytics': 'Analytics',
     'nav.settings': 'Settings',
     

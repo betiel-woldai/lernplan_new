@@ -65,16 +65,6 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                   {t('nav.subjects')}
                 </Link>
                 <Link 
-                  href="/calendar" 
-                  className={`transition-colors ${
-                    isActive('/calendar') 
-                      ? 'text-blue-600 font-medium' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {t('nav.calendar')}
-                </Link>
-                <Link 
                   href="/analytics" 
                   className={`transition-colors ${
                     isActive('/analytics') 
