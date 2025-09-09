@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarDay, CalendarSession } from '../../types/calendar';
+import { FaCheck, FaClock } from 'react-icons/fa';
 
 interface CalendarGridProps {
   month: number;
@@ -7,6 +8,7 @@ interface CalendarGridProps {
   selectedDate: Date | null;
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
+  onSessionToggleComplete?: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
   getSessionsForDate: (date: Date) => CalendarSession[];
   loading: boolean;
   error: string | null;
@@ -18,10 +20,24 @@ export default function CalendarGrid({
   selectedDate, 
   onDateClick, 
   onSessionClick,
+  onSessionToggleComplete,
   getSessionsForDate,
   loading,
   error
 }: CalendarGridProps) {
+  
+  const handleSessionToggleComplete = async (session: CalendarSession, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!onSessionToggleComplete) return;
+    
+    const newCompletedStatus = !session.completed;
+    await onSessionToggleComplete(session.id, { 
+      completed: newCompletedStatus,
+      duration: session.duration // Needed for XP calculation 
+    });
+  };
   
   const getDaysInMonth = (month: number, year: number): CalendarDay[] => {
     const firstDay = new Date(year, month, 1);
@@ -120,14 +136,23 @@ export default function CalendarGrid({
                 <div
                   key={session.id}
                   className={`
-                    text-xs px-2 py-1 rounded cursor-pointer truncate
-                    hover:shadow-md transition-shadow
-                    ${session.completed ? 'opacity-70' : ''}
+                    text-xs px-2 py-1 rounded cursor-pointer truncate relative
+                    hover:shadow-md transition-all duration-200
+                    ${session.completed 
+                      ? 'bg-green-50 border-l-4 border-green-500 text-green-700' 
+                      : 'border-l-4'
+                    }
                   `}
                   style={{
-                    backgroundColor: `${session.subjectColor}20`,
-                    borderLeft: `3px solid ${session.subjectColor}`,
-                    color: session.subjectColor
+                    backgroundColor: session.completed 
+                      ? '#f0fdf4' 
+                      : `${session.subjectColor}20`,
+                    borderLeftColor: session.completed 
+                      ? '#22c55e' 
+                      : session.subjectColor,
+                    color: session.completed 
+                      ? '#15803d' 
+                      : session.subjectColor
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -136,9 +161,29 @@ export default function CalendarGrid({
                   title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
-                  })}`}
+                  })} - ${session.completed ? 'Abgeschlossen' : 'Ausstehend'}`}
                 >
-                  {session.title}
+                  <div className="flex items-center justify-between">
+                    <span className="truncate flex-1">{session.title}</span>
+                    <div className="flex items-center space-x-1">
+                      {/* Clickable completion toggle */}
+                      <button
+                        onClick={(e) => handleSessionToggleComplete(session, e)}
+                        className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
+                          session.completed 
+                            ? 'bg-green-100 hover:bg-green-200' 
+                            : 'bg-orange-100 hover:bg-orange-200'
+                        }`}
+                        title={session.completed ? 'Als ausstehend markieren' : 'Als abgeschlossen markieren'}
+                      >
+                        {session.completed ? (
+                          <FaCheck className="w-2 h-2 text-green-600" />
+                        ) : (
+                          <FaClock className="w-2 h-2 text-orange-500" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
               

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '@/components/Layout';
 import { useLanguage } from '../contexts/LanguageContext';
+import { addEventListener } from '@/utils/eventBus';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -22,7 +23,9 @@ import {
   FaAward, 
   FaFilter,
   FaClock,
-  FaArrowUp 
+  FaArrowUp,
+  FaCheck,
+  FaPercentage 
 } from 'react-icons/fa';
 
 // Register Chart.js components
@@ -43,6 +46,7 @@ interface ProgressData {
   date: string;
   hours: number;
   sessions: number;
+  completedSessions: number;
   xp: number;
 }
 
@@ -52,6 +56,7 @@ interface SubjectData {
   color: string;
   hours: number;
   sessions: number;
+  completedSessions: number;
   progress: number;
   targetHours: number;
 }
@@ -79,8 +84,10 @@ interface AnalyticsData {
   summary?: {
     totalHours: number;
     totalSessions: number;
+    completedSessions: number;
     totalXP: number;
     averageSessionLength: number;
+    completionRate: number;
   };
 }
 
@@ -90,10 +97,88 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(Date.now());
+  const [realtimeUpdate, setRealtimeUpdate] = useState<boolean>(false);
 
   useEffect(() => {
     fetchAnalyticsData();
   }, [period]);
+
+  // Real-time event listeners
+  useEffect(() => {
+    const handleSessionCompleted = (event: any) => {
+      console.log('📈 Analytics: Session completed', event.detail);
+      setRealtimeUpdate(true);
+      setLastUpdateTime(Date.now());
+      
+      // Auto-refresh analytics data after a brief delay
+      setTimeout(() => {
+        fetchAnalyticsData();
+        setRealtimeUpdate(false);
+      }, 1500);
+    };
+
+    const handleSubjectUpdated = (event: any) => {
+      console.log('📈 Analytics: Subject updated', event.detail);
+      setRealtimeUpdate(true);
+      setLastUpdateTime(Date.now());
+      
+      // Refresh to update subject-related charts
+      setTimeout(() => {
+        fetchAnalyticsData();
+        setRealtimeUpdate(false);
+      }, 1000);
+    };
+
+    const handleProgressChanged = (event: any) => {
+      console.log('📈 Analytics: Progress changed', event.detail);
+      setLastUpdateTime(Date.now());
+      
+      // For progress changes, we might want to update specific data points
+      // For now, we'll do a full refresh
+      setTimeout(() => {
+        fetchAnalyticsData();
+      }, 500);
+    };
+
+    const handleXPGained = (event: any) => {
+      console.log('📈 Analytics: XP gained', event.detail);
+      setLastUpdateTime(Date.now());
+      
+      // Update analytics data to reflect XP changes
+      setTimeout(() => {
+        fetchAnalyticsData();
+      }, 1000);
+    };
+
+    const handleSessionUpdated = (event: any) => {
+      console.log('📈 Analytics: Session updated', event.detail);
+      setRealtimeUpdate(true);
+      setLastUpdateTime(Date.now());
+      
+      // Refresh analytics after session updates to maintain timeline synchronization
+      setTimeout(() => {
+        fetchAnalyticsData();
+        setRealtimeUpdate(false);
+      }, 1500);
+    };
+
+    // Add event listeners
+    window.addEventListener('sessionCompleted', handleSessionCompleted);
+    window.addEventListener('sessionUpdated', handleSessionUpdated);
+    window.addEventListener('subjectUpdated', handleSubjectUpdated);
+    window.addEventListener('progressChanged', handleProgressChanged);
+    window.addEventListener('xpGained', handleXPGained);
+
+    return () => {
+      // Clean up event listeners
+      window.removeEventListener('sessionCompleted', handleSessionCompleted);
+      window.removeEventListener('sessionUpdated', handleSessionUpdated);
+      window.removeEventListener('subjectUpdated', handleSubjectUpdated);
+      window.removeEventListener('progressChanged', handleProgressChanged);
+      window.removeEventListener('xpGained', handleXPGained);
+    };
+  }, []); // Empty dependency array since we don't want to recreate listeners
 
   const fetchAnalyticsData = async () => {
     try {
@@ -300,8 +385,21 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('analytics.title')}</h1>
-            <p className="text-gray-600 mt-2">Track your learning progress and insights</p>
+            <div className="flex items-center space-x-3">
+              <h1 className="text-3xl font-bold text-gray-900">{t('analytics.title')}</h1>
+              {realtimeUpdate && (
+                <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                  <span className="text-xs font-medium text-blue-700">Updating...</span>
+                </div>
+              )}
+            </div>
+            <p className="text-gray-600 mt-2">
+              Track your learning progress and insights
+              <span className="text-xs text-gray-400 ml-2">
+                Last updated: {new Date(lastUpdateTime).toLocaleTimeString()}
+              </span>
+            </p>
           </div>
           
           {/* Period Filter */}
@@ -321,7 +419,7 @@ export default function AnalyticsPage() {
 
         {/* Summary Stats */}
         {analyticsData?.summary && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
@@ -359,6 +457,28 @@ export default function AnalyticsPage() {
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.averageSessionLength}h</p>
                 </div>
                 <FaBullseye className="h-8 w-8 text-orange-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.completedSessions}</p>
+                  <p className="text-xs text-gray-500">of {analyticsData.summary.totalSessions} sessions</p>
+                </div>
+                <FaCheck className="h-8 w-8 text-green-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.completionRate}%</p>
+                  <p className="text-xs text-gray-500">completion rate</p>
+                </div>
+                <FaPercentage className="h-8 w-8 text-indigo-600" />
               </div>
             </div>
           </div>

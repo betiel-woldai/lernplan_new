@@ -155,13 +155,14 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         RETURNING *
       `, updateValues);
 
-      // Update subject completed hours if duration changed
+      // Update subject completed hours if duration changed (convert to decimal hours)
       if (durationChange !== 0) {
+        const hoursChange = Math.round((durationChange / 60) * 100) / 100; // Round to 2 decimal places
         await client.query(`
           UPDATE subjects 
           SET completed_hours = completed_hours + $1
           WHERE id = $2
-        `, [durationChange / 60, current.subject_id]);
+        `, [hoursChange, current.subject_id]);
       }
 
       // Update user stats if completion status changed
@@ -169,33 +170,52 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         const pointsChange = nowCompleted ? (updateData.points || current.points) : -(updateData.points || current.points);
         const taskChange = nowCompleted ? 1 : -1;
         const timeChange = nowCompleted ? (updateData.duration || current.duration) : -(updateData.duration || current.duration);
+        const hoursChange = Math.max(0, Math.round(timeChange / 60)); // Ensure non-negative hours
+
+        // Get current user values to prevent negative values
+        const currentUserResult = await client.query(`
+          SELECT current_xp, daily_learning_time, weekly_learning_time, total_hours, completed_tasks, total_completed_tasks
+          FROM users WHERE id = $1
+        `, [userId]);
+
+        const currentUser = currentUserResult.rows[0];
+        
+        // Calculate safe values that won't go negative
+        const newXp = Math.max(0, currentUser.current_xp + pointsChange);
+        const newDailyTime = Math.max(0, currentUser.daily_learning_time + timeChange);
+        const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time + timeChange);
+        const newTotalHours = Math.max(0, currentUser.total_hours + hoursChange);
+        const newCompletedTasks = Math.max(0, currentUser.completed_tasks + taskChange);
+        const newTotalCompletedTasks = Math.max(0, currentUser.total_completed_tasks + taskChange);
 
         await client.query(`
           UPDATE users 
-          SET current_xp = current_xp + $1,
-              daily_learning_time = daily_learning_time + $2,
-              weekly_learning_time = weekly_learning_time + $2,
-              total_hours = total_hours + $3,
-              completed_tasks = completed_tasks + $4,
-              total_completed_tasks = total_completed_tasks + $4
-          WHERE id = $5
-        `, [pointsChange, timeChange, timeChange / 60, taskChange, userId]);
+          SET current_xp = $1,
+              daily_learning_time = $2,
+              weekly_learning_time = $3,
+              total_hours = $4,
+              completed_tasks = $5,
+              total_completed_tasks = $6
+          WHERE id = $7
+        `, [newXp, newDailyTime, newWeeklyTime, newTotalHours, newCompletedTasks, newTotalCompletedTasks, userId]);
 
-        // Record gamification event
-        const eventType = nowCompleted ? 'session_complete' : 'session_incomplete';
-        await client.query(`
-          INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
-          VALUES ($1, $2, $3, $4)
-        `, [
-          userId,
-          eventType,
-          JSON.stringify({
-            sessionId: id,
-            subjectId: current.subject_id,
-            action: 'update'
-          }),
-          pointsChange
-        ]);
+        // Record gamification event (only for completion, not incompletion)
+        if (nowCompleted) {
+          const eventType = 'session_complete';
+          await client.query(`
+            INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
+            VALUES ($1, $2, $3, $4)
+          `, [
+            userId,
+            eventType,
+            JSON.stringify({
+              sessionId: id,
+              subjectId: current.subject_id,
+              action: 'update'
+            }),
+            Math.max(0, pointsChange) // Ensure non-negative XP
+          ]);
+        }
       }
 
       return sessionResult.rows[0];
@@ -263,38 +283,57 @@ async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) 
         WHERE id = $1 AND user_id = $2
       `, [id, userId]);
 
-      // Adjust subject completed hours
+      // Adjust subject completed hours (ensure proper decimal conversion)
+      const hoursToDeduct = Math.round((session.duration / 60) * 100) / 100; // Round to 2 decimal places
       await client.query(`
         UPDATE subjects 
         SET completed_hours = completed_hours - $1
         WHERE id = $2
-      `, [session.duration / 60, session.subject_id]);
+      `, [hoursToDeduct, session.subject_id]);
 
       // Adjust user stats if session was completed
       if (session.completed) {
+        // Get current user values to ensure we don't go negative
+        const currentUserResult = await client.query(`
+          SELECT current_xp, daily_learning_time, weekly_learning_time, total_hours, completed_tasks, total_completed_tasks
+          FROM users WHERE id = $1
+        `, [userId]);
+
+        const currentUser = currentUserResult.rows[0];
+        const hoursToDeduct = Math.round(session.duration / 60);
+
+        // Calculate safe values that won't go negative
+        const newXp = Math.max(0, currentUser.current_xp - session.points);
+        const newDailyTime = Math.max(0, currentUser.daily_learning_time - session.duration);
+        const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time - session.duration);
+        const newTotalHours = Math.max(0, currentUser.total_hours - hoursToDeduct);
+        const newCompletedTasks = Math.max(0, currentUser.completed_tasks - 1);
+        const newTotalCompletedTasks = Math.max(0, currentUser.total_completed_tasks - 1);
+
         await client.query(`
           UPDATE users 
-          SET current_xp = current_xp - $1,
-              daily_learning_time = daily_learning_time - $2,
-              weekly_learning_time = weekly_learning_time - $2,
-              total_hours = total_hours - $3,
-              completed_tasks = completed_tasks - 1,
-              total_completed_tasks = total_completed_tasks - 1
-          WHERE id = $4
-        `, [session.points, session.duration, session.duration / 60, userId]);
+          SET current_xp = $1,
+              daily_learning_time = $2,
+              weekly_learning_time = $3,
+              total_hours = $4,
+              completed_tasks = $5,
+              total_completed_tasks = $6
+          WHERE id = $7
+        `, [newXp, newDailyTime, newWeeklyTime, newTotalHours, newCompletedTasks, newTotalCompletedTasks, userId]);
 
-        // Record deletion event
+        // Record deletion event as XP loss
         await client.query(`
           INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
-          VALUES ($1, 'session_delete', $2, $3)
+          VALUES ($1, 'xp_gain', $2, $3)
         `, [
           userId,
           JSON.stringify({
             sessionId: id,
             subjectId: session.subject_id,
-            duration: session.duration
+            duration: session.duration,
+            action: 'delete'
           }),
-          -session.points
+          0 // No XP awarded for deletion
         ]);
       }
     });

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Clock, Award, Trash2, Filter, Search } from 'lucide-react';
+import { Calendar, Clock, Award, Trash2, Filter, Search, AlertTriangle, Edit2 } from 'lucide-react';
 import { useLearningSessions, LearningSession } from '../hooks/useLearningSessions';
 import { format, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import SessionEditModal from './SessionEditModal';
 
 interface SessionHistoryProps {
   subjectId?: string;
@@ -18,12 +19,17 @@ export default function SessionHistory({
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
+  const [selectedSessionForEdit, setSelectedSessionForEdit] = useState<LearningSession | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const { 
     sessions, 
     loading, 
     error, 
-    deleteSession, 
+    deleteSession,
+    updateSession,
+    clearAllSessions,
     loadMore, 
     pagination 
   } = useLearningSessions({ 
@@ -103,6 +109,50 @@ export default function SessionHistory({
     }
   };
 
+  const handleClearAllSessions = async () => {
+    const success = await clearAllSessions();
+    if (success) {
+      setShowClearAllConfirm(false);
+      // Trigger real-time event for other components to update
+      window.dispatchEvent(new CustomEvent('sessionHistoryCleared', { 
+        detail: { clearedAt: Date.now() } 
+      }));
+    }
+  };
+
+  const handleToggleCompletion = async (sessionId: string, completed: boolean) => {
+    const success = await updateSession(sessionId, { completed });
+    if (success) {
+      // Trigger real-time event for other components to update
+      window.dispatchEvent(new CustomEvent('sessionStatusToggled', {
+        detail: { 
+          sessionId, 
+          completed, 
+          toggledAt: Date.now() 
+        }
+      }));
+    }
+  };
+
+  const handleEditSession = (session: LearningSession) => {
+    setSelectedSessionForEdit(session);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedSessionForEdit(null);
+  };
+
+  const handleSaveSessionEdit = async (sessionId: string, updates: Partial<LearningSession>) => {
+    const success = await updateSession(sessionId, updates);
+    if (success) {
+      // The SessionEditModal will dispatch the 'sessionUpdated' event
+      // We don't need to dispatch it here as it's handled in the modal
+    }
+    return success;
+  };
+
   const totalStats = useMemo(() => {
     const completed = filteredSessions.filter(s => s.completed);
     const totalDuration = completed.reduce((sum, s) => sum + s.duration, 0);
@@ -129,9 +179,20 @@ export default function SessionHistory({
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Learning Sessions</h2>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Award className="w-4 h-4" />
-            <span>{totalStats.totalSessions} completed sessions</span>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <Award className="w-4 h-4" />
+              <span>{totalStats.totalSessions} completed sessions</span>
+            </div>
+            {sessions.length > 0 && (
+              <button
+                onClick={() => setShowClearAllConfirm(true)}
+                className="flex items-center space-x-2 px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Clear All History</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -248,14 +309,28 @@ export default function SessionHistory({
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        {!session.completed && (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                            Incomplete
-                          </span>
-                        )}
+                        <button
+                          onClick={() => handleToggleCompletion(session.id, !session.completed)}
+                          className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                            session.completed
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                              : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                          }`}
+                          title={session.completed ? 'Als unvollständig markieren' : 'Als abgeschlossen markieren'}
+                        >
+                          {session.completed ? 'Abgeschlossen' : 'Ausstehend'}
+                        </button>
+                        <button
+                          onClick={() => handleEditSession(session)}
+                          className="text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Session bearbeiten"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => setShowDeleteConfirm(session.id)}
                           className="text-gray-400 hover:text-red-600 transition-colors"
+                          title="Session löschen"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -311,6 +386,57 @@ export default function SessionHistory({
           </div>
         </div>
       )}
+
+      {/* Clear All History Confirmation Modal */}
+      {showClearAllConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-600" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Clear All Learning History
+                </h3>
+              </div>
+              <p className="text-gray-600 mb-4">
+                This will permanently delete <strong>ALL</strong> your learning sessions and reset your progress:
+              </p>
+              <ul className="text-sm text-gray-600 mb-6 space-y-1 ml-4">
+                <li>• All {totalStats.totalSessions} learning sessions</li>
+                <li>• XP progress and levels (reset to 0)</li>
+                <li>• Learning streaks and achievements</li>
+                <li>• Subject completion hours</li>
+              </ul>
+              <p className="text-red-600 font-medium text-sm mb-6">
+                This action cannot be undone!
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowClearAllConfirm(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearAllSessions}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors"
+                >
+                  {loading ? 'Clearing...' : 'Clear All History'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Edit Modal */}
+      <SessionEditModal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        session={selectedSessionForEdit}
+        onSave={handleSaveSessionEdit}
+      />
     </div>
   );
 }

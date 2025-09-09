@@ -12,6 +12,7 @@ export interface UseCalendarSessionsReturn {
   fetchSessionsForDateRange: (startDate: Date, endDate: Date) => Promise<void>;
   getSessionsForDate: (date: Date) => CalendarSession[];
   createSession: (sessionData: Omit<CalendarSession, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateSession: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
   refreshSessions: () => Promise<void>;
   syncFromSubjects: () => Promise<void>;
 }
@@ -182,6 +183,73 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     }
   }, [refreshSessions]);
 
+  // Update a calendar session (maps to learning sessions API)
+  const updateSession = useCallback(async (sessionId: string, updates: Partial<CalendarSession>): Promise<boolean> => {
+    try {
+      setError(null);
+
+      // Convert CalendarSession updates to LearningSession format
+      const learningSessionUpdates: any = {};
+      
+      if (updates.completed !== undefined) {
+        learningSessionUpdates.completed = updates.completed;
+        // Calculate points if marking as completed
+        if (updates.completed && updates.duration) {
+          learningSessionUpdates.points = Math.floor(updates.duration * 2); // 2 XP per minute
+        }
+      }
+      
+      if (updates.duration !== undefined) {
+        learningSessionUpdates.duration = Math.round(updates.duration);
+      }
+      
+      if (updates.description !== undefined) {
+        learningSessionUpdates.notes = updates.description;
+      }
+
+
+      // Call the learning sessions API
+      const response = await fetch(`/api/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(learningSessionUpdates),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update session' }));
+        throw new Error(errorData.error || 'Failed to update session');
+      }
+
+      // Update the local calendar session state
+      setSessions(prev => 
+        prev.map(session => 
+          session.id === sessionId 
+            ? { ...session, ...updates }
+            : session
+        )
+      );
+
+      // Dispatch the sessionUpdated event for cross-view synchronization
+      window.dispatchEvent(new CustomEvent('sessionUpdated', {
+        detail: {
+          sessionId,
+          updates: learningSessionUpdates,
+          timestamp: Date.now(),
+          completionChanged: updates.completed !== undefined
+        }
+      }));
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update session';
+      setError(errorMessage);
+      console.error('Update calendar session error:', err);
+      return false;
+    }
+  }, []);
+
   return {
     sessions,
     loading,
@@ -190,6 +258,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     fetchSessionsForDateRange,
     getSessionsForDate,
     createSession,
+    updateSession,
     refreshSessions,
     syncFromSubjects,
   };

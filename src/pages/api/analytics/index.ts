@@ -18,6 +18,7 @@ interface ProgressData {
   date: string;
   hours: number;
   sessions: number;
+  completedSessions: number;
   xp: number;
 }
 
@@ -27,6 +28,7 @@ interface SubjectData {
   color: string;
   hours: number;
   sessions: number;
+  completedSessions: number;
   progress: number;
   targetHours: number;
 }
@@ -82,12 +84,12 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
       DATE(ls.date) as session_date,
       SUM(ls.duration) as total_minutes,
       COUNT(ls.id) as session_count,
+      COUNT(ls.id) FILTER (WHERE ls.completed = true) as completed_session_count,
       SUM(ls.points) as total_xp
     FROM learning_sessions ls
     WHERE ls.user_id = $1
       AND ls.date >= $2
       AND ls.date <= $3
-      AND ls.completed = true
     GROUP BY DATE(ls.date)
     ORDER BY session_date ASC
   `;
@@ -107,6 +109,7 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
         date: format(new Date(row.session_date), 'yyyy-MM-dd'),
         hours: Math.round((row.total_minutes / 60) * 100) / 100,
         sessions: parseInt(row.session_count),
+        completedSessions: parseInt(row.completed_session_count),
         xp: parseInt(row.total_xp)
       }
     ])
@@ -118,6 +121,7 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
       date: dateStr,
       hours: 0,
       sessions: 0,
+      completedSessions: 0,
       xp: 0
     };
   });
@@ -132,9 +136,10 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
       s.target_hours,
       s.completed_hours,
       COALESCE(SUM(ls.duration), 0) as total_minutes,
-      COUNT(ls.id) as session_count
+      COUNT(ls.id) as session_count,
+      COUNT(ls.id) FILTER (WHERE ls.completed = true) as completed_session_count
     FROM subjects s
-    LEFT JOIN learning_sessions ls ON s.id = ls.subject_id AND ls.completed = true
+    LEFT JOIN learning_sessions ls ON s.id = ls.subject_id
     WHERE s.user_id = $1
     GROUP BY s.id, s.name, s.color, s.target_hours, s.completed_hours
     ORDER BY total_minutes DESC
@@ -148,6 +153,7 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
     color: row.color,
     hours: Math.round((row.total_minutes / 60) * 100) / 100,
     sessions: parseInt(row.session_count),
+    completedSessions: parseInt(row.completed_session_count),
     targetHours: parseFloat(row.target_hours),
     completedHours: parseFloat(row.completed_hours),
     progress: Math.round((parseFloat(row.completed_hours) / parseFloat(row.target_hours)) * 100)
@@ -273,13 +279,16 @@ async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
     if (analyticsData.progress) {
       const totalHours = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.hours, 0);
       const totalSessions = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.sessions, 0);
+      const completedSessions = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.completedSessions, 0);
       const totalXP = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.xp, 0);
       
       analyticsData.summary = {
         totalHours: Math.round(totalHours * 100) / 100,
         totalSessions,
+        completedSessions,
         totalXP,
-        averageSessionLength: totalSessions > 0 ? Math.round((totalHours / totalSessions) * 100) / 100 : 0
+        averageSessionLength: totalSessions > 0 ? Math.round((totalHours / totalSessions) * 100) / 100 : 0,
+        completionRate: totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
       };
     }
 

@@ -39,35 +39,36 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
   const params: any[] = [userIdToUse];
 
   if (startDate && endDate) {
-    dateFilter = 'AND DATE(cs.start_time) BETWEEN $2 AND $3';
+    dateFilter = 'AND DATE(ls.date) BETWEEN $2 AND $3';
     params.push(startDate, endDate);
   } else if (month && year) {
     // Filter by month and year
-    dateFilter = 'AND EXTRACT(MONTH FROM cs.start_time) = $2 AND EXTRACT(YEAR FROM cs.start_time) = $3';
+    dateFilter = 'AND EXTRACT(MONTH FROM ls.date) = $2 AND EXTRACT(YEAR FROM ls.date) = $3';
     params.push(parseInt(month as string), parseInt(year as string));
   }
 
   const result = await query(`
     SELECT 
-      cs.id,
-      cs.title,
-      cs.start_time as "startTime",
-      cs.end_time as "endTime",
-      cs.duration,
-      cs.session_type as "sessionType",
-      cs.completed,
-      cs.description,
-      cs.location,
-      cs.created_at as "createdAt",
-      cs.updated_at as "updatedAt",
+      ls.id,
+      s.name as title,
+      -- Create start_time and end_time from date and duration
+      (ls.date::date + TIME '09:00:00') as "startTime",
+      (ls.date::date + TIME '09:00:00' + INTERVAL '1 minute' * ls.duration) as "endTime",
+      ls.duration,
+      'study' as "sessionType",
+      ls.completed,
+      ls.notes as description,
+      '' as location,
+      ls.created_at as "createdAt",
+      ls.created_at as "updatedAt",
       -- Subject information
       s.id as "subjectId",
       s.name as "subjectName",
       s.color as "subjectColor"
-    FROM calendar_sessions cs
-    JOIN subjects s ON cs.subject_id = s.id
-    WHERE cs.user_id = $1 ${dateFilter}
-    ORDER BY cs.start_time ASC
+    FROM learning_sessions ls
+    JOIN subjects s ON ls.subject_id = s.id
+    WHERE ls.user_id = $1 ${dateFilter}
+    ORDER BY ls.date ASC, s.name ASC
   `, params);
 
   // Convert dates and calculate duration

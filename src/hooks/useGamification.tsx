@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getLevel } from '../utils/formatters';
 import { playXPGainSound, playAchievementSound, playLevelUpSound } from '../utils/audio';
+import { dispatchEvent } from '../utils/eventBus';
 
 export interface GamificationEvent {
   type: 'xp_gain' | 'level_up' | 'achievement_unlock' | 'streak_milestone';
@@ -66,7 +67,7 @@ export const useGamification = () => {
         });
       }
 
-      return {
+      const newState = {
         ...prevState,
         currentXP: newXP,
         currentLevel: newLevel,
@@ -74,6 +75,26 @@ export const useGamification = () => {
         levelUpModalOpen,
         newLevelReached
       };
+
+      // Dispatch XP gained event
+      dispatchEvent('xpGained', {
+        amount,
+        source,
+        totalXP: newXP,
+        previousXP: prevState.currentXP
+      }, 'useGamification');
+
+      // Dispatch level up event if applicable
+      if (newLevel > oldLevel) {
+        dispatchEvent('levelUp', {
+          newLevel,
+          previousLevel: oldLevel,
+          totalXP: newXP,
+          xpToNext: getLevel(newLevel + 1) - newXP // Calculate XP needed for next level
+        }, 'useGamification');
+      }
+
+      return newState;
     });
 
     // Trigger XP toast and sound
@@ -120,6 +141,20 @@ export const useGamification = () => {
       
       // Play achievement sound
       playAchievementSound();
+
+      // Dispatch achievement unlocked event
+      dispatchEvent('achievementUnlocked', {
+        achievement: {
+          id: `${achievement.name}-${Date.now()}`, // Generate an ID
+          name: achievement.name,
+          description: achievement.description || '',
+          icon: achievement.icon,
+          unlockedAt: new Date(),
+          category: achievement.category as 'streak' | 'time' | 'tasks' | 'level',
+          isNew: true
+        },
+        trigger: 'manual_unlock'
+      }, 'useGamification');
 
       return {
         ...prevState,
@@ -170,11 +205,20 @@ export const useGamification = () => {
         }
       }
 
-      return {
+      const newState = {
         ...prevState,
         streak: newStreak,
         events
       };
+
+      // Dispatch streak updated event
+      dispatchEvent('streakUpdated', {
+        newStreak,
+        previousStreak: prevState.streak,
+        milestone: reachedMilestone
+      }, 'useGamification');
+
+      return newState;
     });
   }, [unlockAchievement]);
 

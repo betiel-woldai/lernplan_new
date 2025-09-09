@@ -191,6 +191,35 @@ export function useLearningSessions(initialParams?: QueryParams) {
     }
   }, []);
 
+  const clearAllSessions = useCallback(async (): Promise<boolean> => {
+    setError(null);
+
+    try {
+      const response = await fetch('/api/sessions/bulk-delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to clear session history' }));
+        throw new Error(errorData.error || 'Failed to clear session history');
+      }
+
+      // Clear all sessions from the list
+      setSessions([]);
+      setPagination(prev => ({ ...prev, total: 0 }));
+      
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear session history';
+      setError(errorMessage);
+      console.error('Clear sessions error:', err);
+      return false;
+    }
+  }, []);
+
   const loadMore = useCallback(async () => {
     if (!pagination.hasMore || loading) return;
 
@@ -220,6 +249,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
     createSession,
     updateSession,
     deleteSession,
+    clearAllSessions,
     loadMore,
     refresh,
     clearError: () => setError(null)

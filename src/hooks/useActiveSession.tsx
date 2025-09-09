@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLearningSessions, CreateSessionData } from './useLearningSessions';
+import { dispatchEvent, createThrottledDispatcher } from '../utils/eventBus';
 
 export type SessionState = 'idle' | 'active' | 'paused' | 'completed';
 
@@ -34,6 +35,11 @@ export function useActiveSession() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { createSession } = useLearningSessions();
 
+  // Create throttled dispatcher for session progress events
+  const dispatchProgressThrottled = useRef(
+    createThrottledDispatcher('sessionProgress', 2000) // Every 2 seconds
+  );
+
   // localStorage key for session persistence
   const STORAGE_KEY = 'activeSession';
 
@@ -62,6 +68,15 @@ export function useActiveSession() {
         remainingSeconds
       });
 
+      // Dispatch throttled session progress event
+      dispatchProgressThrottled.current({
+        subjectId: sessionData.subjectId,
+        progress,
+        elapsedSeconds,
+        remainingSeconds,
+        isActive: true
+      }, 'useActiveSession');
+
       // Auto-complete when time is up
       if (remainingSeconds === 0) {
         if (timerRef.current) {
@@ -82,7 +97,17 @@ export function useActiveSession() {
               completed: true
             };
 
-            await createSession(sessionApiData);
+            const autoSavedSession = await createSession(sessionApiData);
+            
+            // Dispatch session completed event for auto-completion
+            if (autoSavedSession) {
+              dispatchEvent('sessionCompleted', {
+                session: autoSavedSession,
+                xpGained: autoSavedSession.points,
+                completedAt: Date.now(),
+                elapsedMinutes
+              }, 'useActiveSession-auto');
+            }
             
             // Clear session after completion
             setTimeout(() => {
@@ -195,6 +220,17 @@ export function useActiveSession() {
       const initialProgress = calculateProgress(data, 0);
       setProgress(initialProgress);
 
+      // Dispatch session started event
+      dispatchEvent('sessionStarted', {
+        session: {
+          subjectId: data.subjectId,
+          subjectName: data.subjectName,
+          subjectColor: data.subjectColor,
+          targetDuration: data.targetDuration,
+          startTime: Date.now()
+        }
+      }, 'useActiveSession');
+
       console.log(`Session started: ${data.subjectName} for ${data.targetDuration} minutes`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start session';
@@ -273,6 +309,14 @@ export function useActiveSession() {
       
       if (savedSession) {
         console.log(`Session completed: ${elapsedMinutes} minutes, ${savedSession.points} XP earned`);
+        
+        // Dispatch session completed event
+        dispatchEvent('sessionCompleted', {
+          session: savedSession,
+          xpGained: savedSession.points,
+          completedAt: Date.now(),
+          elapsedMinutes
+        }, 'useActiveSession');
         
         // Clear session state after a short delay
         setTimeout(() => {

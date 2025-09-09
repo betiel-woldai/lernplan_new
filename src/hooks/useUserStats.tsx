@@ -22,14 +22,21 @@ export const useUserStats = (): UseUserStatsReturn => {
     try {
       setLoading(true);
       setError(null);
-
+      
+      console.log('🐛 useUserStats: Fetching user stats for ID:', DEFAULT_USER_ID);
       const response = await fetch(`/api/users/${DEFAULT_USER_ID}`);
       
+      console.log('🐛 useUserStats: Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log('🐛 useUserStats: Error response:', errorText);
         throw new Error(`Failed to fetch user stats: ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      console.log('🐛 useUserStats: Received data:', data);
       
       // Convert date strings back to Date objects
       const statsWithDates = {
@@ -38,6 +45,7 @@ export const useUserStats = (): UseUserStatsReturn => {
         lastActiveAt: new Date(data.lastActiveAt),
       };
 
+      console.log('🐛 useUserStats: Setting user stats:', statsWithDates);
       setUserStats(statsWithDates);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load user stats';

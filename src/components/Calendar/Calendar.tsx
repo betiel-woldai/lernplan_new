@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { CalendarView, CalendarSession, CalendarViewState } from '../../types/calendar';
 import CalendarGrid from './CalendarGrid';
+import CalendarWeekView from './CalendarWeekView';
+import CalendarDayView from './CalendarDayView';
 import CalendarViewToggle from './CalendarViewToggle';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
 import useCalendarSessions from '../../hooks/useCalendarSessions';
@@ -9,12 +11,16 @@ interface CalendarProps {
   onSessionClick?: (session: CalendarSession) => void;
   onDateClick?: (date: Date) => void;
   onCreateSession?: (date: Date) => void;
+  selectedSession?: CalendarSession | null;
+  subjects?: any[];
 }
 
 export default function Calendar({ 
   onSessionClick = () => {}, 
   onDateClick = () => {},
-  onCreateSession = () => {}
+  onCreateSession = () => {},
+  selectedSession,
+  subjects
 }: CalendarProps) {
   
   const [viewState, setViewState] = useState<CalendarViewState>({
@@ -29,6 +35,7 @@ export default function Calendar({
     error, 
     fetchSessionsForMonth, 
     getSessionsForDate,
+    updateSession,
     syncFromSubjects
   } = useCalendarSessions();
 
@@ -169,6 +176,7 @@ export default function Calendar({
             selectedDate={viewState.selectedDate}
             onDateClick={handleDateClick}
             onSessionClick={onSessionClick}
+            onSessionToggleComplete={updateSession}
             getSessionsForDate={getSessionsForDate}
             loading={loading}
             error={error}
@@ -176,15 +184,27 @@ export default function Calendar({
         )}
         
         {viewState.currentView === 'week' && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">Wochenansicht wird bald verfügbar sein!</p>
-          </div>
+          <CalendarWeekView
+            currentDate={viewState.currentDate}
+            selectedDate={viewState.selectedDate}
+            onDateClick={handleDateClick}
+            onSessionClick={onSessionClick}
+            getSessionsForDate={getSessionsForDate}
+            loading={loading}
+            error={error}
+          />
         )}
         
         {viewState.currentView === 'day' && (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">Tagesansicht wird bald verfügbar sein!</p>
-          </div>
+          <CalendarDayView
+            currentDate={viewState.currentDate}
+            selectedDate={viewState.selectedDate}
+            onDateClick={handleDateClick}
+            onSessionClick={onSessionClick}
+            getSessionsForDate={getSessionsForDate}
+            loading={loading}
+            error={error}
+          />
         )}
       </div>
 
