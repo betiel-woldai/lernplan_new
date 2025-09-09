@@ -1,0 +1,233 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "L Lernplaner" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9] [cursor=pointer]: L
+          - heading "Lernplaner" [level=1] [ref=e10] [cursor=pointer]
+        - navigation [ref=e11]:
+          - link "Übersicht" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - link "Fächer" [ref=e13] [cursor=pointer]:
+            - /url: /subjects
+          - link "Statistiken" [ref=e14] [cursor=pointer]:
+            - /url: /analytics
+          - button "Einstellungen" [ref=e15] [cursor=pointer]:
+            - img [ref=e16] [cursor=pointer]
+          - generic "Version und Build-Info" [ref=e18]: v1.4.0 (dd69d0e)
+    - main [ref=e19]:
+      - generic [ref=e21]:
+        - img [ref=e22]
+        - generic [ref=e25]: "1"
+        - generic [ref=e26]:
+          - heading "Übersicht - New User 👋" [level=1] [ref=e27]
+          - paragraph [ref=e28]: Deine zentrale Lernübersicht mit Kalender und wichtigen Statistiken
+      - generic [ref=e29]:
+        - generic [ref=e31]:
+          - generic [ref=e33]:
+            - img [ref=e34]
+            - heading "Lernkalender" [level=2] [ref=e36]
+            - generic [ref=e37]: "- Zentrale Terminübersicht"
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - generic [ref=e41]:
+                - generic [ref=e42]:
+                  - button "Vorheriger Monat" [ref=e43] [cursor=pointer]:
+                    - img [ref=e44] [cursor=pointer]
+                  - heading "September 2025" [level=2] [ref=e46]
+                  - button "Nächster Monat" [ref=e47] [cursor=pointer]:
+                    - img [ref=e48] [cursor=pointer]
+                - button "Heute" [ref=e50] [cursor=pointer]
+              - generic [ref=e51]:
+                - button "Session" [disabled] [ref=e52]:
+                  - img [ref=e53]
+                  - generic [ref=e55]: Session
+                - generic [ref=e56]:
+                  - button "Monat" [ref=e57] [cursor=pointer]:
+                    - img [ref=e58] [cursor=pointer]
+                    - generic [ref=e60] [cursor=pointer]: Monat
+                  - button "Woche" [ref=e61] [cursor=pointer]:
+                    - img [ref=e62] [cursor=pointer]
+                    - generic [ref=e64] [cursor=pointer]: Woche
+                  - button "Tag" [ref=e65] [cursor=pointer]:
+                    - img [ref=e66] [cursor=pointer]
+                    - generic [ref=e68] [cursor=pointer]: Tag
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: So
+                - generic [ref=e73]: Mo
+                - generic [ref=e74]: Di
+                - generic [ref=e75]: Mi
+                - generic [ref=e76]: Do
+                - generic [ref=e77]: Fr
+                - generic [ref=e78]: Sa
+              - generic [ref=e79]:
+                - generic [ref=e81] [cursor=pointer]: "31"
+                - generic [ref=e83] [cursor=pointer]: "1"
+                - generic [ref=e85] [cursor=pointer]: "2"
+                - generic [ref=e87] [cursor=pointer]: "3"
+                - generic [ref=e89] [cursor=pointer]: "4"
+                - generic [ref=e91] [cursor=pointer]: "5"
+                - generic [ref=e93] [cursor=pointer]: "6"
+                - generic [ref=e95] [cursor=pointer]: "7"
+                - generic [ref=e97] [cursor=pointer]: "8"
+                - generic [ref=e98] [cursor=pointer]:
+                  - generic [ref=e99] [cursor=pointer]: "9"
+                  - generic [ref=e100] [cursor=pointer]:
+                    - generic "woldai Study Session - 14:00" [ref=e101] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e102] [cursor=pointer]: Mathe Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e103] [cursor=pointer]: Chemie Study Session
+                - generic [ref=e104] [cursor=pointer]:
+                  - generic [ref=e105] [cursor=pointer]: "10"
+                  - generic [ref=e106] [cursor=pointer]:
+                    - generic "Chemie Study Session - 14:00" [ref=e107] [cursor=pointer]: Chemie Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e108] [cursor=pointer]: Mathe Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e109] [cursor=pointer]: woldai Study Session
+                - generic [ref=e110] [cursor=pointer]:
+                  - generic [ref=e111] [cursor=pointer]: "11"
+                  - generic [ref=e112] [cursor=pointer]:
+                    - generic "Mathe Study Session - 14:00" [ref=e113] [cursor=pointer]: Mathe Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e114] [cursor=pointer]: woldai Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e115] [cursor=pointer]: Chemie Study Session
+                - generic [ref=e117] [cursor=pointer]: "12"
+                - generic [ref=e119] [cursor=pointer]: "13"
+                - generic [ref=e121] [cursor=pointer]: "14"
+                - generic [ref=e123] [cursor=pointer]: "15"
+                - generic [ref=e124] [cursor=pointer]:
+                  - generic [ref=e125] [cursor=pointer]: "16"
+                  - generic [ref=e126] [cursor=pointer]:
+                    - generic "Mathe Study Session - 14:00" [ref=e127] [cursor=pointer]: Mathe Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e128] [cursor=pointer]: woldai Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e129] [cursor=pointer]: Chemie Study Session
+                - generic [ref=e130] [cursor=pointer]:
+                  - generic [ref=e131] [cursor=pointer]: "17"
+                  - generic [ref=e132] [cursor=pointer]:
+                    - generic "woldai Study Session - 14:00" [ref=e133] [cursor=pointer]: woldai Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e134] [cursor=pointer]: Chemie Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e135] [cursor=pointer]: Mathe Study Session
+                - generic [ref=e136] [cursor=pointer]:
+                  - generic [ref=e137] [cursor=pointer]: "18"
+                  - generic [ref=e138] [cursor=pointer]:
+                    - generic "Chemie Study Session - 14:00" [ref=e139] [cursor=pointer]: Chemie Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e140] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e141] [cursor=pointer]: Mathe Study Session
+                - generic [ref=e143] [cursor=pointer]: "19"
+                - generic [ref=e145] [cursor=pointer]: "20"
+                - generic [ref=e147] [cursor=pointer]: "21"
+                - generic [ref=e149] [cursor=pointer]: "22"
+                - generic [ref=e150] [cursor=pointer]:
+                  - generic [ref=e151] [cursor=pointer]: "23"
+                  - generic [ref=e152] [cursor=pointer]:
+                    - generic "woldai Study Session - 14:00" [ref=e153] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e154] [cursor=pointer]: Mathe Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e155] [cursor=pointer]: Chemie Study Session
+                - generic [ref=e156] [cursor=pointer]:
+                  - generic [ref=e157] [cursor=pointer]: "24"
+                  - generic [ref=e158] [cursor=pointer]:
+                    - generic "Chemie Study Session - 14:00" [ref=e159] [cursor=pointer]: Chemie Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e160] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e161] [cursor=pointer]: Mathe Study Session
+                - generic [ref=e162] [cursor=pointer]:
+                  - generic [ref=e163] [cursor=pointer]: "25"
+                  - generic [ref=e164] [cursor=pointer]:
+                    - generic "Chemie Study Session - 14:00" [ref=e165] [cursor=pointer]: Chemie Study Session
+                    - generic "woldai Study Session - 14:00" [ref=e166] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e167] [cursor=pointer]: Mathe Study Session
+                - generic [ref=e169] [cursor=pointer]: "26"
+                - generic [ref=e171] [cursor=pointer]: "27"
+                - generic [ref=e173] [cursor=pointer]: "28"
+                - generic [ref=e175] [cursor=pointer]: "29"
+                - generic [ref=e176] [cursor=pointer]:
+                  - generic [ref=e177] [cursor=pointer]: "30"
+                  - generic [ref=e178] [cursor=pointer]:
+                    - generic "woldai Study Session - 14:00" [ref=e179] [cursor=pointer]: woldai Study Session
+                    - generic "Mathe Study Session - 14:00" [ref=e180] [cursor=pointer]: Mathe Study Session
+                    - generic "Chemie Study Session - 14:00" [ref=e181] [cursor=pointer]: Chemie Study Session
+                - generic [ref=e183] [cursor=pointer]: "1"
+                - generic [ref=e185] [cursor=pointer]: "2"
+                - generic [ref=e187] [cursor=pointer]: "3"
+                - generic [ref=e189] [cursor=pointer]: "4"
+        - generic [ref=e191]:
+          - generic [ref=e192]:
+            - img [ref=e193]
+            - heading "Schnellübersicht" [level=2] [ref=e195]
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - img [ref=e199]
+              - generic [ref=e201]:
+                - generic [ref=e202]: ↗
+                - generic [ref=e203]: 15%
+            - heading "Heutige Lernzeit" [level=3] [ref=e204]
+            - generic [ref=e205]:
+              - generic [ref=e206]: 0 Min
+              - generic [ref=e207]: von 2h Ziel
+            - paragraph [ref=e210]: vs. gestern
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - img [ref=e214]
+              - generic [ref=e216]:
+                - generic [ref=e217]: ↗
+                - generic [ref=e218]: 20%
+            - heading "Lernstreak" [level=3] [ref=e219]
+            - generic [ref=e220]:
+              - generic [ref=e221]: "0"
+              - generic [ref=e222]: Tage
+            - generic [ref=e224]:
+              - img [ref=e226]
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - generic [ref=e230]: "0"
+                  - generic [ref=e231]: days
+                - generic [ref=e232]: Start your streak!
+            - paragraph [ref=e233]: Neuer Rekord!
+          - generic [ref=e234]:
+            - img [ref=e237]
+            - heading "Level & XP" [level=3] [ref=e239]
+            - generic [ref=e240]:
+              - generic [ref=e241]: Level 1
+              - generic [ref=e242]: 0 XP
+            - generic [ref=e245]: 100 XP bis Level 2
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - img [ref=e249]
+              - generic [ref=e251]:
+                - generic [ref=e252]: ↗
+                - generic [ref=e253]: 25%
+            - heading "Erledigte Aufgaben" [level=3] [ref=e254]
+            - generic [ref=e255]:
+              - generic [ref=e256]: "0"
+              - generic [ref=e257]: heute
+            - generic [ref=e259]: "Gesamt: 0"
+            - paragraph [ref=e260]: vs. gestern
+          - generic [ref=e261]:
+            - img [ref=e264]
+            - heading "Wochenfortschritt" [level=3] [ref=e266]
+            - generic [ref=e267]:
+              - generic [ref=e268]: 0 Min
+              - generic [ref=e269]: diese Woche
+            - generic [ref=e271]:
+              - generic [ref=e272]:
+                - generic [ref=e273]: Fortschritt
+                - generic [ref=e274]: 0%
+              - generic [ref=e276]: "Ziel: 35h"
+          - generic [ref=e277]:
+            - img [ref=e280]
+            - heading "Letzte Erfolge" [level=3] [ref=e282]
+            - generic [ref=e283]:
+              - generic [ref=e284]: "0"
+              - generic [ref=e285]: Achievements
+      - generic [ref=e286]:
+        - heading "Kalender Legende" [level=3] [ref=e287]
+        - generic [ref=e288]:
+          - generic [ref=e291]: woldai
+          - generic [ref=e294]: Chemie
+          - generic [ref=e297]: Mathe
+          - generic [ref=e300]: Abgeschlossen
+    - contentinfo [ref=e301]:
+      - paragraph [ref=e304]: © 2024 Lernplaner. Für besseres Lernen mit Gamification.
+  - alert [ref=e305]
+```
