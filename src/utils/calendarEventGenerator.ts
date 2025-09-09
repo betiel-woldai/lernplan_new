@@ -135,8 +135,8 @@ function generateStudySessionsForSubject(subject: Subject, weeksAhead: number): 
       
       // Generate a deterministic UUID for the study session
       const crypto = require('crypto');
-      const sessionId = `${subject.id}-${sessionDate.toISOString().split('T')[0]}-${sessionCount}`;
-      const hash = crypto.createHash('sha256').update(`study-${sessionId}`).digest('hex');
+      const sessionIdentifier = `study-${subject.id}-${sessionDate.toISOString().split('T')[0]}-${sessionCount}`;
+      const hash = crypto.createHash('sha256').update(sessionIdentifier).digest('hex');
       const uuid = [
         hash.substring(0, 8),
         hash.substring(8, 12),
