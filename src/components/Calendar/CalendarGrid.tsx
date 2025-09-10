@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarDay, CalendarSession } from '../../types/calendar';
 import { FaCheck, FaClock } from 'react-icons/fa';
 
@@ -26,6 +26,9 @@ export default function CalendarGrid({
   error
 }: CalendarGridProps) {
   
+  // Track sessions that have been reverted from completed to incomplete
+  const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
+  
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
     const today = new Date();
@@ -37,6 +40,11 @@ export default function CalendarGrid({
     
     if (isFutureSession) {
       return 'ausstehend'; // Future sessions are always pending
+    }
+    
+    // Check if session was reverted from completed to incomplete
+    if (!session.completed && revertedSessions.has(session.id)) {
+      return 'reverted'; // Red color for reverted sessions
     }
     
     return session.completed ? 'abgeschlossen' : 'ausstehend';
@@ -63,6 +71,20 @@ export default function CalendarGrid({
     }
     
     const newCompletedStatus = !session.completed;
+    
+    // Track when a session is reverted from completed to incomplete
+    if (session.completed && !newCompletedStatus) {
+      // Session is being reverted from completed to incomplete - mark as reverted
+      setRevertedSessions(prev => new Set(prev).add(session.id));
+    } else if (!session.completed && newCompletedStatus) {
+      // Session is being marked as completed - remove from reverted list if present
+      setRevertedSessions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(session.id);
+        return newSet;
+      });
+    }
+    
     await onSessionToggleComplete(session.id, { 
       completed: newCompletedStatus,
       duration: session.duration // Needed for XP calculation 
@@ -165,6 +187,7 @@ export default function CalendarGrid({
               {day.sessions.slice(0, 3).map((session) => {
                 const sessionStatus = getSessionStatus(session);
                 const isCompleted = sessionStatus === 'abgeschlossen';
+                const isReverted = sessionStatus === 'reverted';
                 
                 return (
                 <div
@@ -177,13 +200,19 @@ export default function CalendarGrid({
                   style={{
                     backgroundColor: isCompleted 
                       ? '#f0fdf4'  // Light green for completed
-                      : `${session.subjectColor}20`, // Subject color with transparency for pending
+                      : isReverted
+                      ? '#fef2f2'  // Light red for reverted sessions
+                      : `${session.subjectColor}20`, // Subject color with transparency for default pending
                     borderLeftColor: isCompleted 
                       ? '#22c55e'  // Green border for completed
-                      : session.subjectColor, // Subject color border for pending
+                      : isReverted
+                      ? '#ef4444'  // Red border for reverted sessions
+                      : session.subjectColor, // Subject color border for default pending
                     color: isCompleted 
                       ? '#15803d'  // Dark green text for completed
-                      : session.subjectColor // Subject color text for pending
+                      : isReverted
+                      ? '#dc2626'  // Red text for reverted sessions
+                      : session.subjectColor // Subject color text for default pending
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -192,7 +221,7 @@ export default function CalendarGrid({
                   title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
-                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : 'Ausstehend'}`}
+                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="truncate flex-1">{session.title}</span>
@@ -203,6 +232,8 @@ export default function CalendarGrid({
                         className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
                           isCompleted 
                             ? 'bg-green-100 hover:bg-green-200' 
+                            : isReverted
+                            ? 'bg-red-100 hover:bg-red-200'
                             : sessionStatus === 'ausstehend' && new Date(session.startTime).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)
                             ? 'bg-orange-100 hover:bg-orange-200'
                             : 'bg-gray-100 cursor-not-allowed'
@@ -212,6 +243,8 @@ export default function CalendarGrid({
                             ? 'Zukünftige Sessions sind immer ausstehend'
                             : isCompleted 
                             ? 'Als ausstehend markieren' 
+                            : isReverted
+                            ? 'Als abgeschlossen markieren (war rückgängig)'
                             : 'Als abgeschlossen markieren'
                         }
                       >
@@ -220,8 +253,10 @@ export default function CalendarGrid({
                         ) : (
                           <FaClock className={`w-2 h-2 ${
                             new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
-                              ? 'text-gray-400'
-                              : 'text-orange-500'
+                              ? 'text-gray-400'  // Gray for future sessions
+                              : isReverted
+                              ? 'text-red-600'   // Red for reverted sessions
+                              : 'text-orange-500' // Orange for default pending sessions
                           }`} />
                         )}
                       </button>

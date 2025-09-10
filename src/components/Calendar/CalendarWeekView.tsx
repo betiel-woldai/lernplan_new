@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarSession } from '../../types/calendar';
 import { FaCheck, FaClock } from 'react-icons/fa';
 import { format, startOfWeek, addDays } from 'date-fns';
@@ -26,6 +26,9 @@ export default function CalendarWeekView({
   error
 }: CalendarWeekViewProps) {
   
+  // Track sessions that have been reverted from completed to incomplete
+  const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
+  
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
     const today = new Date();
@@ -39,7 +42,53 @@ export default function CalendarWeekView({
       return 'ausstehend'; // Future sessions are always pending
     }
     
+    // Check if session was reverted from completed to incomplete
+    if (!session.completed && revertedSessions.has(session.id)) {
+      return 'reverted'; // Red color for reverted sessions
+    }
+    
     return session.completed ? 'abgeschlossen' : 'ausstehend';
+  };
+  
+  // Handle session toggle with reversion tracking
+  const handleSessionToggleComplete = async (session: CalendarSession, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!onSessionToggleComplete) return;
+    
+    // Check if session is in the future - future sessions cannot be completed
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      console.log('Cannot mark future sessions as completed - they remain "ausstehend"');
+      return;
+    }
+    
+    const newCompletedStatus = !session.completed;
+    
+    // Track when a session is reverted from completed to incomplete
+    if (session.completed && !newCompletedStatus) {
+      // Session is being reverted from completed to incomplete - mark as reverted
+      setRevertedSessions(prev => new Set(prev).add(session.id));
+    } else if (!session.completed && newCompletedStatus) {
+      // Session is being marked as completed - remove from reverted list if present
+      setRevertedSessions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(session.id);
+        return newSet;
+      });
+    }
+    
+    await onSessionToggleComplete(session.id, { 
+      completed: newCompletedStatus,
+      duration: session.duration
+    });
   };
   
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -141,6 +190,7 @@ export default function CalendarWeekView({
                   {sessionsInSlot.map((session) => {
                     const sessionStatus = getSessionStatus(session);
                     const isCompleted = sessionStatus === 'abgeschlossen';
+                    const isReverted = sessionStatus === 'reverted';
                     
                     return (
                     <div
@@ -152,22 +202,28 @@ export default function CalendarWeekView({
                       style={{
                         backgroundColor: isCompleted 
                           ? '#f0fdf4'  // Light green for completed
-                          : `${session.subjectColor}20`, // Subject color with transparency for pending
+                          : isReverted
+                          ? '#fef2f2'  // Light red for reverted sessions
+                          : `${session.subjectColor}20`, // Subject color with transparency for default pending
                         borderColor: isCompleted 
                           ? '#22c55e'  // Green border for completed
-                          : session.subjectColor, // Subject color border for pending
+                          : isReverted
+                          ? '#ef4444'  // Red border for reverted sessions
+                          : session.subjectColor, // Subject color border for default pending
                         color: isCompleted 
                           ? '#15803d'  // Dark green text for completed
-                          : session.subjectColor // Subject color text for pending
+                          : isReverted
+                          ? '#dc2626'  // Red text for reverted sessions
+                          : session.subjectColor // Subject color text for default pending
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSessionClick(session);
+                        handleSessionToggleComplete(session, e);
                       }}
                       title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
-                      })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : 'Ausstehend'}`}
+                      })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'}`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="truncate flex-1 font-medium">{session.title}</span>
@@ -177,8 +233,10 @@ export default function CalendarWeekView({
                           ) : (
                             <FaClock className={`w-3 h-3 ${
                               new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
-                                ? 'text-gray-400'  // Gray for future sessions
-                                : 'text-orange-500' // Orange for current/past pending sessions
+                                ? 'text-gray-400'   // Gray for future sessions
+                                : isReverted
+                                ? 'text-red-600'    // Red for reverted sessions
+                                : 'text-orange-500' // Orange for default pending sessions
                             }`} />
                           )}
                         </div>

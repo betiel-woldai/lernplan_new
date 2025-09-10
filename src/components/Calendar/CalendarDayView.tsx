@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarSession } from '../../types/calendar';
 import { FaCheck, FaClock, FaMapMarkerAlt, FaBookOpen } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -26,6 +26,9 @@ export default function CalendarDayView({
   error
 }: CalendarDayViewProps) {
   
+  // Track sessions that have been reverted from completed to incomplete
+  const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
+  
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
     const today = new Date();
@@ -39,7 +42,53 @@ export default function CalendarDayView({
       return 'ausstehend'; // Future sessions are always pending
     }
     
+    // Check if session was reverted from completed to incomplete
+    if (!session.completed && revertedSessions.has(session.id)) {
+      return 'reverted'; // Red color for reverted sessions
+    }
+    
     return session.completed ? 'abgeschlossen' : 'ausstehend';
+  };
+  
+  // Handle session toggle with reversion tracking
+  const handleSessionToggleComplete = async (session: CalendarSession, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!onSessionToggleComplete) return;
+    
+    // Check if session is in the future - future sessions cannot be completed
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      console.log('Cannot mark future sessions as completed - they remain "ausstehend"');
+      return;
+    }
+    
+    const newCompletedStatus = !session.completed;
+    
+    // Track when a session is reverted from completed to incomplete
+    if (session.completed && !newCompletedStatus) {
+      // Session is being reverted from completed to incomplete - mark as reverted
+      setRevertedSessions(prev => new Set(prev).add(session.id));
+    } else if (!session.completed && newCompletedStatus) {
+      // Session is being marked as completed - remove from reverted list if present
+      setRevertedSessions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(session.id);
+        return newSet;
+      });
+    }
+    
+    await onSessionToggleComplete(session.id, { 
+      completed: newCompletedStatus,
+      duration: session.duration
+    });
   };
   
   const viewDate = selectedDate || currentDate;
@@ -137,6 +186,7 @@ export default function CalendarDayView({
               .map((session) => {
                 const sessionStatus = getSessionStatus(session);
                 const isCompleted = sessionStatus === 'abgeschlossen';
+                const isReverted = sessionStatus === 'reverted';
                 const isFutureSession = new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0);
                 
                 return (
@@ -149,18 +199,22 @@ export default function CalendarDayView({
                   style={{
                     backgroundColor: isCompleted 
                       ? '#f0fdf4'  // Light green for completed
-                      : `${session.subjectColor}20`, // Subject color with transparency for pending
+                      : isReverted
+                      ? '#fef2f2'  // Light red for reverted sessions
+                      : `${session.subjectColor}20`, // Subject color with transparency for default pending
                     borderLeftColor: isCompleted 
                       ? '#22c55e'  // Green border for completed
-                      : session.subjectColor // Subject color border for pending
+                      : isReverted
+                      ? '#ef4444'  // Red border for reverted sessions
+                      : session.subjectColor // Subject color border for default pending
                   }}
-                  onClick={() => onSessionClick(session)}
+                  onClick={(e) => handleSessionToggleComplete(session, e)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className={`font-semibold text-lg ${
-                          isCompleted ? 'text-green-800' : 'text-gray-900'
+                          isCompleted ? 'text-green-800' : isReverted ? 'text-red-800' : 'text-gray-900'
                         }`}>
                           {session.title}
                         </h3>
@@ -169,6 +223,11 @@ export default function CalendarDayView({
                             <div className="flex items-center space-x-1 bg-green-200 px-2 py-1 rounded-full">
                               <FaCheck className="w-3 h-3 text-green-700" />
                               <span className="text-xs text-green-700 font-medium">Abgeschlossen</span>
+                            </div>
+                          ) : isReverted ? (
+                            <div className="flex items-center space-x-1 bg-red-200 px-2 py-1 rounded-full">
+                              <FaClock className="w-3 h-3 text-red-700" />
+                              <span className="text-xs text-red-700 font-medium">Ausstehend (Rückgängig)</span>
                             </div>
                           ) : (
                             <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
