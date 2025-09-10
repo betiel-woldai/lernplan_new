@@ -189,6 +189,7 @@ export default function Calendar({
             selectedDate={viewState.selectedDate}
             onDateClick={handleDateClick}
             onSessionClick={onSessionClick}
+            onSessionToggleComplete={updateSession}
             getSessionsForDate={getSessionsForDate}
             loading={loading}
             error={error}
@@ -201,6 +202,7 @@ export default function Calendar({
             selectedDate={viewState.selectedDate}
             onDateClick={handleDateClick}
             onSessionClick={onSessionClick}
+            onSessionToggleComplete={updateSession}
             getSessionsForDate={getSessionsForDate}
             loading={loading}
             error={error}

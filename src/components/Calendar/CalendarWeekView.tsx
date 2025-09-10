@@ -9,6 +9,7 @@ interface CalendarWeekViewProps {
   selectedDate: Date | null;
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
+  onSessionToggleComplete?: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
   getSessionsForDate: (date: Date) => CalendarSession[];
   loading: boolean;
   error: string | null;
@@ -19,10 +20,27 @@ export default function CalendarWeekView({
   selectedDate,
   onDateClick,
   onSessionClick,
+  onSessionToggleComplete,
   getSessionsForDate,
   loading,
   error
 }: CalendarWeekViewProps) {
+  
+  // Helper function to determine session status based on date and completion
+  const getSessionStatus = (session: CalendarSession) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      return 'ausstehend'; // Future sessions are always pending
+    }
+    
+    return session.completed ? 'abgeschlossen' : 'ausstehend';
+  };
   
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -62,8 +80,9 @@ export default function CalendarWeekView({
           const isToday = day.toDateString() === today.toDateString();
           const isSelected = selectedDate ? day.toDateString() === selectedDate.toDateString() : false;
           const sessions = getSessionsForDate(day);
-          const completedSessions = sessions.filter(s => s.completed).length;
-          const totalSessions = sessions.length;
+          // Only count sessions that are truly completed (not future sessions)
+          const completedSessions = sessions.filter(s => getSessionStatus(s) === 'abgeschlossen').length;
+          const pendingSessions = sessions.filter(s => getSessionStatus(s) === 'ausstehend').length;
           
           return (
             <div 
@@ -82,7 +101,7 @@ export default function CalendarWeekView({
               <div className={`text-lg font-bold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
                 {format(day, 'd')}
               </div>
-              {totalSessions > 0 && (
+              {(completedSessions + pendingSessions) > 0 && (
                 <div className="flex items-center justify-center space-x-1 mt-1">
                   <div className="flex items-center space-x-1 text-xs">
                     <FaCheck className="w-3 h-3 text-green-600" />
@@ -91,7 +110,7 @@ export default function CalendarWeekView({
                   <div className="text-gray-400 text-xs">/</div>
                   <div className="flex items-center space-x-1 text-xs">
                     <FaClock className="w-3 h-3 text-orange-500" />
-                    <span className="text-gray-600">{totalSessions - completedSessions}</span>
+                    <span className="text-gray-600">{pendingSessions}</span>
                   </div>
                 </div>
               )}
@@ -119,27 +138,27 @@ export default function CalendarWeekView({
                   key={`${timeSlot}-${dayIndex}`}
                   className="p-1 border-r border-gray-100 last:border-r-0 min-h-[60px] relative"
                 >
-                  {sessionsInSlot.map((session) => (
+                  {sessionsInSlot.map((session) => {
+                    const sessionStatus = getSessionStatus(session);
+                    const isCompleted = sessionStatus === 'abgeschlossen';
+                    
+                    return (
                     <div
                       key={session.id}
                       className={`
-                        text-xs p-2 mb-1 rounded cursor-pointer
+                        text-xs p-2 mb-1 rounded cursor-pointer border
                         hover:shadow-md transition-all duration-200
-                        ${session.completed 
-                          ? 'bg-green-100 border border-green-300 text-green-800' 
-                          : 'border'
-                        }
                       `}
                       style={{
-                        backgroundColor: session.completed 
-                          ? '#dcfce7' 
-                          : `${session.subjectColor}15`,
-                        borderColor: session.completed 
-                          ? '#22c55e' 
-                          : session.subjectColor,
-                        color: session.completed 
-                          ? '#166534' 
-                          : session.subjectColor
+                        backgroundColor: isCompleted 
+                          ? '#f0fdf4'  // Light green for completed
+                          : `${session.subjectColor}20`, // Subject color with transparency for pending
+                        borderColor: isCompleted 
+                          ? '#22c55e'  // Green border for completed
+                          : session.subjectColor, // Subject color border for pending
+                        color: isCompleted 
+                          ? '#15803d'  // Dark green text for completed
+                          : session.subjectColor // Subject color text for pending
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -148,15 +167,19 @@ export default function CalendarWeekView({
                       title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
-                      })} - ${session.completed ? 'Abgeschlossen' : 'Ausstehend'}`}
+                      })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : 'Ausstehend'}`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="truncate flex-1 font-medium">{session.title}</span>
                         <div className="flex-shrink-0 ml-1">
-                          {session.completed ? (
+                          {isCompleted ? (
                             <FaCheck className="w-3 h-3 text-green-600" />
                           ) : (
-                            <FaClock className="w-3 h-3 text-orange-500" />
+                            <FaClock className={`w-3 h-3 ${
+                              new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                                ? 'text-gray-400'  // Gray for future sessions
+                                : 'text-orange-500' // Orange for current/past pending sessions
+                            }`} />
                           )}
                         </div>
                       </div>
@@ -170,7 +193,8 @@ export default function CalendarWeekView({
                         })}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })}

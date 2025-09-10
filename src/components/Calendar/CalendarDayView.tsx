@@ -9,6 +9,7 @@ interface CalendarDayViewProps {
   selectedDate: Date | null;
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
+  onSessionToggleComplete?: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
   getSessionsForDate: (date: Date) => CalendarSession[];
   loading: boolean;
   error: string | null;
@@ -19,10 +20,27 @@ export default function CalendarDayView({
   selectedDate,
   onDateClick,
   onSessionClick,
+  onSessionToggleComplete,
   getSessionsForDate,
   loading,
   error
 }: CalendarDayViewProps) {
+  
+  // Helper function to determine session status based on date and completion
+  const getSessionStatus = (session: CalendarSession) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      return 'ausstehend'; // Future sessions are always pending
+    }
+    
+    return session.completed ? 'abgeschlossen' : 'ausstehend';
+  };
   
   const viewDate = selectedDate || currentDate;
   const sessions = getSessionsForDate(viewDate);
@@ -46,7 +64,9 @@ export default function CalendarDayView({
     return acc;
   }, {} as Record<number, CalendarSession[]>);
 
-  const completedSessions = sessions.filter(s => s.completed).length;
+  // Only count sessions that are truly completed (not future sessions)
+  const completedSessions = sessions.filter(s => getSessionStatus(s) === 'abgeschlossen').length;
+  const pendingSessions = sessions.filter(s => getSessionStatus(s) === 'ausstehend').length;
   const totalSessions = sessions.length;
 
   if (error) {
@@ -95,7 +115,7 @@ export default function CalendarDayView({
               <div className="flex items-center space-x-2 bg-orange-100 px-3 py-2 rounded-lg">
                 <FaClock className="w-4 h-4 text-orange-600" />
                 <span className="text-orange-700 font-medium">
-                  {totalSessions - completedSessions} ausstehend
+                  {pendingSessions} ausstehend
                 </span>
               </div>
             </div>
@@ -114,24 +134,25 @@ export default function CalendarDayView({
           <div className="p-4 space-y-3">
             {sessions
               .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-              .map((session) => (
+              .map((session) => {
+                const sessionStatus = getSessionStatus(session);
+                const isCompleted = sessionStatus === 'abgeschlossen';
+                const isFutureSession = new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0);
+                
+                return (
                 <div
                   key={session.id}
                   className={`
                     p-4 rounded-lg border-l-4 cursor-pointer
                     hover:shadow-md transition-all duration-200
-                    ${session.completed 
-                      ? 'bg-green-50 border-green-500' 
-                      : 'bg-gray-50'
-                    }
                   `}
                   style={{
-                    backgroundColor: session.completed 
-                      ? '#f0fdf4' 
-                      : `${session.subjectColor}10`,
-                    borderLeftColor: session.completed 
-                      ? '#22c55e' 
-                      : session.subjectColor
+                    backgroundColor: isCompleted 
+                      ? '#f0fdf4'  // Light green for completed
+                      : `${session.subjectColor}20`, // Subject color with transparency for pending
+                    borderLeftColor: isCompleted 
+                      ? '#22c55e'  // Green border for completed
+                      : session.subjectColor // Subject color border for pending
                   }}
                   onClick={() => onSessionClick(session)}
                 >
@@ -139,20 +160,35 @@ export default function CalendarDayView({
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className={`font-semibold text-lg ${
-                          session.completed ? 'text-green-800' : 'text-gray-900'
+                          isCompleted ? 'text-green-800' : 'text-gray-900'
                         }`}>
                           {session.title}
                         </h3>
                         <div className="flex-shrink-0">
-                          {session.completed ? (
+                          {isCompleted ? (
                             <div className="flex items-center space-x-1 bg-green-200 px-2 py-1 rounded-full">
                               <FaCheck className="w-3 h-3 text-green-700" />
                               <span className="text-xs text-green-700 font-medium">Abgeschlossen</span>
                             </div>
                           ) : (
-                            <div className="flex items-center space-x-1 bg-orange-200 px-2 py-1 rounded-full">
-                              <FaClock className="w-3 h-3 text-orange-700" />
-                              <span className="text-xs text-orange-700 font-medium">Ausstehend</span>
+                            <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
+                              isFutureSession 
+                                ? 'bg-gray-200'  // Gray background for future sessions
+                                : 'bg-orange-200' // Orange background for current/past pending
+                            }`}>
+                              <FaClock className={`w-3 h-3 ${
+                                isFutureSession 
+                                  ? 'text-gray-600' 
+                                  : 'text-orange-700'
+                              }`} />
+                              <span className={`text-xs font-medium ${
+                                isFutureSession 
+                                  ? 'text-gray-600' 
+                                  : 'text-orange-700'
+                              }`}>
+                                Ausstehend
+                                {isFutureSession && ' (Zukunft)'}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -198,7 +234,8 @@ export default function CalendarDayView({
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
           </div>
         )}
       </div>

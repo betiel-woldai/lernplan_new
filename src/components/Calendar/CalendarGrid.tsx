@@ -26,11 +26,41 @@ export default function CalendarGrid({
   error
 }: CalendarGridProps) {
   
+  // Helper function to determine session status based on date and completion
+  const getSessionStatus = (session: CalendarSession) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      return 'ausstehend'; // Future sessions are always pending
+    }
+    
+    return session.completed ? 'abgeschlossen' : 'ausstehend';
+  };
+  
   const handleSessionToggleComplete = async (session: CalendarSession, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!onSessionToggleComplete) return;
+    
+    // Check if session is in the future - future sessions cannot be completed
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+    const sessionDate = new Date(session.startTime);
+    sessionDate.setHours(0, 0, 0, 0);
+    
+    const isFutureSession = sessionDate > today;
+    
+    if (isFutureSession) {
+      // Future sessions are always "ausstehend" and cannot be toggled
+      console.log('Cannot mark future sessions as completed - they remain "ausstehend"');
+      return;
+    }
     
     const newCompletedStatus = !session.completed;
     await onSessionToggleComplete(session.id, { 
@@ -132,27 +162,28 @@ export default function CalendarGrid({
 
             {/* Sessions */}
             <div className="space-y-1">
-              {day.sessions.slice(0, 3).map((session) => (
+              {day.sessions.slice(0, 3).map((session) => {
+                const sessionStatus = getSessionStatus(session);
+                const isCompleted = sessionStatus === 'abgeschlossen';
+                
+                return (
                 <div
                   key={session.id}
                   className={`
                     text-xs px-2 py-1 rounded cursor-pointer truncate relative
                     hover:shadow-md transition-all duration-200
-                    ${session.completed 
-                      ? 'bg-green-50 border-l-4 border-green-500 text-green-700' 
-                      : 'border-l-4'
-                    }
+                    border-l-4
                   `}
                   style={{
-                    backgroundColor: session.completed 
-                      ? '#f0fdf4' 
-                      : `${session.subjectColor}20`,
-                    borderLeftColor: session.completed 
-                      ? '#22c55e' 
-                      : session.subjectColor,
-                    color: session.completed 
-                      ? '#15803d' 
-                      : session.subjectColor
+                    backgroundColor: isCompleted 
+                      ? '#f0fdf4'  // Light green for completed
+                      : `${session.subjectColor}20`, // Subject color with transparency for pending
+                    borderLeftColor: isCompleted 
+                      ? '#22c55e'  // Green border for completed
+                      : session.subjectColor, // Subject color border for pending
+                    color: isCompleted 
+                      ? '#15803d'  // Dark green text for completed
+                      : session.subjectColor // Subject color text for pending
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -161,7 +192,7 @@ export default function CalendarGrid({
                   title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
-                  })} - ${session.completed ? 'Abgeschlossen' : 'Ausstehend'}`}
+                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : 'Ausstehend'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="truncate flex-1">{session.title}</span>
@@ -170,22 +201,35 @@ export default function CalendarGrid({
                       <button
                         onClick={(e) => handleSessionToggleComplete(session, e)}
                         className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
-                          session.completed 
+                          isCompleted 
                             ? 'bg-green-100 hover:bg-green-200' 
-                            : 'bg-orange-100 hover:bg-orange-200'
+                            : sessionStatus === 'ausstehend' && new Date(session.startTime).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)
+                            ? 'bg-orange-100 hover:bg-orange-200'
+                            : 'bg-gray-100 cursor-not-allowed'
                         }`}
-                        title={session.completed ? 'Als ausstehend markieren' : 'Als abgeschlossen markieren'}
+                        title={
+                          new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                            ? 'Zukünftige Sessions sind immer ausstehend'
+                            : isCompleted 
+                            ? 'Als ausstehend markieren' 
+                            : 'Als abgeschlossen markieren'
+                        }
                       >
-                        {session.completed ? (
+                        {isCompleted ? (
                           <FaCheck className="w-2 h-2 text-green-600" />
                         ) : (
-                          <FaClock className="w-2 h-2 text-orange-500" />
+                          <FaClock className={`w-2 h-2 ${
+                            new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                              ? 'text-gray-400'
+                              : 'text-orange-500'
+                          }`} />
                         )}
                       </button>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               
               {/* Show "+N more" if there are more sessions */}
               {day.sessions.length > 3 && (
