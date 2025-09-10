@@ -237,9 +237,23 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
           sessionId,
           updates: learningSessionUpdates,
           timestamp: Date.now(),
-          completionChanged: updates.completed !== undefined
+          completionChanged: updates.completed !== undefined,
+          wasCompleted: updates.completed
         }
       }));
+
+      // Also trigger a more specific event for completion status changes
+      if (updates.completed !== undefined) {
+        const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
+        window.dispatchEvent(new CustomEvent(eventName, {
+          detail: {
+            sessionId,
+            completed: updates.completed,
+            xpGained: updates.completed ? (learningSessionUpdates.points || 0) : 0,
+            timestamp: Date.now()
+          }
+        }));
+      }
 
       return true;
     } catch (err) {

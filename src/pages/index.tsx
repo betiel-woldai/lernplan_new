@@ -108,6 +108,26 @@ export default function Dashboard() {
       }
     };
 
+    const handleSessionIncomplete = (event: any) => {
+      console.log('📊 Dashboard: Session marked incomplete', event.detail);
+      // Refresh subjects to update progress
+      refreshSubjects();
+      
+      // CRITICAL: Refresh user stats from database
+      refreshStats();
+      
+      setLastUpdateTime(Date.now());
+      
+      // Show feedback for incompletion
+      if ((window as any).triggerXPToast) {
+        (window as any).triggerXPToast(
+          0, 
+          'session_incomplete', 
+          'Session marked as pending'
+        );
+      }
+    };
+
     const handleSessionUpdated = (event: any) => {
       console.log('🔄 Dashboard: Session updated', event.detail);
       // Refresh all data to maintain timeline synchronization
@@ -165,6 +185,7 @@ export default function Dashboard() {
 
     // Real-time event listeners
     window.addEventListener('sessionCompleted', handleSessionCompleted);
+    window.addEventListener('sessionIncomplete', handleSessionIncomplete);
     window.addEventListener('sessionUpdated', handleSessionUpdated);
     window.addEventListener('xpGained', handleXPGained);
     window.addEventListener('levelUp', handleLevelUp);
@@ -179,6 +200,7 @@ export default function Dashboard() {
       
       // Clean up real-time listeners
       window.removeEventListener('sessionCompleted', handleSessionCompleted);
+      window.removeEventListener('sessionIncomplete', handleSessionIncomplete);
       window.removeEventListener('sessionUpdated', handleSessionUpdated);
       window.removeEventListener('xpGained', handleXPGained);
       window.removeEventListener('levelUp', handleLevelUp);

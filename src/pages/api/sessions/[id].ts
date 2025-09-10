@@ -170,7 +170,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         const pointsChange = nowCompleted ? (updateData.points || current.points) : -(updateData.points || current.points);
         const taskChange = nowCompleted ? 1 : -1;
         const timeChange = nowCompleted ? (updateData.duration || current.duration) : -(updateData.duration || current.duration);
-        const hoursChange = Math.max(0, Math.round(timeChange / 60)); // Ensure non-negative hours
+        const hoursChange = Math.round(Math.abs(timeChange) / 60); // Always positive hours for database
 
         // Get current user values to prevent negative values
         const currentUserResult = await client.query(`
@@ -184,7 +184,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         const newXp = Math.max(0, currentUser.current_xp + pointsChange);
         const newDailyTime = Math.max(0, currentUser.daily_learning_time + timeChange);
         const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time + timeChange);
-        const newTotalHours = Math.max(0, currentUser.total_hours + hoursChange);
+        const newTotalHours = Math.max(0, nowCompleted ? currentUser.total_hours + hoursChange : Math.max(0, currentUser.total_hours - hoursChange));
         const newCompletedTasks = Math.max(0, currentUser.completed_tasks + taskChange);
         const newTotalCompletedTasks = Math.max(0, currentUser.total_completed_tasks + taskChange);
 
@@ -199,9 +199,9 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
           WHERE id = $7
         `, [newXp, newDailyTime, newWeeklyTime, newTotalHours, newCompletedTasks, newTotalCompletedTasks, userId]);
 
-        // Record gamification event (only for completion, not incompletion)
-        if (nowCompleted) {
-          const eventType = 'session_complete';
+        // Record gamification event for both completion and incompletion
+        const eventType = nowCompleted ? 'session_complete' : 'xp_gain';
+        if (nowCompleted || !nowCompleted) {
           await client.query(`
             INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
             VALUES ($1, $2, $3, $4)
@@ -213,7 +213,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
               subjectId: current.subject_id,
               action: 'update'
             }),
-            Math.max(0, pointsChange) // Ensure non-negative XP
+            nowCompleted ? Math.max(0, pointsChange) : 0 // XP only for completion, 0 for incompletion
           ]);
         }
       }
