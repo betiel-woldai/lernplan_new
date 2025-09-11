@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarSession } from '../../types/calendar';
 import { FaCheck, FaClock } from 'react-icons/fa';
 import { format, startOfWeek, addDays } from 'date-fns';
@@ -28,6 +28,32 @@ export default function CalendarWeekView({
   
   // Track sessions that have been reverted from completed to incomplete
   const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
+  // Force re-render when sessions are updated via modal
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Listen for session updates from modal to refresh visual state
+  useEffect(() => {
+    const handleSessionUpdate = (event: any) => {
+      console.log('📅 CalendarWeekView: Session updated', event.detail);
+      // Force re-render to pick up updated session data
+      setRefreshKey(prev => prev + 1);
+      
+      // If session completion status changed, clear reverted state
+      if (event.detail?.completionChanged) {
+        setRevertedSessions(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(event.detail.sessionId);
+          return newSet;
+        });
+      }
+    };
+    
+    window.addEventListener('sessionUpdated', handleSessionUpdate);
+    
+    return () => {
+      window.removeEventListener('sessionUpdated', handleSessionUpdate);
+    };
+  }, []);
   
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
