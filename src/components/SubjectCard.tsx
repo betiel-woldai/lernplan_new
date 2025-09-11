@@ -76,31 +76,34 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
             </div>
           </div>
           
-          {/* Action buttons */}
-          <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {/* Action buttons - Start button prominent */}
+          <div className="flex space-x-2">
             {onStartSession && (
               <button
                 onClick={() => onStartSession(subject)}
-                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                 title="Start learning session"
               >
-                <FaPlay className="w-4 h-4" />
+                <FaPlay className="w-3 h-3 mr-1.5 inline" />
+                Start
               </button>
             )}
-            <button
-              onClick={() => onEdit(subject)}
-              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              title="Edit subject"
-            >
-              <FaEdit className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleDelete}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Delete subject"
-            >
-              <FaTrash className="w-4 h-4" />
-            </button>
+            <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={() => onEdit(subject)}
+                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Edit subject"
+              >
+                <FaEdit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete subject"
+              >
+                <FaTrash className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 

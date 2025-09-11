@@ -6,6 +6,8 @@ import { FaCog } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
 import { useLanguage } from '../contexts/LanguageContext';
 import SettingsModal from './SettingsModal';
+import CompactTimer from './CompactTimer';
+import StartSessionModal from './StartSessionModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,6 +18,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
   const router = useRouter();
   const { t } = useLanguage();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showQuickStart, setShowQuickStart] = useState(false);
 
   const isActive = (path: string) => {
     return router.pathname === path;
@@ -74,6 +77,9 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 >
                   {t('nav.analytics')}
                 </Link>
+                {/* Compact Timer */}
+                <CompactTimer onStartSession={() => setShowQuickStart(true)} />
+                
                 {/* Settings Button */}
                 <button
                   onClick={() => setIsSettingsOpen(true)}
@@ -109,6 +115,12 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
         <SettingsModal 
           isOpen={isSettingsOpen} 
           onClose={() => setIsSettingsOpen(false)} 
+        />
+
+        {/* Quick Start Modal */}
+        <StartSessionModal
+          isOpen={showQuickStart}
+          onClose={() => setShowQuickStart(false)}
         />
       </div>
     </>
