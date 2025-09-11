@@ -7,7 +7,8 @@ import { getVersionString } from '../utils/version';
 import { useLanguage } from '../contexts/LanguageContext';
 import SettingsModal from './SettingsModal';
 import CompactTimer from './CompactTimer';
-import StartSessionModal from './StartSessionModal';
+import SubjectSelector from './SubjectSelector';
+import SessionSummary from './SessionSummary';
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,10 +19,17 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
   const router = useRouter();
   const { t } = useLanguage();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [showQuickStart, setShowQuickStart] = useState(false);
+  const [showSubjectSelector, setShowSubjectSelector] = useState(false);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
+  const [completedSession, setCompletedSession] = useState<any>(null);
 
   const isActive = (path: string) => {
     return router.pathname === path;
+  };
+
+  const handleSessionCompleted = (session: any) => {
+    setCompletedSession(session);
+    setShowSessionSummary(true);
   };
 
   return (
@@ -78,7 +86,10 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                   {t('nav.analytics')}
                 </Link>
                 {/* Compact Timer */}
-                <CompactTimer onStartSession={() => setShowQuickStart(true)} />
+                <CompactTimer 
+                  onShowSubjectSelector={() => setShowSubjectSelector(true)}
+                  onShowSessionSummary={handleSessionCompleted}
+                />
                 
                 {/* Settings Button */}
                 <button
@@ -117,10 +128,21 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
           onClose={() => setIsSettingsOpen(false)} 
         />
 
-        {/* Quick Start Modal */}
-        <StartSessionModal
-          isOpen={showQuickStart}
-          onClose={() => setShowQuickStart(false)}
+        {/* Subject Selector Modal */}
+        <SubjectSelector
+          isOpen={showSubjectSelector}
+          onClose={() => setShowSubjectSelector(false)}
+          onSessionStarted={() => setShowSubjectSelector(false)}
+        />
+
+        {/* Session Summary Modal */}
+        <SessionSummary
+          isOpen={showSessionSummary}
+          onClose={() => {
+            setShowSessionSummary(false);
+            setCompletedSession(null);
+          }}
+          session={completedSession}
         />
       </div>
     </>

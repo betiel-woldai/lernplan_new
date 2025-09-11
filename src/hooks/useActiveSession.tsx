@@ -206,27 +206,50 @@ export function useActiveSession() {
     };
   }, []);
 
-  const startSession = useCallback((data: ActiveSessionData) => {
+  const startSession = useCallback((
+    subjectIdOrData: string | ActiveSessionData,
+    targetDuration?: number,
+    notes?: string,
+    subjectName?: string,
+    subjectColor?: string
+  ) => {
+    let sessionData: ActiveSessionData;
+    
+    // Support both old interface (ActiveSessionData) and new interface (individual parameters)
+    if (typeof subjectIdOrData === 'string') {
+      if (!targetDuration || !subjectName || !subjectColor) {
+        throw new Error('Missing required parameters for session start');
+      }
+      sessionData = {
+        subjectId: subjectIdOrData,
+        subjectName,
+        subjectColor,
+        targetDuration,
+        notes
+      };
+    } else {
+      sessionData = subjectIdOrData;
+    }
     try {
       setError(null);
       
       // Set session data and start time
-      setSessionData(data);
+      setSessionData(sessionData);
       setStartTime(Date.now());
       setPausedDuration(0);
       setSessionState('active');
 
       // Initialize progress
-      const initialProgress = calculateProgress(data, 0);
+      const initialProgress = calculateProgress(sessionData, 0);
       setProgress(initialProgress);
 
       // Dispatch session started event
       dispatchEvent('sessionStarted', {
         session: {
-          subjectId: data.subjectId,
-          subjectName: data.subjectName,
-          subjectColor: data.subjectColor,
-          targetDuration: data.targetDuration,
+          subjectId: sessionData.subjectId,
+          subjectName: sessionData.subjectName,
+          subjectColor: sessionData.subjectColor,
+          targetDuration: sessionData.targetDuration,
           startTime: Date.now()
         }
       }, 'useActiveSession');

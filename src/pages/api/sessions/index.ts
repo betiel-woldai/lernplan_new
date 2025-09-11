@@ -171,12 +171,13 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
         sessionData.notes || null
       ]);
 
-      // Update subject completed hours
+      // Update subject completed hours (convert minutes to hours, rounded to 2 decimal places)
+      const hoursToAdd = Math.round((sessionData.duration / 60) * 100) / 100; // Round to 2 decimal places
       await client.query(`
         UPDATE subjects 
         SET completed_hours = completed_hours + $1
         WHERE id = $2
-      `, [sessionData.duration / 60, sessionData.subjectId]);
+      `, [hoursToAdd, sessionData.subjectId]);
 
       // Add XP to user if session is completed
       if (sessionData.completed) {
