@@ -3,7 +3,7 @@ import XPBar from '@/components/XPBar';
 import StreakDisplay from '@/components/StreakDisplay';
 import AchievementBadge from '@/components/AchievementBadge';
 import useGamification from '@/hooks/useGamification';
-import { mockUserStats } from '@/utils/mockData';
+import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
 import { formatLearningTime, formatStreak, getXPProgress } from '@/utils/formatters';
 import { formatNumber, formatXPTotal, formatRemainingXP } from '@/utils/format';
 
@@ -17,10 +17,26 @@ import {
   FaCalendarCheck
 } from 'react-icons/fa';
 
-export default function QuickStatsPanel() {
-  const userStats = mockUserStats;
+interface QuickStatsPanelProps {
+  selectedDate?: Date | null;
+}
+
+export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) {
+  const { stats, loading, error } = useDateSpecificStats(selectedDate);
   const gamification = useGamification();
   const xpProgress = getXPProgress(gamification.currentXP, gamification.currentLevel);
+
+  // Format the date label for the UI
+  const getDateLabel = () => {
+    if (!selectedDate) return 'Heutige';
+    if (stats.isToday) return 'Heutige';
+    
+    const options: Intl.DateTimeFormatOptions = { 
+      day: 'numeric', 
+      month: 'short' 
+    };
+    return selectedDate.toLocaleDateString('de-DE', options);
+  };
 
   return (
     <div className="space-y-4">
@@ -32,23 +48,30 @@ export default function QuickStatsPanel() {
 
       {/* Daily Learning Time */}
       <CompactStatWidget
-        title="Heutige Lernzeit"
-        value={formatLearningTime(userStats.dailyLearningTime)}
-        subtitle="von 2h Ziel"
+        title={`${getDateLabel()} Lernzeit`}
+        value={loading ? 'Laden...' : stats.formattedDuration}
+        subtitle={`${stats.completedSessions} Sessions abgeschlossen`}
         icon={FaClock}
         iconColor="text-blue-500"
         trend={{
-          value: 15,
-          label: "vs. gestern",
-          isPositive: true
+          value: stats.completionRate,
+          label: stats.isToday ? "heute" : "an diesem Tag",
+          isPositive: stats.completionRate > 0
         }}
       >
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div 
-            className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(100, (userStats.dailyLearningTime / 120) * 100)}%` }}
-          />
-        </div>
+        {!loading && (
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div 
+              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, (stats.completedDuration / 120) * 100)}%` }}
+            />
+          </div>
+        )}
+        {error && (
+          <div className="text-xs text-red-500 mt-1">
+            Fehler beim Laden
+          </div>
+        )}
       </CompactStatWidget>
 
       {/* Learning Streak */}
@@ -95,47 +118,52 @@ export default function QuickStatsPanel() {
         </div>
       </CompactStatWidget>
 
-      {/* Completed Tasks */}
+      {/* Completed Sessions */}
       <CompactStatWidget
-        title="Erledigte Aufgaben"
-        value={userStats.completedTasks}
-        subtitle="heute"
+        title={`${stats.isToday ? 'Heutige' : 'Sessions am'} Sessions`}
+        value={loading ? '...' : stats.completedSessions}
+        subtitle={stats.isToday ? 'heute' : getDateLabel()}
         icon={FaCheckCircle}
         iconColor="text-green-500"
         trend={{
-          value: 25,
-          label: "vs. gestern",
-          isPositive: true
+          value: stats.completionRate,
+          label: `${stats.completionRate}% abgeschlossen`,
+          isPositive: stats.completionRate > 0
         }}
       >
         <div className="text-xs text-gray-500">
-          Gesamt: {formatNumber(userStats.totalCompletedTasks)}
+          {stats.totalSessions > 0 ? 
+            `${stats.completedSessions} von ${stats.totalSessions}` : 
+            'Keine Sessions geplant'
+          }
         </div>
       </CompactStatWidget>
 
       {/* Weekly Overview */}
       <CompactStatWidget
         title="Wochenfortschritt"
-        value={formatLearningTime(userStats.weeklyLearningTime)}
+        value={loading ? 'Laden...' : stats.formattedWeeklyDuration}
         subtitle="diese Woche"
         icon={FaChartLine}
         iconColor="text-purple-500"
       >
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-600">Fortschritt</span>
-            <span className="font-medium">{Math.round((userStats.weeklyLearningTime / (35 * 60)) * 100)}%</span>
+        {!loading && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-600">Sessions</span>
+              <span className="font-medium">{stats.thisWeekCompleted} / {stats.thisWeekSessions}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div 
+                className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (stats.thisWeekCompletedDuration / (35 * 60)) * 100)}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500">
+              Ziel: 35h pro Woche
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className="bg-purple-500 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, (userStats.weeklyLearningTime / (35 * 60)) * 100)}%` }}
-            />
-          </div>
-          <div className="text-xs text-gray-500">
-            Ziel: 35h
-          </div>
-        </div>
+        )}
       </CompactStatWidget>
 
       {/* Recent Achievements */}

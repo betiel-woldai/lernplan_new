@@ -52,7 +52,18 @@
 ✅ **Toggle Restrictions**: Future sessions cannot be marked complete (disabled)
 ✅ **Accurate Counting**: Statistics only count sessions that are truly completed
 
-**Testing**: Application running at http://localhost:3000 - ready for UI verification
+**Fixed Implementation - Corrected Color Logic:**
+✅ **Three-State System**: 
+   - Default "ausstehend": Subject color (neutral state)
+   - "Abgeschlossen": Green (positive state)
+   - Reverted "ausstehend": Red (warning - was completed, now marked incomplete)
+✅ **Reversion Tracking**: Added useState to track sessions reverted from completed→incomplete
+✅ **Visual Logic**: Red appears only when user clicks completed→incomplete (reversion)
+✅ **All Views Updated**: Month, week, and day views implement correct three-state logic
+✅ **Commit**: a22c065 - Three-state color system properly implemented
+
+**Testing**: Application running at http://localhost:3000 
+- Test the color progression: Default (subject color) → Complete (green) → Revert (red) → Complete again (green)
 
 ---
 
