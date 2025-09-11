@@ -264,6 +264,29 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     }
   }, []);
 
+  // Listen for external session updates (e.g., from SessionEditModal)
+  useEffect(() => {
+    const handleExternalSessionUpdate = (event: any) => {
+      const { sessionId, updates } = event.detail;
+      console.log('📅 useCalendarSessions: External session update received', { sessionId, updates });
+      
+      // Update the session in our local state
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === sessionId 
+            ? { ...session, ...updates }
+            : session
+        )
+      );
+    };
+
+    window.addEventListener('sessionUpdated', handleExternalSessionUpdate);
+
+    return () => {
+      window.removeEventListener('sessionUpdated', handleExternalSessionUpdate);
+    };
+  }, []);
+
   return {
     sessions,
     loading,
