@@ -351,7 +351,7 @@ export default function Dashboard() {
               <div className="text-xs text-blue-700 mt-1">von 2h Ziel</div>
             </div>
 
-            {/* Completed Sessions Compact */}
+            {/* Completed Sessions Compact - ONLY completed sessions for selected date */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-1">
@@ -363,27 +363,33 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="text-xs text-green-700">
-                {dateStats.totalSessions > 0 ? 
-                  `${dateStats.completedSessions}/${dateStats.totalSessions} abgeschlossen` : 
-                  'Keine Sessions geplant'
+                {dateStats.isToday ? 'heute abgeschlossen' : 
+                  selectedDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' abgeschlossen'
                 }
               </div>
             </div>
 
-            {/* Learning Streak Compact */}
+            {/* Learning Streak Compact - counting backwards from selected date */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-1">
                   <FaFire className="text-orange-500 text-sm" />
                   <span className="text-xs font-medium text-orange-900">Streak</span>
                 </div>
-                <span className="text-sm font-bold text-orange-900">{realtimeStreak}</span>
+                <span className="text-sm font-bold text-orange-900">
+                  {dateStatsLoading ? '...' : dateStats.streakDays}
+                </span>
               </div>
-              <span data-testid="current-streak" className="hidden">{realtimeStreak}</span>
-              <div className="text-xs text-orange-700">Tage in Folge</div>
+              <span data-testid="current-streak" className="hidden">{dateStatsLoading ? 0 : dateStats.streakDays}</span>
+              <div className="text-xs text-orange-700">
+                {dateStats.isToday ? 'Tage in Folge bis heute' : 
+                  `Tage in Folge bis ${selectedDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}`
+                }
+              </div>
             </div>
 
-            {/* Achievements Compact */}
+            {/* Achievements Compact - Temporarily hidden until defined */}
+            {false && (
             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border border-yellow-200">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-1">
@@ -402,38 +408,9 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
+            )}
 
-            {/* Session Status Compact */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center space-x-1">
-                  <FaTasks className="text-purple-500 text-sm" />
-                  <span className="text-xs font-medium text-purple-900">Sessions</span>
-                </div>
-                <span className="text-sm font-bold text-purple-900">
-                  {sessionStats.completionRate}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-1">
-                  <FaCheck className="text-green-500 text-xs" />
-                  <span className="text-xs text-purple-700">{sessionStats.completedSessions}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <FaClock className="text-orange-500 text-xs" />
-                  <span className="text-xs text-purple-700">{sessionStats.pendingSessions}</span>
-                </div>
-              </div>
-              <div className="w-full bg-purple-200 rounded-full h-1">
-                <div 
-                  className="bg-purple-500 h-1 rounded-full transition-all duration-500"
-                  style={{ width: `${sessionStats.completionRate}%` }}
-                />
-              </div>
-              <div className="text-xs text-purple-700 mt-1">
-                {sessionStats.completedSessions} von {sessionStats.totalSessions} abgeschlossen
-              </div>
-            </div>
+            {/* REMOVED: Redundant Session Status Widget - keeping only the date-specific one above */}
           </div>
         </div>
       </div>

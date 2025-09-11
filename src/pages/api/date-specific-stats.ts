@@ -59,6 +59,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     selectedDate.setHours(0, 0, 0, 0);
     const isToday = selectedDate.getTime() === today.getTime();
 
+    // Calculate streak UP TO the selected date (not from today)
+    const streakResult = await query(`
+      WITH RECURSIVE date_series AS (
+        SELECT $2::date as check_date
+        UNION ALL
+        SELECT (check_date - INTERVAL '1 day')::date
+        FROM date_series 
+        WHERE check_date > (CURRENT_DATE - INTERVAL '365 days')
+      ),
+      daily_completion AS (
+        SELECT 
+          ds.check_date,
+          CASE WHEN COUNT(ls.id) FILTER (WHERE ls.completed = true) > 0 THEN 1 ELSE 0 END as has_completed_session
+        FROM date_series ds
+        LEFT JOIN learning_sessions ls ON ls.date = ds.check_date AND ls.user_id = $1
+        GROUP BY ds.check_date
+        ORDER BY ds.check_date DESC
+      )
+      SELECT COUNT(*) as streak_days
+      FROM (
+        SELECT 
+          check_date,
+          has_completed_session,
+          ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn
+        FROM daily_completion
+      ) t
+      WHERE has_completed_session = 1 
+        AND NOT EXISTS (
+          SELECT 1 FROM (
+            SELECT 
+              check_date,
+              has_completed_session,
+              ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn2
+            FROM daily_completion
+          ) t2 
+          WHERE t2.rn2 < t.rn AND t2.has_completed_session = 0
+        )
+    `, [defaultUserId, date]);
+
+    const streakDays = parseInt(streakResult.rows[0]?.streak_days || '0');
+
     const response = {
       // Date-specific stats
       selectedDate: date,
@@ -68,6 +109,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pendingSessions,
       completionRate,
       completedDuration, // Total learning time for the date in minutes
+      
+      // Streak calculation up to selected date
+      streakDays,
       
       // Weekly context
       thisWeekSessions,

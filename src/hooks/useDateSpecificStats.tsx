@@ -8,6 +8,7 @@ interface DateSpecificStats {
   pendingSessions: number;
   completionRate: number;
   completedDuration: number; // in minutes
+  streakDays: number; // streak counting backwards from selected date
   thisWeekSessions: number;
   thisWeekCompleted: number;
   thisWeekCompletedDuration: number; // in minutes
@@ -24,6 +25,7 @@ export function useDateSpecificStats(selectedDate: Date | null = null) {
     pendingSessions: 0,
     completionRate: 0,
     completedDuration: 0,
+    streakDays: 0,
     thisWeekSessions: 0,
     thisWeekCompleted: 0,
     thisWeekCompletedDuration: 0,
