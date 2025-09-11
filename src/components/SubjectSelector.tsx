@@ -35,13 +35,29 @@ export default function SubjectSelector({ isOpen, onClose, onSessionStarted }: S
 
     setIsStarting(true);
     try {
-      // Use Deep Work or selected subject
+      // Handle Deep Work as special in-memory session (no database subject required)
       if (selectedSubjectId === 'deep-work') {
-        await startSession('deep-work', 60, '', deepWorkSubject.name, deepWorkSubject.color);
+        // Create session data for Deep Work - use in-memory tracking
+        const sessionData = {
+          subjectId: 'deep-work', 
+          subjectName: deepWorkSubject.name,
+          subjectColor: deepWorkSubject.color,
+          targetDuration: 60,
+          notes: ''
+        };
+        await startSession(sessionData);
       } else {
+        // Use regular database subject
         const subject = subjects.find(s => s.id === selectedSubjectId);
         if (subject) {
-          await startSession(subject.id, 60, '', subject.name, subject.color);
+          const sessionData = {
+            subjectId: subject.id,
+            subjectName: subject.name,
+            subjectColor: subject.color,
+            targetDuration: 60,
+            notes: ''
+          };
+          await startSession(sessionData);
         }
       }
       
@@ -49,6 +65,8 @@ export default function SubjectSelector({ isOpen, onClose, onSessionStarted }: S
       if (onSessionStarted) onSessionStarted();
     } catch (error) {
       console.error('Failed to start session:', error);
+      // Show user-friendly error
+      alert('Failed to start session. Please try again.');
     } finally {
       setIsStarting(false);
     }

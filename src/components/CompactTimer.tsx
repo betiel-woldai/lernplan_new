@@ -16,6 +16,13 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
     completeSession
   } = useActiveSession();
 
+  // Debug logging to see what's happening
+  console.log('🔍 CompactTimer render:', {
+    sessionState,
+    sessionData: sessionData ? `${sessionData.subjectName} (${sessionData.subjectId})` : null,
+    progress: `${progress.elapsedSeconds}s (${progress.progress}%)`
+  });
+
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);

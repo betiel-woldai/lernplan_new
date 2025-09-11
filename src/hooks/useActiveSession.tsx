@@ -31,6 +31,9 @@ export function useActiveSession() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [pausedDuration, setPausedDuration] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  
+  // Flag to prevent circular sync events
+  const isSyncingRef = useRef(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { createSession } = useLearningSessions();
@@ -142,7 +145,7 @@ export function useActiveSession() {
     };
   }, [sessionState, sessionData, startTime, pausedDuration, createSession]);
 
-  // Save to localStorage whenever session data changes
+  // Save to localStorage and broadcast sync events only for major state changes
   useEffect(() => {
     if (sessionState !== 'idle') {
       const sessionToSave = {
@@ -153,17 +156,38 @@ export function useActiveSession() {
         progress
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionToSave));
+      
+      // Only broadcast if not currently syncing from another instance
+      if (!isSyncingRef.current) {
+        console.log('🔄 Broadcasting session sync event:', sessionToSave);
+        const syncEvent = new CustomEvent('sessionSync', {
+          detail: sessionToSave
+        });
+        window.dispatchEvent(syncEvent);
+      }
     } else {
       localStorage.removeItem(STORAGE_KEY);
+      
+      // Only broadcast clear event if not currently syncing
+      if (!isSyncingRef.current) {
+        console.log('🔄 Broadcasting session clear event');
+        const syncEvent = new CustomEvent('sessionSync', {
+          detail: { sessionState: 'idle' }
+        });
+        window.dispatchEvent(syncEvent);
+      }
     }
-  }, [sessionState, sessionData, startTime, pausedDuration, progress]);
+  }, [sessionState, sessionData, startTime, pausedDuration]); // Removed progress from dependency array
 
   // Restore session from localStorage on mount
   useEffect(() => {
+    console.log('🔄 useActiveSession: Attempting to restore session from localStorage');
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      console.log('🔄 Saved session data:', saved);
       if (saved) {
         const parsed = JSON.parse(saved);
+        console.log('🔄 Parsed session:', parsed);
         if (parsed.sessionState && parsed.sessionState !== 'completed' && parsed.sessionData) {
           setSessionState(parsed.sessionState);
           setSessionData(parsed.sessionData);
@@ -206,55 +230,88 @@ export function useActiveSession() {
     };
   }, []);
 
-  const startSession = useCallback((
-    subjectIdOrData: string | ActiveSessionData,
-    targetDuration?: number,
-    notes?: string,
-    subjectName?: string,
-    subjectColor?: string
-  ) => {
-    let sessionData: ActiveSessionData;
-    
-    // Support both old interface (ActiveSessionData) and new interface (individual parameters)
-    if (typeof subjectIdOrData === 'string') {
-      if (!targetDuration || !subjectName || !subjectColor) {
-        throw new Error('Missing required parameters for session start');
+  // Listen for custom session sync events from other hook instances in the same window
+  useEffect(() => {
+    const handleSessionSync = (e: CustomEvent) => {
+      const sessionData = e.detail;
+      console.log('🔄 Session sync event received:', sessionData);
+      
+      // Set syncing flag to prevent circular broadcasts
+      isSyncingRef.current = true;
+      
+      if (sessionData.sessionState && sessionData.sessionState !== 'completed' && sessionData.sessionData) {
+        console.log('🔄 Syncing session state from custom event:', sessionData);
+        setSessionState(sessionData.sessionState);
+        setSessionData(sessionData.sessionData);
+        setStartTime(sessionData.startTime);
+        setPausedDuration(sessionData.pausedDuration || 0);
+        setProgress(sessionData.progress || {
+          elapsedSeconds: 0,
+          targetSeconds: sessionData.sessionData.targetDuration * 60,
+          progress: 0,
+          remainingSeconds: sessionData.sessionData.targetDuration * 60
+        });
+      } else if (!sessionData.sessionState || sessionData.sessionState === 'idle') {
+        // Session was cleared
+        console.log('🔄 Session cleared by sync event');
+        setSessionState('idle');
+        setSessionData(null);
+        setStartTime(null);
+        setPausedDuration(0);
+        setProgress({
+          elapsedSeconds: 0,
+          targetSeconds: 0,
+          progress: 0,
+          remainingSeconds: 0
+        });
       }
-      sessionData = {
-        subjectId: subjectIdOrData,
-        subjectName,
-        subjectColor,
-        targetDuration,
-        notes
-      };
-    } else {
-      sessionData = subjectIdOrData;
-    }
+      
+      // Reset syncing flag after a short delay
+      setTimeout(() => {
+        isSyncingRef.current = false;
+      }, 10);
+    };
+
+    window.addEventListener('sessionSync', handleSessionSync as EventListener);
+    return () => window.removeEventListener('sessionSync', handleSessionSync as EventListener);
+  }, []);
+
+  const startSession = useCallback((sessionDataParam: ActiveSessionData) => {
     try {
       setError(null);
       
       // Set session data and start time
-      setSessionData(sessionData);
+      setSessionData(sessionDataParam);
       setStartTime(Date.now());
       setPausedDuration(0);
       setSessionState('active');
 
       // Initialize progress
-      const initialProgress = calculateProgress(sessionData, 0);
+      const initialProgress = calculateProgress(sessionDataParam, 0);
       setProgress(initialProgress);
+
+      // Save to localStorage for persistence
+      const sessionToSave = {
+        sessionData: sessionDataParam,
+        startTime: Date.now(),
+        pausedDuration: 0,
+        sessionState: 'active'
+      };
+      console.log('💾 Saving session to localStorage:', sessionToSave);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionToSave));
 
       // Dispatch session started event
       dispatchEvent('sessionStarted', {
         session: {
-          subjectId: sessionData.subjectId,
-          subjectName: sessionData.subjectName,
-          subjectColor: sessionData.subjectColor,
-          targetDuration: sessionData.targetDuration,
+          subjectId: sessionDataParam.subjectId,
+          subjectName: sessionDataParam.subjectName,
+          subjectColor: sessionDataParam.subjectColor,
+          targetDuration: sessionDataParam.targetDuration,
           startTime: Date.now()
         }
       }, 'useActiveSession');
 
-      console.log(`Session started: ${data.subjectName} for ${data.targetDuration} minutes`);
+      console.log(`Session started: ${sessionDataParam.subjectName} for ${sessionDataParam.targetDuration} minutes`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start session';
       setError(errorMessage);
@@ -318,17 +375,34 @@ export function useActiveSession() {
       const elapsedMs = now - (startTime || now) - pausedDuration;
       const elapsedMinutes = Math.max(1, Math.floor(elapsedMs / 1000 / 60)); // Minimum 1 minute
 
-      // Create session data for API
-      const sessionApiData: CreateSessionData = {
-        subjectId: sessionData.subjectId,
-        duration: elapsedMinutes,
-        date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-        notes: notes || sessionData.notes,
-        completed: true
-      };
+      // Handle Deep Work vs regular subject sessions
+      let savedSession;
+      if (sessionData.subjectId === 'deep-work') {
+        // For Deep Work, create a session record with a null subject_id or special handling
+        // For now, we'll track it in-memory and create a summary without database persistence
+        savedSession = {
+          id: `deep-work-${Date.now()}`,
+          subjectId: 'deep-work',
+          duration: elapsedMinutes,
+          date: new Date().toISOString().split('T')[0],
+          notes: notes || sessionData.notes || '',
+          completed: true,
+          points: Math.floor(elapsedMinutes * 2) // 2 XP per minute for Deep Work
+        };
+        console.log('Deep Work session completed in-memory:', savedSession);
+      } else {
+        // Create session data for API (regular subjects)
+        const sessionApiData: CreateSessionData = {
+          subjectId: sessionData.subjectId,
+          duration: elapsedMinutes,
+          date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+          notes: notes || sessionData.notes,
+          completed: true
+        };
 
-      // Save session to database
-      const savedSession = await createSession(sessionApiData);
+        // Save session to database
+        savedSession = await createSession(sessionApiData);
+      }
       
       if (savedSession) {
         console.log(`Session completed: ${elapsedMinutes} minutes, ${savedSession.points} XP earned`);
@@ -340,6 +414,9 @@ export function useActiveSession() {
           completedAt: Date.now(),
           elapsedMinutes
         }, 'useActiveSession');
+        
+        // Clear localStorage immediately
+        localStorage.removeItem(STORAGE_KEY);
         
         // Clear session state after a short delay
         setTimeout(() => {
