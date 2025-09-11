@@ -2,8 +2,8 @@ import packageJson from '../../package.json';
 
 // Get build information
 export const VERSION = packageJson.version;
-export const BUILD_HASH = 'dd69d0e'; // Current commit hash
-export const BUILD_DATE = '28.08.2024'; // Fixed build date to prevent hydration issues
+export const BUILD_HASH = '18a9e54'; // Current commit hash - Issue #17 Lerntracker-Zentrale
+export const BUILD_DATE = '11.09.2024'; // Fixed build date to prevent hydration issues
 
 export const getVersionString = () => {
   return `v${VERSION} (${BUILD_HASH})`;

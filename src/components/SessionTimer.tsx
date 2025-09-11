@@ -1,12 +1,14 @@
-import React from 'react';
-import { Play, Pause, Square, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Pause, Square, Clock, Target, Zap } from 'lucide-react';
 import { useActiveSession, SessionState } from '../hooks/useActiveSession';
+import QuickProgressStats from './QuickProgressStats';
 
 interface SessionTimerProps {
   className?: string;
+  onStartSession?: () => void;
 }
 
-export default function SessionTimer({ className = '' }: SessionTimerProps) {
+export default function SessionTimer({ className = '', onStartSession }: SessionTimerProps) {
   const {
     sessionState,
     sessionData,
@@ -52,12 +54,48 @@ export default function SessionTimer({ className = '' }: SessionTimerProps) {
     }
   };
 
-  if (sessionState === 'idle' || !sessionData) {
-    return null;
+  // Always visible - show "Ready to Learn" state when idle
+  const isActiveSession = sessionState !== 'idle' && sessionData;
+  
+  // Ready to Learn state when no active session
+  if (!isActiveSession) {
+    return (
+      <div className={`bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg border-2 border-blue-200 ${className}`}>
+        <div className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <Target className="w-10 h-10 text-white" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Lerntracker-Zentrale</h2>
+            <p className="text-gray-600">Ready to start your learning journey</p>
+          </div>
+
+          {/* Real-time Stats */}
+          <QuickProgressStats className="mb-8" />
+
+          {/* Start Session CTA */}
+          <div className="text-center">
+            <button
+              onClick={onStartSession}
+              className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <Play className="w-6 h-6" />
+              <span>Start Learning Session</span>
+              <Zap className="w-6 h-6" />
+            </button>
+            <p className="text-sm text-gray-500 mt-3">Choose a subject and begin your focused learning</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Enhanced active session display
   return (
-    <div className={`bg-white rounded-lg shadow-md border-2 ${getStateColor(sessionState)} ${className}`}>
+    <div className={`bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-xl border-2 ${getStateColor(sessionState)} ${className}`}>
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
           <div className="flex items-center justify-between">
@@ -90,38 +128,50 @@ export default function SessionTimer({ className = '' }: SessionTimerProps) {
           </div>
         </div>
 
-        {/* Progress Circle */}
+        {/* Enhanced Progress Circle */}
         <div className="flex flex-col items-center mb-6">
-          <div className="relative w-32 h-32 mb-4">
-            <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+          <div className="relative w-40 h-40 mb-4">
+            <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 160 160">
+              {/* Background circle */}
               <circle
-                cx="60"
-                cy="60"
-                r="54"
+                cx="80"
+                cy="80"
+                r="70"
                 stroke="currentColor"
                 strokeWidth="8"
                 fill="transparent"
                 className="text-gray-200"
               />
+              {/* Progress circle with gradient */}
               <circle
-                cx="60"
-                cy="60"
-                r="54"
-                stroke="currentColor"
+                cx="80"
+                cy="80"
+                r="70"
+                stroke="url(#progressGradient)"
                 strokeWidth="8"
                 fill="transparent"
-                strokeDasharray={`${2 * Math.PI * 54}`}
-                strokeDashoffset={`${2 * Math.PI * 54 * (1 - progress.progress / 100)}`}
-                className="text-blue-500 transition-all duration-300"
+                strokeDasharray={`${2 * Math.PI * 70}`}
+                strokeDashoffset={`${2 * Math.PI * 70 * (1 - progress.progress / 100)}`}
+                className="transition-all duration-500"
                 strokeLinecap="round"
               />
+              {/* Gradient definition */}
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="100%" stopColor="#3b82f6" />
+                </linearGradient>
+              </defs>
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-gray-900 mb-1">
                 {formatTime(progress.elapsedSeconds)}
               </span>
-              <span className="text-sm text-gray-600">
+              <span className="text-lg font-semibold text-blue-600">
                 {Math.round(progress.progress)}%
+              </span>
+              <span className="text-xs text-gray-500 mt-1">
+                {sessionState === 'active' ? 'LEARNING' : sessionState.toUpperCase()}
               </span>
             </div>
           </div>
