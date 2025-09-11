@@ -9,8 +9,11 @@ interface SubjectSelectorProps {
   onSessionStarted?: () => void;
 }
 
+// Deep Work subject UUID from database  
+const DEEP_WORK_UUID = 'd34ab45d-0be7-4b98-af9f-a277c591423c';
+
 interface DeepWorkSubject {
-  id: 'deep-work';
+  id: string;
   name: 'Deep Work';
   color: '#8B5CF6';
 }
@@ -22,43 +25,36 @@ export default function SubjectSelector({ isOpen, onClose, onSessionStarted }: S
   const [isStarting, setIsStarting] = useState(false);
 
   const deepWorkSubject: DeepWorkSubject = {
-    id: 'deep-work',
+    id: DEEP_WORK_UUID,
     name: 'Deep Work',
     color: '#8B5CF6'
   };
 
-  // All available subjects including Deep Work
-  const allSubjects = [deepWorkSubject, ...subjects];
+  // Check if Deep Work already exists in database subjects
+  const deepWorkExists = subjects.some(s => s.id === DEEP_WORK_UUID || s.name === 'Deep Work');
+  
+  // All available subjects including Deep Work (only if not already in database)
+  const allSubjects = deepWorkExists ? subjects : [deepWorkSubject, ...subjects];
 
   const handleStartSession = async () => {
     if (!selectedSubjectId) return;
 
     setIsStarting(true);
     try {
-      // Handle Deep Work as special in-memory session (no database subject required)
-      if (selectedSubjectId === 'deep-work') {
-        // Create session data for Deep Work - use in-memory tracking
+      // Find selected subject (includes Deep Work and regular subjects)
+      const selectedSubject = allSubjects.find(s => s.id === selectedSubjectId);
+      
+      if (selectedSubject) {
         const sessionData = {
-          subjectId: 'deep-work', 
-          subjectName: deepWorkSubject.name,
-          subjectColor: deepWorkSubject.color,
+          subjectId: selectedSubject.id,
+          subjectName: selectedSubject.name,
+          subjectColor: selectedSubject.color,
           targetDuration: 60,
           notes: ''
         };
         await startSession(sessionData);
       } else {
-        // Use regular database subject
-        const subject = subjects.find(s => s.id === selectedSubjectId);
-        if (subject) {
-          const sessionData = {
-            subjectId: subject.id,
-            subjectName: subject.name,
-            subjectColor: subject.color,
-            targetDuration: 60,
-            notes: ''
-          };
-          await startSession(sessionData);
-        }
+        throw new Error('Selected subject not found');
       }
       
       onClose();

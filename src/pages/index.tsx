@@ -37,13 +37,13 @@ import {
 export default function Dashboard() {
   const { userStats, loading: userStatsLoading, refreshStats } = useUserStats();
   const gamification = useGamification();
-  const { sessionStats, loading: sessionStatsLoading } = useSessionStats();
+  const { sessionStats, loading: sessionStatsLoading, refreshStats: refreshSessionStats } = useSessionStats();
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()); // Default to today
   const { stats: dateStats, loading: dateStatsLoading } = useDateSpecificStats(selectedDate);
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
   const { subjects, loading: subjectsLoading, refreshSubjects } = useSubjects();
   const { updateSession } = useLearningSessions();
-  const { updateSession: updateCalendarSession } = useCalendarSessions();
+  const { updateSession: updateCalendarSession, refreshSessions: refreshCalendarSessions } = useCalendarSessions();
   
   // Session editing state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -98,6 +98,12 @@ export default function Dashboard() {
       
       // CRITICAL: Refresh user stats from database
       refreshStats();
+      
+      // CRITICAL: Refresh session statistics for overview
+      refreshSessionStats();
+      
+      // CRITICAL: Refresh calendar to show completed session
+      refreshCalendarSessions();
       
       setLastUpdateTime(Date.now());
       

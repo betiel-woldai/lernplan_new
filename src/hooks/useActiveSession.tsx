@@ -375,34 +375,23 @@ export function useActiveSession() {
       const elapsedMs = now - (startTime || now) - pausedDuration;
       const elapsedMinutes = Math.max(1, Math.floor(elapsedMs / 1000 / 60)); // Minimum 1 minute
 
-      // Handle Deep Work vs regular subject sessions
-      let savedSession;
-      if (sessionData.subjectId === 'deep-work') {
-        // For Deep Work, create a session record with a null subject_id or special handling
-        // For now, we'll track it in-memory and create a summary without database persistence
-        savedSession = {
-          id: `deep-work-${Date.now()}`,
-          subjectId: 'deep-work',
-          duration: elapsedMinutes,
-          date: new Date().toISOString().split('T')[0],
-          notes: notes || sessionData.notes || '',
-          completed: true,
-          points: Math.floor(elapsedMinutes * 2) // 2 XP per minute for Deep Work
-        };
-        console.log('Deep Work session completed in-memory:', savedSession);
-      } else {
-        // Create session data for API (regular subjects)
-        const sessionApiData: CreateSessionData = {
-          subjectId: sessionData.subjectId,
-          duration: elapsedMinutes,
-          date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-          notes: notes || sessionData.notes,
-          completed: true
-        };
+      // Create session data for API (all subjects including Deep Work)
+      const sessionApiData: CreateSessionData = {
+        subjectId: sessionData.subjectId,
+        duration: elapsedMinutes,
+        date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        notes: notes || sessionData.notes,
+        completed: true
+      };
 
-        // Save session to database
-        savedSession = await createSession(sessionApiData);
-      }
+      // Save session to database (now includes Deep Work with proper UUID)
+      const savedSession = await createSession(sessionApiData);
+      console.log('Session saved to database:', {
+        id: savedSession?.id,
+        subject: sessionData.subjectName,
+        duration: elapsedMinutes,
+        points: savedSession?.points
+      });
       
       if (savedSession) {
         console.log(`Session completed: ${elapsedMinutes} minutes, ${savedSession.points} XP earned`);

@@ -171,11 +171,11 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
         sessionData.notes || null
       ]);
 
-      // Update subject completed hours (convert minutes to hours, rounded to 2 decimal places)
-      const hoursToAdd = Math.round((sessionData.duration / 60) * 100) / 100; // Round to 2 decimal places
+      // Update subject completed hours (convert minutes to hours, ensuring integer-safe calculation)
+      const hoursToAdd = Math.round(sessionData.duration / 60 * 100) / 100; // Calculate hours and ensure max 2 decimal places
       await client.query(`
         UPDATE subjects 
-        SET completed_hours = completed_hours + $1
+        SET completed_hours = completed_hours + $1::numeric
         WHERE id = $2
       `, [hoursToAdd, sessionData.subjectId]);
 
@@ -186,7 +186,7 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
           SET current_xp = current_xp + $1,
               daily_learning_time = daily_learning_time + $2,
               weekly_learning_time = weekly_learning_time + $2,
-              total_hours = total_hours + $3,
+              total_hours = total_hours + $3::numeric,
               completed_tasks = completed_tasks + 1,
               total_completed_tasks = total_completed_tasks + 1
           WHERE id = $4
