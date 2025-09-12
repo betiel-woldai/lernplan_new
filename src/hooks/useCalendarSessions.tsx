@@ -280,12 +280,33 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       );
     };
 
+    const handleSessionCompleted = async (event: any) => {
+      console.log('📅 useCalendarSessions: Session completed event received', event.detail);
+      
+      // Immediately refresh calendar data to show the new session
+      try {
+        await refreshSessions();
+        console.log('📅 Calendar refreshed after session completion');
+      } catch (error) {
+        console.error('📅 Failed to refresh calendar after session completion:', error);
+      }
+    };
+
+    const handleSessionStarted = (event: any) => {
+      console.log('📅 useCalendarSessions: Session started event received', event.detail);
+      // Optional: Could be used to show live session indicators
+    };
+
     window.addEventListener('sessionUpdated', handleExternalSessionUpdate);
+    window.addEventListener('sessionCompleted', handleSessionCompleted);
+    window.addEventListener('sessionStarted', handleSessionStarted);
 
     return () => {
       window.removeEventListener('sessionUpdated', handleExternalSessionUpdate);
+      window.removeEventListener('sessionCompleted', handleSessionCompleted);
+      window.removeEventListener('sessionStarted', handleSessionStarted);
     };
-  }, []);
+  }, [refreshSessions]);
 
   return {
     sessions,
