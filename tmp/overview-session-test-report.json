@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-09-12T11:32:44.733Z",
+  "tests": [
+    {
+      "name": "Page loads correctly",
+      "passed": true,
+      "details": "Page title: Dashboard - Lernplaner"
+    },
+    {
+      "name": "Start session button is visible",
+      "passed": true,
+      "details": "Button found and visible"
+    },
+    {
+      "name": "Start session button is clickable",
+      "passed": true,
+      "details": "Button is enabled"
+    },
+    {
+      "name": "StartSessionModal opens after button click",
+      "passed": true,
+      "details": "Modal opened successfully"
+    },
+    {
+      "name": "Test execution",
+      "passed": false,
+      "details": "Error: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Starten\")')\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    }
+  ],
+  "screenshots": [
+    "overview-test-01-initial.png",
+    "overview-test-02-before-click.png",
+    "overview-test-03-after-click.png",
+    "overview-test-04-form-filled.png",
+    "overview-test-error.png"
+  ]
+}

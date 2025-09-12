@@ -25,8 +25,11 @@ export default function StartSessionModal({
   useEffect(() => {
     if (preselectedSubjectId) {
       setSelectedSubjectId(preselectedSubjectId);
+    } else if (subjects.length > 0 && !selectedSubjectId) {
+      // Auto-select first subject if no preselection and no current selection
+      setSelectedSubjectId(subjects[0].id);
     }
-  }, [preselectedSubjectId]);
+  }, [preselectedSubjectId, subjects, selectedSubjectId]);
 
   const selectedSubject = subjects.find(s => s.id === selectedSubjectId);
 
