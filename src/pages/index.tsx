@@ -9,6 +9,8 @@ import LevelUpModal from '@/components/LevelUpModal';
 import AchievementBadge from '@/components/AchievementBadge';
 import StreakDisplay from '@/components/StreakDisplay';
 import SessionEditModal from '@/components/SessionEditModal';
+import StartSessionModal from '@/components/StartSessionModal';
+import SessionTimer from '@/components/SessionTimer';
 import useGamification from '@/hooks/useGamification';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useUserStats } from '@/hooks/useUserStats';
@@ -34,6 +36,9 @@ import {
   FaCheck
 } from 'react-icons/fa';
 
+// Lucide React
+import { Play } from 'lucide-react';
+
 export default function Dashboard() {
   const { userStats, loading: userStatsLoading, refreshStats } = useUserStats();
   const gamification = useGamification();
@@ -48,6 +53,9 @@ export default function Dashboard() {
   // Session editing state
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSessionForEdit, setSelectedSessionForEdit] = useState<LearningSession | null>(null);
+  
+  // Session start state
+  const [showStartSession, setShowStartSession] = useState(false);
   
   // DEBUG: Log user stats to console
   React.useEffect(() => {
@@ -266,6 +274,9 @@ export default function Dashboard() {
 
   return (
     <Layout title="Dashboard - Lernplaner">
+      {/* Active Session Timer (shows when session is active) */}
+      <SessionTimer />
+      
       {/* Welcome Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -280,8 +291,17 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
-          <div className="text-sm text-gray-500">
-            Willkommen zurück, {userStats?.name || 'Nutzer'}! 👋
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowStartSession(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
+            >
+              <Play size={18} />
+              <span>Lernsession starten</span>
+            </button>
+            <div className="text-sm text-gray-500">
+              Willkommen zurück, {userStats?.name || 'Nutzer'}! 👋
+            </div>
           </div>
         </div>
       </div>
@@ -433,6 +453,12 @@ export default function Dashboard() {
         onClose={handleCloseEditModal}
         session={selectedSessionForEdit}
         onSave={handleSaveSessionEdit}
+      />
+
+      {/* Start Session Modal */}
+      <StartSessionModal
+        isOpen={showStartSession}
+        onClose={() => setShowStartSession(false)}
       />
     </Layout>
   );
