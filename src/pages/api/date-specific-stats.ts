@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
 
-    // Get sessions for the specific date
+    // Get sessions for the specific date (handle both date and timestamp formats)
     const dateStatsResult = await query(`
       SELECT 
         COUNT(*) as total_sessions,
@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         COALESCE(SUM(CASE WHEN completed = true THEN duration ELSE 0 END), 0) as completed_duration
       FROM learning_sessions 
       WHERE user_id = $1 
-        AND date = $2
+        AND DATE(date) = $2::date
     `, [defaultUserId, date]);
 
     const dateStats = dateStatsResult.rows[0];
@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         COALESCE(SUM(CASE WHEN completed = true THEN duration ELSE 0 END), 0) as week_completed_duration
       FROM learning_sessions 
       WHERE user_id = $1 
-        AND date >= date_trunc('week', $2::date)
-        AND date <= date_trunc('week', $2::date) + INTERVAL '6 days'
+        AND DATE(date) >= date_trunc('week', $2::date)::date
+        AND DATE(date) <= (date_trunc('week', $2::date) + INTERVAL '6 days')::date
     `, [defaultUserId, date]);
 
     const weekStats = weekStatsResult.rows[0];
@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ds.check_date,
           CASE WHEN COUNT(ls.id) FILTER (WHERE ls.completed = true) > 0 THEN 1 ELSE 0 END as has_completed_session
         FROM date_series ds
-        LEFT JOIN learning_sessions ls ON ls.date = ds.check_date AND ls.user_id = $1
+        LEFT JOIN learning_sessions ls ON DATE(ls.date) = ds.check_date AND ls.user_id = $1
         GROUP BY ds.check_date
         ORDER BY ds.check_date DESC
       )
