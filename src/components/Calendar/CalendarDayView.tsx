@@ -10,6 +10,7 @@ interface CalendarDayViewProps {
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
   onSessionToggleComplete?: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
+  onSessionDelete?: (session: CalendarSession) => void;
   getSessionsForDate: (date: Date) => CalendarSession[];
   loading: boolean;
   error: string | null;
@@ -21,6 +22,7 @@ export default function CalendarDayView({
   onDateClick,
   onSessionClick,
   onSessionToggleComplete,
+  onSessionDelete,
   getSessionsForDate,
   loading,
   error

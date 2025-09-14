@@ -19,8 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return await getCalendarSessions(req, res);
       case 'POST':
         return await createCalendarSession(req, res);
+      case 'DELETE':
+        return await deleteCalendarSession(req, res);
       default:
-        res.setHeader('Allow', ['GET', 'POST']);
+        res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
@@ -39,39 +41,38 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
   const params: any[] = [userIdToUse];
 
   if (startDate && endDate) {
-    dateFilter = 'AND DATE(ls.date) BETWEEN $2 AND $3';
+    dateFilter = 'AND DATE(cs.start_time) BETWEEN $2 AND $3';
     params.push(startDate, endDate);
   } else if (month && year) {
     // Filter by month and year
-    dateFilter = 'AND EXTRACT(MONTH FROM ls.date) = $2 AND EXTRACT(YEAR FROM ls.date) = $3';
+    dateFilter = 'AND EXTRACT(MONTH FROM cs.start_time) = $2 AND EXTRACT(YEAR FROM cs.start_time) = $3';
     params.push(parseInt(month as string), parseInt(year as string));
   }
 
   const result = await query(`
     SELECT 
-      ls.id,
-      s.name as title,
-      -- Create start_time and end_time from date and duration
-      (ls.date::date + TIME '09:00:00') as "startTime",
-      (ls.date::date + TIME '09:00:00' + INTERVAL '1 minute' * ls.duration) as "endTime",
-      ls.duration,
-      'study' as "sessionType",
-      ls.completed,
-      ls.notes as description,
-      '' as location,
-      ls.created_at as "createdAt",
-      ls.created_at as "updatedAt",
+      cs.id,
+      cs.title,
+      cs.start_time as "startTime",
+      cs.end_time as "endTime", 
+      cs.duration,
+      cs.session_type as "sessionType",
+      cs.completed,
+      cs.description,
+      cs.location,
+      cs.created_at as "createdAt",
+      cs.updated_at as "updatedAt",
       -- Subject information
       s.id as "subjectId",
       s.name as "subjectName",
       s.color as "subjectColor"
-    FROM learning_sessions ls
-    JOIN subjects s ON ls.subject_id = s.id
-    WHERE ls.user_id = $1 ${dateFilter}
-    ORDER BY ls.date ASC, s.name ASC
+    FROM calendar_sessions cs
+    JOIN subjects s ON cs.subject_id = s.id
+    WHERE cs.user_id = $1 ${dateFilter}
+    ORDER BY cs.start_time ASC
   `, params);
 
-  // Convert dates and calculate duration
+  // Convert dates
   const sessions = result.rows.map(session => ({
     ...session,
     startTime: session.startTime?.toISOString(),
@@ -161,4 +162,28 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
   };
 
   return res.status(201).json(responseSession);
+}
+
+async function deleteCalendarSession(req: NextApiRequest, res: NextApiResponse) {
+  const { sessionId } = req.query;
+  const userId = req.body?.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+
+  if (!sessionId || typeof sessionId !== 'string') {
+    return res.status(400).json({ error: 'Session ID is required' });
+  }
+
+  // Verify session exists and belongs to user
+  const sessionCheck = await query(
+    'SELECT id FROM calendar_sessions WHERE id = $1 AND user_id = $2',
+    [sessionId, userId]
+  );
+
+  if (sessionCheck.rows.length === 0) {
+    return res.status(404).json({ error: 'Session not found or does not belong to user' });
+  }
+
+  // Delete the session
+  await query('DELETE FROM calendar_sessions WHERE id = $1', [sessionId]);
+
+  return res.status(200).json({ message: 'Session deleted successfully', sessionId });
 }

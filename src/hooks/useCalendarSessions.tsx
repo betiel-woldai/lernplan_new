@@ -13,6 +13,7 @@ export interface UseCalendarSessionsReturn {
   getSessionsForDate: (date: Date) => CalendarSession[];
   createSession: (sessionData: Omit<CalendarSession, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateSession: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
+  deleteSession: (sessionId: string) => Promise<boolean>;
   refreshSessions: () => Promise<void>;
   syncFromSubjects: () => Promise<void>;
 }
@@ -183,38 +184,49 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     }
   }, [refreshSessions]);
 
-  // Update a calendar session (maps to learning sessions API)
+  // Update a calendar session
   const updateSession = useCallback(async (sessionId: string, updates: Partial<CalendarSession>): Promise<boolean> => {
     try {
       setError(null);
 
-      // Convert CalendarSession updates to LearningSession format
-      const learningSessionUpdates: any = {};
+      // Prepare calendar session updates
+      const calendarSessionUpdates: any = {};
       
       if (updates.completed !== undefined) {
-        learningSessionUpdates.completed = updates.completed;
-        // Calculate points if marking as completed
-        if (updates.completed && updates.duration) {
-          learningSessionUpdates.points = Math.floor(updates.duration * 2); // 2 XP per minute
-        }
+        calendarSessionUpdates.completed = updates.completed;
       }
       
       if (updates.duration !== undefined) {
-        learningSessionUpdates.duration = Math.round(updates.duration);
+        calendarSessionUpdates.duration = Math.round(updates.duration);
       }
       
       if (updates.description !== undefined) {
-        learningSessionUpdates.notes = updates.description;
+        calendarSessionUpdates.description = updates.description;
+      }
+      
+      if (updates.title !== undefined) {
+        calendarSessionUpdates.title = updates.title;
+      }
+      
+      if (updates.location !== undefined) {
+        calendarSessionUpdates.location = updates.location;
+      }
+      
+      if (updates.startTime !== undefined) {
+        calendarSessionUpdates.startTime = updates.startTime;
+      }
+      
+      if (updates.endTime !== undefined) {
+        calendarSessionUpdates.endTime = updates.endTime;
       }
 
-
-      // Call the learning sessions API
-      const response = await fetch(`/api/sessions/${sessionId}`, {
+      // Call the calendar sessions API
+      const response = await fetch(`/api/calendar/${sessionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(learningSessionUpdates),
+        body: JSON.stringify(calendarSessionUpdates),
       });
 
       if (!response.ok) {
@@ -235,7 +247,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       window.dispatchEvent(new CustomEvent('sessionUpdated', {
         detail: {
           sessionId,
-          updates: learningSessionUpdates,
+          updates: calendarSessionUpdates,
           timestamp: Date.now(),
           completionChanged: updates.completed !== undefined,
           wasCompleted: updates.completed
@@ -249,7 +261,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
           detail: {
             sessionId,
             completed: updates.completed,
-            xpGained: updates.completed ? (learningSessionUpdates.points || 0) : 0,
+            xpGained: updates.completed ? Math.floor((updates.duration || 0) * 2) : 0, // 2 XP per minute
             timestamp: Date.now()
           }
         }));
@@ -260,6 +272,41 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update session';
       setError(errorMessage);
       console.error('Update calendar session error:', err);
+      return false;
+    }
+  }, []);
+
+  // Delete a calendar session
+  const deleteSession = useCallback(async (sessionId: string): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const response = await fetch(`/api/calendar?sessionId=${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: DEFAULT_USER_ID }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to delete session' }));
+        throw new Error(errorData.error || 'Failed to delete session');
+      }
+
+      // Remove the session from local state
+      setSessions(prev => prev.filter(session => session.id !== sessionId));
+
+      // Dispatch event for calendar refresh
+      window.dispatchEvent(new CustomEvent('sessionDeleted', {
+        detail: { sessionId, timestamp: Date.now() }
+      }));
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete session';
+      setError(errorMessage);
+      console.error('Delete calendar session error:', err);
       return false;
     }
   }, []);
@@ -317,6 +364,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     getSessionsForDate,
     createSession,
     updateSession,
+    deleteSession,
     refreshSessions,
     syncFromSubjects,
   };

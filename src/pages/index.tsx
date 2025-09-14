@@ -297,6 +297,14 @@ export default function Dashboard() {
         
         {/* Primary Calendar View */}
         <div className="lg:col-span-3">
+          {/* Calendar Instructions */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-blue-800 text-sm">
+              <strong>Kalender-Funktionen:</strong> Klicken Sie auf leere Termine, um neue Sessions zu erstellen. 
+              Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. 
+              Doppelklick für Schnellbearbeitung.
+            </p>
+          </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">Lernkalender</h2>
