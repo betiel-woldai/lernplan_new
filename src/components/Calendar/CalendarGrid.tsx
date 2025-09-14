@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarDay, CalendarSession } from '../../types/calendar';
-import { FaCheck, FaClock } from 'react-icons/fa';
+import { FaCheck, FaClock, FaEdit } from 'react-icons/fa';
+import SessionContextMenu from '../ContextMenu/SessionContextMenu';
+import { ContextMenuPosition } from '../ContextMenu/ContextMenu';
 
 interface CalendarGridProps {
   month: number;
@@ -9,6 +11,10 @@ interface CalendarGridProps {
   onDateClick: (date: Date) => void;
   onSessionClick: (session: CalendarSession) => void;
   onSessionToggleComplete?: (sessionId: string, updates: Partial<CalendarSession>) => Promise<boolean>;
+  onSessionRightClick?: (session: CalendarSession, event: React.MouseEvent) => void;
+  onSessionEdit?: (session: CalendarSession) => void;
+  onSessionDelete?: (session: CalendarSession) => void;
+  onSessionDuplicate?: (session: CalendarSession) => void;
   getSessionsForDate: (date: Date) => CalendarSession[];
   loading: boolean;
   error: string | null;
@@ -21,6 +27,10 @@ export default function CalendarGrid({
   onDateClick, 
   onSessionClick,
   onSessionToggleComplete,
+  onSessionRightClick,
+  onSessionEdit,
+  onSessionDelete,
+  onSessionDuplicate,
   getSessionsForDate,
   loading,
   error
@@ -30,6 +40,37 @@ export default function CalendarGrid({
   const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
   // Force re-render when sessions are updated via modal
   const [refreshKey, setRefreshKey] = useState(0);
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: ContextMenuPosition | null;
+    session: CalendarSession | null;
+  }>({
+    isOpen: false,
+    position: null,
+    session: null,
+  });
+
+  // Enhanced interaction state
+  const [hoveredSession, setHoveredSession] = useState<string | null>(null);
+  const [inlineEdit, setInlineEdit] = useState<{
+    sessionId: string | null;
+    newTitle: string;
+  }>({
+    sessionId: null,
+    newTitle: '',
+  });
+
+  // Drag and drop state
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    draggedSession: CalendarSession | null;
+    dragOverDate: Date | null;
+  }>({
+    isDragging: false,
+    draggedSession: null,
+    dragOverDate: null,
+  });
   
   // Listen for session updates from modal to refresh visual state
   useEffect(() => {
@@ -113,7 +154,203 @@ export default function CalendarGrid({
     
     await onSessionToggleComplete(session.id, { 
       completed: newCompletedStatus,
-      duration: session.duration // Needed for XP calculation 
+      duration: session.duration, // Needed for XP calculation
+      // Include other session properties that might be needed
+      title: session.title,
+      subjectId: session.subjectId,
+      startTime: session.startTime,
+      endTime: session.endTime
+    } as Partial<CalendarSession>);
+  };
+
+  // Context menu handlers
+  const handleSessionRightClick = (session: CalendarSession, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setContextMenu({
+      isOpen: true,
+      position: { x: e.clientX, y: e.clientY },
+      session: session,
+    });
+
+    // Call optional external handler
+    onSessionRightClick?.(session, e);
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu({
+      isOpen: false,
+      position: null,
+      session: null,
+    });
+  };
+
+  const handleContextMenuEdit = (session: CalendarSession) => {
+    onSessionEdit?.(session);
+  };
+
+  const handleContextMenuDelete = (session: CalendarSession) => {
+    onSessionDelete?.(session);
+  };
+
+  const handleContextMenuDuplicate = (session: CalendarSession) => {
+    onSessionDuplicate?.(session);
+  };
+
+  const handleContextMenuToggleComplete = async (session: CalendarSession) => {
+    if (onSessionToggleComplete) {
+      await handleSessionToggleComplete(session, { preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent);
+    }
+  };
+
+  // Enhanced interaction handlers
+  const handleSessionDoubleClick = (session: CalendarSession, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setInlineEdit({
+      sessionId: session.id,
+      newTitle: session.title,
+    });
+  };
+
+  const handleInlineEditSubmit = async (session: CalendarSession) => {
+    if (!onSessionToggleComplete || inlineEdit.newTitle.trim() === session.title) {
+      setInlineEdit({ sessionId: null, newTitle: '' });
+      return;
+    }
+
+    try {
+      // For now, we'll update via the edit modal handler if available
+      // In a real implementation, you'd want a dedicated title update API
+      onSessionEdit?.(session);
+      setInlineEdit({ sessionId: null, newTitle: '' });
+    } catch (error) {
+      console.error('Failed to update session title:', error);
+      setInlineEdit({ sessionId: null, newTitle: '' });
+    }
+  };
+
+  const handleInlineEditCancel = () => {
+    setInlineEdit({ sessionId: null, newTitle: '' });
+  };
+
+  const handleInlineEditKeyPress = (e: React.KeyboardEvent, session: CalendarSession) => {
+    if (e.key === 'Enter') {
+      handleInlineEditSubmit(session);
+    } else if (e.key === 'Escape') {
+      handleInlineEditCancel();
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, session: CalendarSession) => {
+    e.stopPropagation();
+    setDragState({
+      isDragging: true,
+      draggedSession: session,
+      dragOverDate: null,
+    });
+    e.dataTransfer.setData('application/json', JSON.stringify(session));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragState({
+      isDragging: false,
+      draggedSession: null,
+      dragOverDate: null,
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent, date: Date) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragState(prev => ({
+      ...prev,
+      dragOverDate: date,
+    }));
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Only reset drag over if we're leaving the calendar grid entirely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragState(prev => ({
+        ...prev,
+        dragOverDate: null,
+      }));
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetDate: Date) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!dragState.draggedSession) return;
+
+    const draggedSession = dragState.draggedSession;
+    
+    // Don't move if dropping on the same date
+    const originalDate = new Date(draggedSession.startTime);
+    originalDate.setHours(0, 0, 0, 0);
+    const newDate = new Date(targetDate);
+    newDate.setHours(0, 0, 0, 0);
+    
+    if (originalDate.getTime() === newDate.getTime()) {
+      setDragState({
+        isDragging: false,
+        draggedSession: null,
+        dragOverDate: null,
+      });
+      return;
+    }
+
+    try {
+      // Calculate time difference and update session times
+      const originalStartTime = new Date(draggedSession.startTime);
+      const originalEndTime = new Date(draggedSession.endTime);
+      
+      const newStartTime = new Date(targetDate);
+      newStartTime.setHours(originalStartTime.getHours(), originalStartTime.getMinutes());
+      
+      const newEndTime = new Date(targetDate);
+      newEndTime.setHours(originalEndTime.getHours(), originalEndTime.getMinutes());
+
+      const updates: Partial<CalendarSession> = {
+        startTime: newStartTime,
+        endTime: newEndTime,
+      };
+
+      // Use the edit handler to update the session
+      if (onSessionEdit) {
+        const updatedSession: CalendarSession = {
+          ...draggedSession,
+          ...updates,
+        };
+        onSessionEdit(updatedSession);
+      }
+
+      // Emit rescheduling event
+      window.dispatchEvent(new CustomEvent('sessionRescheduled', {
+        detail: {
+          sessionId: draggedSession.id,
+          originalDate: originalDate,
+          newDate: newDate,
+          updates,
+        }
+      }));
+
+    } catch (error) {
+      console.error('Failed to reschedule session:', error);
+    }
+
+    setDragState({
+      isDragging: false,
+      draggedSession: null,
+      dragOverDate: null,
     });
   };
   
@@ -196,8 +433,15 @@ export default function CalendarGrid({
               ${!day.isCurrentMonth ? 'bg-gray-25 text-gray-400' : ''}
               ${day.isToday ? 'bg-blue-50 border-blue-200' : ''}
               ${day.isSelected ? 'bg-blue-100 border-blue-300' : ''}
+              ${dragState.isDragging && dragState.dragOverDate?.toDateString() === day.date.toDateString() 
+                ? 'bg-green-100 border-green-300 ring-2 ring-green-200' 
+                : ''
+              }
             `}
             onClick={() => onDateClick(day.date)}
+            onDragOver={(e) => handleDragOver(e, day.date)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, day.date)}
           >
             {/* Date number */}
             <div className={`
@@ -218,10 +462,16 @@ export default function CalendarGrid({
                 return (
                 <div
                   key={session.id}
+                  draggable={inlineEdit.sessionId !== session.id}
+                  onDragStart={(e) => handleDragStart(e, session)}
+                  onDragEnd={handleDragEnd}
                   className={`
                     text-xs px-2 py-1 rounded cursor-pointer truncate relative
-                    hover:shadow-md transition-all duration-200
-                    border-l-4
+                    transition-all duration-200 border-l-4 group
+                    ${hoveredSession === session.id ? 'shadow-lg scale-[1.02] z-10' : 'hover:shadow-md'}
+                    ${inlineEdit.sessionId === session.id ? 'ring-2 ring-blue-300' : ''}
+                    ${dragState.isDragging && dragState.draggedSession?.id === session.id ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}
+                    ${inlineEdit.sessionId === session.id ? 'cursor-text' : ''}
                   `}
                   style={{
                     backgroundColor: isCompleted 
@@ -242,16 +492,44 @@ export default function CalendarGrid({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSessionClick(session);
+                    // Open context menu on left click instead of calling onSessionClick
+                    setContextMenu({
+                      isOpen: true,
+                      position: { x: e.clientX, y: e.clientY },
+                      session: session,
+                    });
                   }}
+                  onDoubleClick={(e) => handleSessionDoubleClick(session, e)}
+                  onMouseEnter={() => setHoveredSession(session.id)}
+                  onMouseLeave={() => setHoveredSession(null)}
                   title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
-                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'}`}
+                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'} - Doppelklick zum Bearbeiten`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="truncate flex-1">{session.title}</span>
+                    {inlineEdit.sessionId === session.id ? (
+                      <input
+                        type="text"
+                        value={inlineEdit.newTitle}
+                        onChange={(e) => setInlineEdit(prev => ({ ...prev, newTitle: e.target.value }))}
+                        onKeyDown={(e) => handleInlineEditKeyPress(e, session)}
+                        onBlur={() => handleInlineEditCancel()}
+                        className="flex-1 bg-transparent border-none outline-none text-xs font-medium"
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span className="truncate flex-1">{session.title}</span>
+                    )}
                     <div className="flex items-center space-x-1">
+                      {/* Edit indicator on hover */}
+                      {hoveredSession === session.id && inlineEdit.sessionId !== session.id && (
+                        <div className="flex items-center text-gray-400">
+                          <FaEdit className="w-2 h-2" title="Doppelklick zum Bearbeiten" />
+                        </div>
+                      )}
+                      
                       {/* Clickable completion toggle */}
                       <button
                         onClick={(e) => handleSessionToggleComplete(session, e)}
@@ -302,6 +580,18 @@ export default function CalendarGrid({
           </div>
         ))}
       </div>
+
+      {/* Context Menu */}
+      <SessionContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        session={contextMenu.session}
+        onClose={handleCloseContextMenu}
+        onEdit={handleContextMenuEdit}
+        onDelete={handleContextMenuDelete}
+        onDuplicate={handleContextMenuDuplicate}
+        onToggleComplete={handleContextMenuToggleComplete}
+      />
     </div>
   );
 }

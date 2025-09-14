@@ -60,4 +60,7 @@ export interface CalendarEventHandlers {
   onSessionEdit: (sessionId: string, data: Partial<CalendarSession>) => void;
   onSessionDelete: (sessionId: string) => void;
   onViewChange: (view: CalendarView) => void;
+  onSessionRightClick?: (session: CalendarSession, event: React.MouseEvent) => void;
+  onSessionDuplicate?: (session: CalendarSession) => void;
+  onSessionReschedule?: (session: CalendarSession) => void;
 }
