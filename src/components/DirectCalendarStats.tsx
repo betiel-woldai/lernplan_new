@@ -104,6 +104,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
 
   const dateLabel = stats.isToday ? 'Heute' : selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 
+
   return (
     <div className="space-y-3">
       {/* Time Duration Compact */}
