@@ -342,13 +342,8 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Temporary Test - Direct Calendar Stats */}
-          <div className="space-y-3">
-            <div className="bg-green-100 p-4 rounded">
-              <p>🎯 Direct Calendar Sync Test</p>
-              <p>Date: {selectedDate?.toDateString()}</p>
-            </div>
-          </div>
+          {/* Direct Calendar Stats - Real-time Calendar-driven Statistics */}
+          <DirectCalendarStats selectedDate={selectedDate} />
 
           {/* Achievements Compact - Temporarily hidden until defined */}
           {false && (
