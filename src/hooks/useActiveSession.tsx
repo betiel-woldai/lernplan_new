@@ -2,13 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLearningSessions, CreateSessionData } from './useLearningSessions';
 import { dispatchEvent, createThrottledDispatcher } from '../utils/eventBus';
 
-export type SessionState = 'idle' | 'active' | 'paused' | 'completed';
+export type SessionState = 'idle' | 'active' | 'paused' | 'completed' | 'extension_needed';
 
 interface ActiveSessionData {
   subjectId: string;
   subjectName: string;
   subjectColor: string;
   targetDuration: number; // in minutes
+  originalTargetDuration: number; // in minutes - original planned duration
+  totalExtensions: number; // in minutes - total time added through extensions
   notes?: string;
 }
 
@@ -80,56 +82,15 @@ export function useActiveSession() {
         isActive: true
       }, 'useActiveSession');
 
-      // Auto-complete when time is up
-      if (remainingSeconds === 0) {
+      // Show extension dialog when planned time is reached (only for original target, not extensions)
+      if (remainingSeconds === 0 && sessionData.totalExtensions === 0) {
         if (timerRef.current) {
           clearInterval(timerRef.current);
           timerRef.current = null;
         }
-        
-        // Trigger auto-completion
-        setSessionState('completed');
-        setTimeout(async () => {
-          try {
-            const elapsedMinutes = Math.max(1, Math.floor(elapsedMs / 1000 / 60));
-            const sessionApiData: CreateSessionData = {
-              subjectId: sessionData.subjectId,
-              duration: elapsedMinutes,
-              date: new Date().toISOString().split('T')[0],
-              notes: sessionData.notes,
-              completed: true
-            };
 
-            const autoSavedSession = await createSession(sessionApiData);
-            
-            // Dispatch session completed event for auto-completion
-            if (autoSavedSession) {
-              dispatchEvent('sessionCompleted', {
-                session: autoSavedSession,
-                xpGained: autoSavedSession.points,
-                completedAt: Date.now(),
-                elapsedMinutes
-              }, 'useActiveSession-auto');
-            }
-            
-            // Clear session after completion
-            setTimeout(() => {
-              setSessionState('idle');
-              setSessionData(null);
-              setStartTime(null);
-              setPausedDuration(0);
-              setProgress({
-                elapsedSeconds: 0,
-                targetSeconds: 0,
-                progress: 0,
-                remainingSeconds: 0
-              });
-            }, 3000);
-          } catch (err) {
-            setError('Failed to save completed session');
-            setSessionState('active'); // Revert to active state
-          }
-        }, 100);
+        // Trigger extension dialog
+        setSessionState('extension_needed');
       }
     };
 
@@ -276,23 +237,30 @@ export function useActiveSession() {
     return () => window.removeEventListener('sessionSync', handleSessionSync as EventListener);
   }, []);
 
-  const startSession = useCallback((sessionDataParam: ActiveSessionData) => {
+  const startSession = useCallback((sessionDataParam: Omit<ActiveSessionData, 'originalTargetDuration' | 'totalExtensions'>) => {
     try {
       setError(null);
-      
+
+      // Initialize session data with extension tracking
+      const fullSessionData: ActiveSessionData = {
+        ...sessionDataParam,
+        originalTargetDuration: sessionDataParam.targetDuration,
+        totalExtensions: 0
+      };
+
       // Set session data and start time
-      setSessionData(sessionDataParam);
+      setSessionData(fullSessionData);
       setStartTime(Date.now());
       setPausedDuration(0);
       setSessionState('active');
 
       // Initialize progress
-      const initialProgress = calculateProgress(sessionDataParam, 0);
+      const initialProgress = calculateProgress(fullSessionData, 0);
       setProgress(initialProgress);
 
       // Save to localStorage for persistence
       const sessionToSave = {
-        sessionData: sessionDataParam,
+        sessionData: fullSessionData,
         startTime: Date.now(),
         pausedDuration: 0,
         sessionState: 'active'
@@ -466,6 +434,71 @@ export function useActiveSession() {
     }
   }, [sessionState]);
 
+  const extendSession = useCallback((extensionMinutes?: number) => {
+    if (sessionState !== 'extension_needed' || !sessionData) {
+      setError('Cannot extend: session is not in extension state');
+      return;
+    }
+
+    try {
+      setError(null);
+
+      // Add extension time to target duration
+      const extensionToAdd = extensionMinutes || 0; // 0 means indefinite extension
+      const newTargetDuration = extensionToAdd > 0
+        ? sessionData.targetDuration + extensionToAdd
+        : sessionData.targetDuration + 1440; // Add 24 hours for "indefinite"
+
+      // Update session data with extension
+      const updatedSessionData = {
+        ...sessionData,
+        targetDuration: newTargetDuration,
+        totalExtensions: sessionData.totalExtensions + extensionToAdd
+      };
+
+      setSessionData(updatedSessionData);
+      setSessionState('active');
+
+      console.log(`Session extended: +${extensionToAdd || 'indefinite'} minutes`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to extend session';
+      setError(errorMessage);
+      console.error('Extend session error:', err);
+    }
+  }, [sessionState, sessionData]);
+
+  const adjustSessionTime = useCallback((newDurationMinutes: number, reason?: string) => {
+    if (!sessionData || sessionState === 'idle') {
+      setError('No active session to adjust');
+      return;
+    }
+
+    try {
+      setError(null);
+
+      // Adjust the target duration to match the new duration
+      const updatedSessionData = {
+        ...sessionData,
+        targetDuration: newDurationMinutes
+      };
+
+      setSessionData(updatedSessionData);
+
+      // Recalculate progress with new target
+      const now = Date.now();
+      const elapsedMs = now - (startTime || now) - pausedDuration;
+      const elapsedSeconds = Math.floor(elapsedMs / 1000);
+      const newProgress = calculateProgress(updatedSessionData, elapsedSeconds);
+      setProgress(newProgress);
+
+      console.log(`Session time adjusted to ${newDurationMinutes} minutes: ${reason || 'Manual adjustment'}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to adjust session time';
+      setError(errorMessage);
+      console.error('Adjust session time error:', err);
+    }
+  }, [sessionData, sessionState, startTime, pausedDuration, calculateProgress]);
+
   return {
     sessionState,
     sessionData,
@@ -476,6 +509,8 @@ export function useActiveSession() {
     resumeSession,
     completeSession,
     cancelSession,
+    extendSession,
+    adjustSessionTime,
     clearError: () => setError(null)
   };
 }

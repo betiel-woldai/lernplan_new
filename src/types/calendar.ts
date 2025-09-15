@@ -8,7 +8,9 @@ export interface CalendarSession {
   subjectColor: string;
   startTime: Date;
   endTime: Date;
-  duration: number; // in minutes
+  plannedDuration: number; // in minutes - original planned duration
+  actualDuration?: number; // in minutes - actual time spent when completed
+  duration: number; // DEPRECATED: use plannedDuration (kept for backward compatibility)
   completed: boolean;
   description?: string;
   type: 'study' | 'exam' | 'break' | 'assignment';

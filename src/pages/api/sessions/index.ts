@@ -55,12 +55,14 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
     queryParams.push(params.limit, params.offset);
 
     const sessionsQuery = `
-      SELECT 
+      SELECT
         ls.id,
         ls.subject_id,
         ls.user_id,
         ls.date,
-        ls.duration,
+        ls.actual_duration as duration,
+        ls.planned_duration,
+        ls.session_extended,
         ls.completed,
         ls.points,
         ls.notes,
@@ -158,14 +160,15 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
       // Create learning session
       const sessionResult = await client.query(`
         INSERT INTO learning_sessions (
-          subject_id, user_id, date, duration, completed, points, notes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+          subject_id, user_id, date, actual_duration, planned_duration, completed, points, notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `, [
         sessionData.subjectId,
         sessionData.userId,
         sessionData.date,
-        sessionData.duration,
+        sessionData.duration, // actual duration
+        sessionData.duration, // planned duration (same for now, can be updated later)
         sessionData.completed,
         totalPoints,
         sessionData.notes || null

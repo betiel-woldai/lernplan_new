@@ -22,7 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         COUNT(*) as total_sessions,
         COUNT(*) FILTER (WHERE completed = true) as completed_sessions,
         COUNT(*) FILTER (WHERE completed = false) as pending_sessions,
-        COALESCE(SUM(CASE WHEN completed = true THEN duration ELSE 0 END), 0) as completed_duration
+        COALESCE(SUM(CASE WHEN completed = true THEN
+          COALESCE(actual_duration, planned_duration) ELSE 0 END), 0) as completed_duration
       FROM calendar_sessions
       WHERE user_id = $1
         AND DATE(start_time) = $2::date
@@ -40,7 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       SELECT
         COUNT(*) as week_sessions,
         COUNT(*) FILTER (WHERE completed = true) as week_completed,
-        COALESCE(SUM(CASE WHEN completed = true THEN duration ELSE 0 END), 0) as week_completed_duration
+        COALESCE(SUM(CASE WHEN completed = true THEN
+          COALESCE(actual_duration, planned_duration) ELSE 0 END), 0) as week_completed_duration
       FROM calendar_sessions
       WHERE user_id = $1
         AND DATE(start_time) >= date_trunc('week', $2::date)::date

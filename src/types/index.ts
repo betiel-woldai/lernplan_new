@@ -53,8 +53,21 @@ export interface LearningSession {
   subjectId: string;
   userId: string;
   date: Date;
-  duration: number; // minutes
+  actualDuration: number; // minutes - actual time spent
+  plannedDuration?: number; // minutes - originally planned time
+  duration: number; // DEPRECATED: use actualDuration (kept for backward compatibility)
   completed: boolean;
   points: number;
   notes?: string;
+  sessionExtended?: boolean; // true if session went beyond planned time
+  manualAdjustmentReason?: string; // reason for manual time adjustments
+  timeAdjustmentsLog?: TimeAdjustment[]; // log of all manual adjustments
+}
+
+export interface TimeAdjustment {
+  timestamp: Date;
+  previousDuration: number; // in minutes
+  newDuration: number; // in minutes
+  reason?: string;
+  adjustedBy?: string; // user identifier
 }

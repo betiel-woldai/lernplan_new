@@ -50,12 +50,14 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const result = await query(`
-    SELECT 
+    SELECT
       cs.id,
       cs.title,
       cs.start_time as "startTime",
-      cs.end_time as "endTime", 
-      cs.duration,
+      cs.end_time as "endTime",
+      cs.planned_duration as duration,
+      cs.planned_duration as "plannedDuration",
+      cs.actual_duration as "actualDuration",
       cs.session_type as "sessionType",
       cs.completed,
       cs.description,

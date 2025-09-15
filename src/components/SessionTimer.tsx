@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Play, Pause, Square, Clock, Target, Zap } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, Zap, Edit } from 'lucide-react';
 import { useActiveSession, SessionState } from '../hooks/useActiveSession';
 import QuickProgressStats from './QuickProgressStats';
+import SessionExtensionModal from './SessionExtensionModal';
 
 interface SessionTimerProps {
   className?: string;
@@ -9,6 +10,9 @@ interface SessionTimerProps {
 }
 
 export default function SessionTimer({ className = '', onStartSession }: SessionTimerProps) {
+  const [showTimeAdjustment, setShowTimeAdjustment] = useState(false);
+  const [adjustmentMinutes, setAdjustmentMinutes] = useState<number>(0);
+
   const {
     sessionState,
     sessionData,
@@ -18,6 +22,8 @@ export default function SessionTimer({ className = '', onStartSession }: Session
     resumeSession,
     completeSession,
     cancelSession,
+    extendSession,
+    adjustSessionTime,
     clearError
   } = useActiveSession();
 
@@ -49,10 +55,30 @@ export default function SessionTimer({ className = '', onStartSession }: Session
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'completed':
         return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'extension_needed':
+        return 'text-orange-600 bg-orange-50 border-orange-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
+
+  const handleExtensionComplete = () => {
+    completeSession(sessionData?.notes);
+  };
+
+  const handleExtensionCancel = () => {
+    cancelSession();
+  };
+
+  const handleTimeAdjustment = () => {
+    if (adjustmentMinutes > 0) {
+      adjustSessionTime(adjustmentMinutes, 'Manual adjustment during session');
+      setShowTimeAdjustment(false);
+      setAdjustmentMinutes(0);
+    }
+  };
+
+  const currentElapsedMinutes = Math.floor(progress.elapsedSeconds / 60);
 
   // Always visible - show "Ready to Learn" state when idle
   const isActiveSession = sessionState !== 'idle' && sessionData;
@@ -188,7 +214,7 @@ export default function SessionTimer({ className = '', onStartSession }: Session
         </div>
 
         {/* Control Buttons */}
-        <div className="flex justify-center space-x-3">
+        <div className="flex justify-center space-x-3 mb-4">
           {sessionState === 'active' && (
             <button
               onClick={pauseSession}
@@ -225,6 +251,54 @@ export default function SessionTimer({ className = '', onStartSession }: Session
           </button>
         </div>
 
+        {/* Manual Time Adjustment */}
+        {(sessionState === 'active' || sessionState === 'paused') && (
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setShowTimeAdjustment(!showTimeAdjustment)}
+              className="flex items-center space-x-2 px-3 py-1 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors"
+            >
+              <Edit size={14} />
+              <span>Adjust Time</span>
+            </button>
+          </div>
+        )}
+
+        {/* Time Adjustment Input */}
+        {showTimeAdjustment && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Set Total Session Duration (minutes)
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                min="1"
+                max="480"
+                value={adjustmentMinutes || currentElapsedMinutes}
+                onChange={(e) => setAdjustmentMinutes(parseInt(e.target.value) || currentElapsedMinutes)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder={currentElapsedMinutes.toString()}
+              />
+              <button
+                onClick={handleTimeAdjustment}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Apply
+              </button>
+              <button
+                onClick={() => setShowTimeAdjustment(false)}
+                className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Current elapsed time: {currentElapsedMinutes} minutes
+            </p>
+          </div>
+        )}
+
         {/* Session Notes */}
         {sessionData.notes && (
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
@@ -234,6 +308,18 @@ export default function SessionTimer({ className = '', onStartSession }: Session
           </div>
         )}
       </div>
+
+      {/* Session Extension Modal */}
+      <SessionExtensionModal
+        isOpen={sessionState === 'extension_needed'}
+        onContinue={extendSession}
+        onComplete={handleExtensionComplete}
+        onCancel={handleExtensionCancel}
+        subjectName={sessionData.subjectName}
+        subjectColor={sessionData.subjectColor}
+        elapsedTime={formatTime(progress.elapsedSeconds)}
+        targetDuration={sessionData.originalTargetDuration}
+      />
     </div>
   );
 }
