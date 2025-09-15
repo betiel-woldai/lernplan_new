@@ -14,6 +14,7 @@ import { useSubjects } from '@/hooks/useSubjects';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useSessionStats } from '@/hooks/useSessionStats';
 import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
+import DirectCalendarStats from '@/components/DirectCalendarStats';
 import { useLearningSessions, LearningSession } from '@/hooks/useLearningSessions';
 import useCalendarSessions from '@/hooks/useCalendarSessions';
 import { CalendarSession } from '@/types/calendar';
@@ -341,69 +342,16 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Quick Stats */}
+          {/* Temporary Test - Direct Calendar Stats */}
           <div className="space-y-3">
-            {/* Daily Learning Time Compact */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center space-x-1">
-                  <FaClock className="text-blue-500 text-sm" />
-                  <span className="text-xs font-medium text-blue-900">
-                    {dateStats.isToday ? 'Heute' : selectedDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
-                  </span>
-                </div>
-                <span className="text-sm font-bold text-blue-900">
-                  {dateStatsLoading ? 'Laden...' : dateStats.formattedDuration}
-                </span>
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-1">
-                <div 
-                  className="bg-blue-500 h-1 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (dateStats.completedDuration / 120) * 100)}%` }}
-                />
-              </div>
-              <div className="text-xs text-blue-700 mt-1">von 2h Ziel</div>
+            <div className="bg-green-100 p-4 rounded">
+              <p>🎯 Direct Calendar Sync Test</p>
+              <p>Date: {selectedDate?.toDateString()}</p>
             </div>
+          </div>
 
-            {/* Completed Sessions Compact - ONLY completed sessions for selected date */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center space-x-1">
-                  <FaCheckCircle className="text-green-500 text-sm" />
-                  <span className="text-xs font-medium text-green-900">Sessions</span>
-                </div>
-                <span className="text-sm font-bold text-green-900">
-                  {dateStatsLoading ? '...' : dateStats.completedSessions}
-                </span>
-              </div>
-              <div className="text-xs text-green-700">
-                {dateStats.isToday ? 'heute abgeschlossen' : 
-                  selectedDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' abgeschlossen'
-                }
-              </div>
-            </div>
-
-            {/* Learning Streak Compact - counting backwards from selected date */}
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center space-x-1">
-                  <FaFire className="text-orange-500 text-sm" />
-                  <span className="text-xs font-medium text-orange-900">Streak</span>
-                </div>
-                <span className="text-sm font-bold text-orange-900">
-                  {dateStatsLoading ? '...' : dateStats.streakDays}
-                </span>
-              </div>
-              <span data-testid="current-streak" className="hidden">{dateStatsLoading ? 0 : dateStats.streakDays}</span>
-              <div className="text-xs text-orange-700">
-                {dateStats.isToday ? 'Tage in Folge bis heute' : 
-                  `Tage in Folge bis ${selectedDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}`
-                }
-              </div>
-            </div>
-
-            {/* Achievements Compact - Temporarily hidden until defined */}
-            {false && (
+          {/* Achievements Compact - Temporarily hidden until defined */}
+          {false && (
             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border border-yellow-200">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-1">
@@ -422,10 +370,9 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-            )}
+          )}
 
-            {/* REMOVED: Redundant Session Status Widget - keeping only the date-specific one above */}
-          </div>
+          {/* REMOVED: Redundant Session Status Widget - keeping only the date-specific one above */}
         </div>
       </div>
 

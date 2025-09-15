@@ -42,20 +42,26 @@ export function useDateSpecificStats(selectedDate: Date | null = null) {
 
       // Format date to YYYY-MM-DD
       const dateStr = date.toISOString().split('T')[0];
+      console.log('🔍 useDateSpecificStats: Fetching stats for date:', dateStr);
 
       const response = await fetch(`/api/date-specific-stats?date=${dateStr}`);
+      console.log('🔍 useDateSpecificStats: Response status:', response.status, response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to fetch date-specific stats');
+        throw new Error(`Failed to fetch date-specific stats: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('🔍 useDateSpecificStats: Received data:', data);
       setStats(data);
+      console.log('✅ useDateSpecificStats: Stats updated successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch date-specific stats';
       setError(errorMessage);
-      console.error('Date-specific stats fetch error:', err);
+      console.error('❌ useDateSpecificStats fetch error:', err);
     } finally {
       setLoading(false);
+      console.log('🔍 useDateSpecificStats: Loading finished');
     }
   }, []);
 

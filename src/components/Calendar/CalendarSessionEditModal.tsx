@@ -390,35 +390,6 @@ export default function CalendarSessionEditModal({
             </div>
           )}
 
-          {/* Session Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Session-Typ
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {sessionTypes.map((type) => (
-                <label
-                  key={type.value}
-                  className={`flex items-center space-x-2 p-2 border rounded-lg cursor-pointer transition-colors ${
-                    formData.sessionType === type.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-800'
-                      : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="sessionType"
-                    value={type.value}
-                    checked={formData.sessionType === type.value}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sessionType: e.target.value as any }))}
-                    className="sr-only"
-                  />
-                  <span className="text-sm">{type.icon}</span>
-                  <span className="text-sm font-medium">{type.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
 
           {/* Location */}
           <div>

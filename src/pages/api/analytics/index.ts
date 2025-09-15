@@ -80,17 +80,17 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
   }
 
   const progressQuery = `
-    SELECT 
-      DATE(ls.date) as session_date,
-      SUM(ls.duration) as total_minutes,
-      COUNT(ls.id) as session_count,
-      COUNT(ls.id) FILTER (WHERE ls.completed = true) as completed_session_count,
-      SUM(ls.points) as total_xp
-    FROM learning_sessions ls
-    WHERE ls.user_id = $1
-      AND ls.date >= $2
-      AND ls.date <= $3
-    GROUP BY DATE(ls.date)
+    SELECT
+      DATE(cs.start_time) as session_date,
+      SUM(cs.duration) as total_minutes,
+      COUNT(cs.id) as session_count,
+      COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count,
+      SUM(CASE WHEN cs.completed = true THEN cs.duration * 2 ELSE 0 END) as total_xp
+    FROM calendar_sessions cs
+    WHERE cs.user_id = $1
+      AND DATE(cs.start_time) >= $2::date
+      AND DATE(cs.start_time) <= $3::date
+    GROUP BY DATE(cs.start_time)
     ORDER BY session_date ASC
   `;
 
@@ -129,17 +129,17 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
 
 async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
   const subjectsQuery = `
-    SELECT 
+    SELECT
       s.id,
       s.name,
       s.color,
       s.target_hours,
       s.completed_hours,
-      COALESCE(SUM(ls.duration), 0) as total_minutes,
-      COUNT(ls.id) as session_count,
-      COUNT(ls.id) FILTER (WHERE ls.completed = true) as completed_session_count
+      COALESCE(SUM(cs.duration), 0) as total_minutes,
+      COUNT(cs.id) as session_count,
+      COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count
     FROM subjects s
-    LEFT JOIN learning_sessions ls ON s.id = ls.subject_id
+    LEFT JOIN calendar_sessions cs ON s.id = cs.subject_id
     WHERE s.user_id = $1
     GROUP BY s.id, s.name, s.color, s.target_hours, s.completed_hours
     ORDER BY total_minutes DESC
@@ -164,17 +164,17 @@ async function getStreakAnalytics(userId: string, days: number = 30): Promise<St
   const startDate = subDays(new Date(), days);
   const endDate = new Date();
 
-  // Get daily session data
+  // Get daily session data from calendar sessions
   const streakQuery = `
-    SELECT 
-      DATE(ls.date) as session_date,
-      COUNT(ls.id) > 0 as has_session
-    FROM learning_sessions ls
-    WHERE ls.user_id = $1
-      AND ls.date >= $2
-      AND ls.date <= $3
-      AND ls.completed = true
-    GROUP BY DATE(ls.date)
+    SELECT
+      DATE(cs.start_time) as session_date,
+      COUNT(cs.id) > 0 as has_session
+    FROM calendar_sessions cs
+    WHERE cs.user_id = $1
+      AND DATE(cs.start_time) >= $2::date
+      AND DATE(cs.start_time) <= $3::date
+      AND cs.completed = true
+    GROUP BY DATE(cs.start_time)
     ORDER BY session_date ASC
   `;
 
