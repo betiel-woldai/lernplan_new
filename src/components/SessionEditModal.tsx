@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { LearningSession } from '../hooks/useLearningSessions';
 import { useSubjects } from '../hooks/useSubjects';
-import { X, Calendar, Clock, FileText, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { X, Calendar, Clock, FileText, CheckCircle, AlertCircle, Save, Trash2 } from 'lucide-react';
 
 interface SessionEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   session: LearningSession | null;
   onSave: (sessionId: string, updates: Partial<LearningSession>) => Promise<boolean>;
+  onDelete?: (sessionId: string) => Promise<boolean>;
 }
 
-export default function SessionEditModal({ 
-  isOpen, 
-  onClose, 
-  session, 
-  onSave 
+export default function SessionEditModal({
+  isOpen,
+  onClose,
+  session,
+  onSave,
+  onDelete
 }: SessionEditModalProps) {
   const { subjects } = useSubjects();
   const [formData, setFormData] = useState({
@@ -26,6 +28,7 @@ export default function SessionEditModal({
     points: 0
   });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Initialize form data when session changes
@@ -92,6 +95,22 @@ export default function SessionEditModal({
       console.error('Failed to update session:', error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!session || !onDelete) return;
+
+    setDeleting(true);
+    try {
+      const success = await onDelete(session.id);
+      if (success) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -263,52 +282,59 @@ export default function SessionEditModal({
             />
           </div>
 
-          {/* Timeline Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Timeline Information</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-blue-700 font-medium">Created:</span>
-                <div className="text-blue-600">
-                  {new Date(session.createdAt).toLocaleString('de-DE')}
-                </div>
-              </div>
-              <div>
-                <span className="text-blue-700 font-medium">Session Date:</span>
-                <div className="text-blue-600">
-                  {formData.date ? new Date(formData.date).toLocaleDateString('de-DE') : 'Not set'}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
-              disabled={saving}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
+          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+            {/* Delete Button - Left Side */}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors"
+                disabled={saving || deleting}
+              >
+                {deleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Cancel and Save Buttons - Right Side */}
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                disabled={saving || deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
+                disabled={saving || deleting}
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

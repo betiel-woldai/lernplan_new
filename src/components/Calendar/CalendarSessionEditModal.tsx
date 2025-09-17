@@ -421,24 +421,6 @@ export default function CalendarSessionEditModal({
             />
           </div>
 
-          {/* Timeline Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Timeline-Informationen</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-blue-700 font-medium">Original erstellt:</span>
-                <div className="text-blue-600">
-                  {new Date(session.startTime).toLocaleDateString('de-DE')}
-                </div>
-              </div>
-              <div>
-                <span className="text-blue-700 font-medium">Neues Datum:</span>
-                <div className="text-blue-600">
-                  {formData.date ? new Date(formData.date).toLocaleDateString('de-DE') : 'Nicht gesetzt'}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pt-6 border-t border-gray-200">

@@ -3,13 +3,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Session Extension Feature Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
-    await page.goto('http://localhost:3001');
+    await page.goto('http://localhost:3002');
     await page.waitForLoadState('networkidle');
   });
 
   test('should show extension modal when planned time is reached', async ({ page }) => {
     // Start a very short session (1 minute) to quickly trigger extension
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
 
     // Wait for the modal to appear
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
@@ -48,7 +48,7 @@ test.describe('Session Extension Feature Tests', () => {
 
   test('should allow custom time extension', async ({ page }) => {
     // Start a very short session
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
 
     // Select a subject and set 1 minute duration
@@ -72,7 +72,7 @@ test.describe('Session Extension Feature Tests', () => {
 
   test('should allow manual time adjustment during active session', async ({ page }) => {
     // Start a session
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
 
     // Select a subject and start
@@ -102,7 +102,7 @@ test.describe('Session Extension Feature Tests', () => {
 
   test('should complete session directly from extension modal', async ({ page }) => {
     // Start a very short session
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
 
     // Select a subject and set 1 minute duration
@@ -123,7 +123,7 @@ test.describe('Session Extension Feature Tests', () => {
 
   test('should show session extended indicator when time is extended', async ({ page }) => {
     // Start a very short session
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
 
     // Select a subject and set 1 minute duration
@@ -153,7 +153,7 @@ test.describe('Session Extension Data Flow', () => {
     // This test verifies that the session data reflects actual time spent
     // We'll need to check the database or API responses to verify this
 
-    await page.goto('http://localhost:3001');
+    await page.goto('http://localhost:3002');
     await page.waitForLoadState('networkidle');
 
     // Monitor network requests to verify duration data
@@ -166,7 +166,7 @@ test.describe('Session Extension Data Flow', () => {
     });
 
     // Start and complete a session with extension
-    await page.click('text=Start Learning Session');
+    await page.click('text=Start');
     await expect(page.locator('[data-testid="start-session-modal"]')).toBeVisible();
 
     await page.click('.subject-selector button:first-child');
