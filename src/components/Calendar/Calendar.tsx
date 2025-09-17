@@ -9,6 +9,7 @@ import CalendarSessionEditModal from './CalendarSessionEditModal';
 import DuplicateSessionModal from './DuplicateSessionModal';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
 import useCalendarSessions from '../../hooks/useCalendarSessions';
+import { useLearningSessions } from '../../hooks/useLearningSessions';
 
 interface CalendarProps {
   onSessionClick?: (session: CalendarSession) => void;
@@ -48,16 +49,18 @@ export default function Calendar({
     session: null as CalendarSession | null,
   });
 
-  const { 
-    sessions, 
-    loading, 
-    error, 
-    fetchSessionsForMonth, 
+  const {
+    sessions,
+    loading,
+    error,
+    fetchSessionsForMonth,
     getSessionsForDate,
     updateSession,
-    deleteSession,
+    deleteSession: deleteCalendarSession,
     syncFromSubjects
   } = useCalendarSessions();
+
+  const { deleteSession: deleteLearningSession } = useLearningSessions();
 
   // Load sessions for current month on mount and when month changes
   useEffect(() => {
@@ -165,21 +168,49 @@ export default function Calendar({
     try {
       const confirmed = window.confirm(`Sind Sie sicher, dass Sie "${session.title}" löschen möchten?`);
       if (!confirmed) return;
-      
-      const success = await deleteSession(session.id);
+
+      // Check session source to determine which delete function to use
+      const sessionSource = (session as any).source || 'calendar';
+
+      let success = false;
+      if (sessionSource === 'learning') {
+        success = await deleteLearningSession(session.id);
+      } else {
+        success = await deleteCalendarSession(session.id);
+      }
+
       if (success) {
-        console.log('Session deleted successfully:', session.id);
+        console.log('Session deleted successfully:', session.id, 'source:', sessionSource);
+        // Refresh sessions after deletion
+        const currentYear = viewState.currentDate.getFullYear();
+        const currentMonth = viewState.currentDate.getMonth() + 1;
+        await fetchSessionsForMonth(currentYear, currentMonth);
       }
     } catch (error) {
       console.error('Failed to delete session:', error);
     }
-  }, [deleteSession]);
+  }, [deleteLearningSession, deleteCalendarSession, viewState.currentDate, fetchSessionsForMonth]);
 
   const handleDeleteFromEditModal = useCallback(async (sessionId: string): Promise<boolean> => {
     try {
-      const success = await deleteSession(sessionId);
+      // Find the session to determine its source
+      const session = sessions.find(s => s.id === sessionId);
+      if (!session) {
+        console.error('Session not found for deletion:', sessionId);
+        return false;
+      }
+
+      const sessionSource = (session as any).source || 'calendar';
+
+      let success = false;
+      if (sessionSource === 'learning') {
+        success = await deleteLearningSession(sessionId);
+      } else {
+        success = await deleteCalendarSession(sessionId);
+      }
+
       if (success) {
-        console.log('Session deleted successfully from edit modal:', sessionId);
+        console.log('Session deleted successfully from edit modal:', sessionId, 'source:', sessionSource);
         // Refresh sessions after deletion
         const currentYear = viewState.currentDate.getFullYear();
         const currentMonth = viewState.currentDate.getMonth() + 1;
@@ -190,7 +221,7 @@ export default function Calendar({
       console.error('Failed to delete session from edit modal:', error);
       return false;
     }
-  }, [deleteSession, viewState.currentDate, fetchSessionsForMonth]);
+  }, [sessions, deleteLearningSession, deleteCalendarSession, viewState.currentDate, fetchSessionsForMonth]);
 
   const handleCloseDuplicateModal = useCallback(() => {
     setDuplicateModalState({

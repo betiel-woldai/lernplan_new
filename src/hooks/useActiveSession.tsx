@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLearningSessions, CreateSessionData } from './useLearningSessions';
 import { dispatchEvent, createThrottledDispatcher } from '../utils/eventBus';
+import { LearningSession as DomainLearningSession, TimeAdjustment } from '../types';
+import { getBerlinDateString } from '../utils/timezone';
 
-export type SessionState = 'idle' | 'active' | 'paused' | 'completed' | 'extension_needed';
+export type SessionState = 'idle' | 'active' | 'paused' | 'completed' | 'saving' | 'extension_needed';
 
 interface ActiveSessionData {
   subjectId: string;
@@ -12,6 +14,14 @@ interface ActiveSessionData {
   originalTargetDuration: number; // in minutes - original planned duration
   totalExtensions: number; // in minutes - total time added through extensions
   notes?: string;
+  timeAdjustments?: Array<{
+    timestamp: number;
+    previousDuration: number;
+    newDuration: number;
+    elapsedAtAdjustment: number;
+    reason: string;
+    adjustmentType: string;
+  }>;
 }
 
 interface SessionProgress {
@@ -32,6 +42,7 @@ export function useActiveSession() {
   });
   const [startTime, setStartTime] = useState<number | null>(null);
   const [pausedDuration, setPausedDuration] = useState<number>(0);
+  const [pauseStartedAt, setPauseStartedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Flag to prevent circular sync events
@@ -48,6 +59,7 @@ export function useActiveSession() {
   // localStorage key for session persistence
   const STORAGE_KEY = 'activeSession';
 
+
   // Timer functionality - runs every second when session is active
   useEffect(() => {
     if (sessionState !== 'active' || !sessionData || !startTime) {
@@ -60,7 +72,10 @@ export function useActiveSession() {
 
     const updateTimer = () => {
       const now = Date.now();
-      const elapsedMs = now - startTime - pausedDuration;
+      const effectivePausedDuration = pauseStartedAt
+        ? pausedDuration + (now - pauseStartedAt)
+        : pausedDuration;
+      const elapsedMs = now - startTime - effectivePausedDuration;
       const elapsedSeconds = Math.floor(elapsedMs / 1000);
       const targetSeconds = sessionData.targetDuration * 60;
       const remainingSeconds = Math.max(0, targetSeconds - elapsedSeconds);
@@ -104,7 +119,7 @@ export function useActiveSession() {
         timerRef.current = null;
       }
     };
-  }, [sessionState, sessionData, startTime, pausedDuration, createSession]);
+  }, [sessionState, sessionData, startTime, pausedDuration, pauseStartedAt, createSession]);
 
   // Save to localStorage and broadcast sync events only for major state changes
   useEffect(() => {
@@ -114,6 +129,7 @@ export function useActiveSession() {
         sessionData,
         startTime,
         pausedDuration,
+        pauseStartedAt,
         progress
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionToSave));
@@ -138,7 +154,7 @@ export function useActiveSession() {
         window.dispatchEvent(syncEvent);
       }
     }
-  }, [sessionState, sessionData, startTime, pausedDuration]); // Removed progress from dependency array
+  }, [sessionState, sessionData, startTime, pausedDuration, pauseStartedAt]); // Removed progress from dependency array
 
   // Restore session from localStorage on mount
   useEffect(() => {
@@ -154,6 +170,7 @@ export function useActiveSession() {
           setSessionData(parsed.sessionData);
           setStartTime(parsed.startTime);
           setPausedDuration(parsed.pausedDuration || 0);
+          setPauseStartedAt(parsed.pauseStartedAt || null);
           setProgress(parsed.progress || {
             elapsedSeconds: 0,
             targetSeconds: parsed.sessionData.targetDuration * 60,
@@ -206,6 +223,7 @@ export function useActiveSession() {
         setSessionData(sessionData.sessionData);
         setStartTime(sessionData.startTime);
         setPausedDuration(sessionData.pausedDuration || 0);
+        setPauseStartedAt(sessionData.pauseStartedAt || null);
         setProgress(sessionData.progress || {
           elapsedSeconds: 0,
           targetSeconds: sessionData.sessionData.targetDuration * 60,
@@ -219,6 +237,7 @@ export function useActiveSession() {
         setSessionData(null);
         setStartTime(null);
         setPausedDuration(0);
+        setPauseStartedAt(null);
         setProgress({
           elapsedSeconds: 0,
           targetSeconds: 0,
@@ -253,6 +272,7 @@ export function useActiveSession() {
       setStartTime(Date.now());
       setPausedDuration(0);
       setSessionState('active');
+      setPauseStartedAt(null);
 
       // Initialize progress
       const initialProgress = calculateProgress(fullSessionData, 0);
@@ -263,6 +283,7 @@ export function useActiveSession() {
         sessionData: fullSessionData,
         startTime: Date.now(),
         pausedDuration: 0,
+        pauseStartedAt: null,
         sessionState: 'active'
       };
       console.log('💾 Saving session to localStorage:', sessionToSave);
@@ -295,6 +316,7 @@ export function useActiveSession() {
 
     try {
       setError(null);
+      setPauseStartedAt(Date.now());
       setSessionState('paused');
       
       console.log('Session paused');
@@ -315,9 +337,14 @@ export function useActiveSession() {
       setError(null);
       
       // Add paused time to total paused duration
-      const pausedTime = Date.now() - startTime;
+      if (!pauseStartedAt) {
+        setError('Cannot resume: pause time not recorded');
+        return;
+      }
+
+      const pausedTime = Date.now() - pauseStartedAt;
       setPausedDuration(prev => prev + pausedTime);
-      setStartTime(Date.now());
+      setPauseStartedAt(null);
       setSessionState('active');
 
       console.log('Session resumed');
@@ -326,30 +353,42 @@ export function useActiveSession() {
       setError(errorMessage);
       console.error('Resume session error:', err);
     }
-  }, [sessionState, sessionData, startTime]);
+  }, [sessionState, sessionData, startTime, pauseStartedAt]);
 
-  const completeSession = useCallback(async (notes?: string) => {
+  const completeSession = useCallback(async (notes?: string): Promise<DomainLearningSession | null> => {
     if (!sessionData || sessionState === 'idle') {
       setError('No active session to complete');
-      return;
+      return null;
     }
 
     try {
       setError(null);
-      setSessionState('completed');
+      // Immediately show saving state for user feedback
+      setSessionState('saving');
 
       // Calculate final elapsed time
       const now = Date.now();
-      const elapsedMs = now - (startTime || now) - pausedDuration;
+      const totalPausedDuration = pauseStartedAt
+        ? pausedDuration + (now - pauseStartedAt)
+        : pausedDuration;
+      const elapsedMs = Math.max(0, now - (startTime || now) - totalPausedDuration);
       const elapsedMinutes = Math.max(1, Math.floor(elapsedMs / 1000 / 60)); // Minimum 1 minute
+
+      const adjustmentsCount = sessionData.timeAdjustments?.length ?? 0;
 
       // Create session data for API (all subjects including Deep Work)
       const sessionApiData: CreateSessionData = {
         subjectId: sessionData.subjectId,
         duration: elapsedMinutes,
-        date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        date: getBerlinDateString(), // Today's date in Berlin timezone (YYYY-MM-DD format)
         notes: notes || sessionData.notes,
-        completed: true
+        completed: true,
+        // Include audit data for database logging
+        plannedDuration: sessionData.originalTargetDuration,
+        timeAdjustments: sessionData.timeAdjustments ?? [],
+        manualAdjustmentReason: adjustmentsCount > 0
+          ? `${adjustmentsCount} adjustment(s) made`
+          : undefined
       };
 
       // Save session to database (now includes Deep Work with proper UUID)
@@ -362,46 +401,79 @@ export function useActiveSession() {
       });
       
       if (savedSession) {
+        // Set to completed state after successful save
+        setSessionState('completed');
         console.log(`Session completed: ${elapsedMinutes} minutes, ${savedSession.points} XP earned`);
-        
-        // Dispatch session completed event
+
+        const adjustmentsLog: TimeAdjustment[] | undefined = sessionApiData.timeAdjustments?.map(adjustment => ({
+          timestamp: new Date(adjustment.timestamp),
+          previousDuration: adjustment.previousDuration,
+          newDuration: adjustment.newDuration,
+          reason: adjustment.reason
+        }));
+
+        const completedSession: DomainLearningSession = {
+          id: savedSession.id,
+          subjectId: savedSession.subjectId,
+          userId: savedSession.userId,
+          date: new Date(savedSession.date),
+          actualDuration: elapsedMinutes,
+          plannedDuration: sessionData.originalTargetDuration,
+          duration: elapsedMinutes,
+          completed: savedSession.completed,
+          points: savedSession.points,
+          notes: savedSession.notes || undefined,
+          sessionExtended: sessionData.totalExtensions > 0,
+          manualAdjustmentReason: sessionApiData.manualAdjustmentReason,
+          timeAdjustmentsLog: adjustmentsLog
+        };
+
+        // Dispatch enhanced session completed event with actual/planned duration info
         dispatchEvent('sessionCompleted', {
-          session: savedSession,
+          session: completedSession,
           xpGained: savedSession.points,
           completedAt: Date.now(),
           elapsedMinutes
         }, 'useActiveSession');
-        
+
         // Clear localStorage immediately
         localStorage.removeItem(STORAGE_KEY);
-        
+
         // Clear session state after a short delay
         setTimeout(() => {
           setSessionState('idle');
           setSessionData(null);
           setStartTime(null);
           setPausedDuration(0);
+          setPauseStartedAt(null);
           setProgress({
             elapsedSeconds: 0,
             targetSeconds: 0,
             progress: 0,
-            remainingSeconds: 0
-          });
-        }, 3000); // 3 second delay to show completion state
+          remainingSeconds: 0
+        });
+        }, 1500); // 1.5 second delay to show completion state
+
+        return completedSession;
       } else {
         throw new Error('Failed to save session to database');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to complete session';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save session to calendar';
       setError(errorMessage);
       console.error('Complete session error:', err);
-      
-      // Revert to previous state on error
-      if (sessionState === 'completed') {
-        setSessionState('active');
-      }
+
+      // Revert to active state on error to allow retry
+      setSessionState('active');
+      setPauseStartedAt(null);
+
+      // Clear error after 5 seconds to allow retry
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return null;
     }
-  }, [sessionData, sessionState, startTime, pausedDuration, createSession]);
+  }, [sessionData, sessionState, startTime, pausedDuration, pauseStartedAt, createSession]);
 
   const cancelSession = useCallback(() => {
     if (sessionState === 'idle') {
@@ -416,6 +488,7 @@ export function useActiveSession() {
       setSessionData(null);
       setStartTime(null);
       setPausedDuration(0);
+      setPauseStartedAt(null);
       setProgress({
         elapsedSeconds: 0,
         targetSeconds: 0,
@@ -457,6 +530,7 @@ export function useActiveSession() {
       };
 
       setSessionData(updatedSessionData);
+      setPauseStartedAt(null);
       setSessionState('active');
 
       console.log(`Session extended: +${extensionToAdd || 'indefinite'} minutes`);
@@ -476,28 +550,45 @@ export function useActiveSession() {
     try {
       setError(null);
 
-      // Adjust the target duration to match the new duration
+      const now = Date.now();
+      const effectivePausedDuration = pauseStartedAt
+        ? pausedDuration + (now - pauseStartedAt)
+        : pausedDuration;
+      const elapsedMs = now - (startTime || now) - effectivePausedDuration;
+      const currentElapsedMinutes = Math.floor(elapsedMs / 1000 / 60);
+
+      // Create adjustment log entry
+      const adjustmentEntry = {
+        timestamp: now,
+        previousDuration: sessionData.targetDuration,
+        newDuration: newDurationMinutes,
+        elapsedAtAdjustment: currentElapsedMinutes,
+        reason: reason || 'Manual adjustment',
+        adjustmentType: 'manual_duration_change'
+      };
+
+      // Add to session data time adjustments log
       const updatedSessionData = {
         ...sessionData,
-        targetDuration: newDurationMinutes
+        targetDuration: newDurationMinutes,
+        timeAdjustments: [...(sessionData.timeAdjustments || []), adjustmentEntry]
       };
 
       setSessionData(updatedSessionData);
 
       // Recalculate progress with new target
-      const now = Date.now();
-      const elapsedMs = now - (startTime || now) - pausedDuration;
       const elapsedSeconds = Math.floor(elapsedMs / 1000);
       const newProgress = calculateProgress(updatedSessionData, elapsedSeconds);
       setProgress(newProgress);
 
-      console.log(`Session time adjusted to ${newDurationMinutes} minutes: ${reason || 'Manual adjustment'}`);
+      console.log(`⚙️ Session time adjusted: ${sessionData.targetDuration}min → ${newDurationMinutes}min (${reason || 'Manual adjustment'})`);
+      console.log('📝 Adjustment logged:', adjustmentEntry);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to adjust session time';
       setError(errorMessage);
       console.error('Adjust session time error:', err);
     }
-  }, [sessionData, sessionState, startTime, pausedDuration, calculateProgress]);
+  }, [sessionData, sessionState, startTime, pausedDuration, pauseStartedAt, calculateProgress]);
 
   return {
     sessionState,

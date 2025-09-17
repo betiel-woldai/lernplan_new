@@ -37,19 +37,23 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
   // Use default user until authentication is implemented
   const userIdToUse = userId as string || '62d1b19b-3874-43b1-9424-ca7c2de10557';
 
-  let dateFilter = '';
+  let calendarDateFilter = '';
+  let learningDateFilter = '';
   const params: any[] = [userIdToUse];
 
   if (startDate && endDate) {
-    dateFilter = 'AND DATE(cs.start_time) BETWEEN $2 AND $3';
+    calendarDateFilter = 'AND DATE(cs.start_time) BETWEEN $2 AND $3';
+    learningDateFilter = 'AND ls.date BETWEEN $2 AND $3';
     params.push(startDate, endDate);
   } else if (month && year) {
     // Filter by month and year
-    dateFilter = 'AND EXTRACT(MONTH FROM cs.start_time) = $2 AND EXTRACT(YEAR FROM cs.start_time) = $3';
+    calendarDateFilter = 'AND EXTRACT(MONTH FROM cs.start_time) = $2 AND EXTRACT(YEAR FROM cs.start_time) = $3';
+    learningDateFilter = 'AND EXTRACT(MONTH FROM DATE(ls.date)) = $2 AND EXTRACT(YEAR FROM DATE(ls.date)) = $3';
     params.push(parseInt(month as string), parseInt(year as string));
   }
 
-  const result = await query(`
+  // Get both calendar_sessions and learning_sessions
+  const calendarSessionsResult = await query(`
     SELECT
       cs.id,
       cs.title,
@@ -67,12 +71,41 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
       -- Subject information
       s.id as "subjectId",
       s.name as "subjectName",
-      s.color as "subjectColor"
+      s.color as "subjectColor",
+      'calendar' as "source"
     FROM calendar_sessions cs
     JOIN subjects s ON cs.subject_id = s.id
-    WHERE cs.user_id = $1 ${dateFilter}
-    ORDER BY cs.start_time ASC
+    WHERE cs.user_id = $1 ${calendarDateFilter}
+
+    UNION ALL
+
+    SELECT
+      ls.id,
+      CONCAT(s.name, ' Session') as title,
+      ls.created_at - INTERVAL '1 minute' * ls.actual_duration as "startTime",
+      ls.created_at as "endTime",
+      ls.actual_duration as duration,
+      ls.planned_duration as "plannedDuration",
+      ls.actual_duration as "actualDuration",
+      'study' as "sessionType",
+      ls.completed,
+      ls.notes as description,
+      NULL as location,
+      ls.created_at as "createdAt",
+      ls.created_at as "updatedAt",
+      -- Subject information
+      s.id as "subjectId",
+      s.name as "subjectName",
+      s.color as "subjectColor",
+      'learning' as "source"
+    FROM learning_sessions ls
+    JOIN subjects s ON ls.subject_id = s.id
+    WHERE ls.user_id = $1 ${learningDateFilter}
+
+    ORDER BY "startTime" ASC
   `, params);
+
+  const result = calendarSessionsResult;
 
   // Convert dates
   const sessions = result.rows.map(session => ({
@@ -119,15 +152,17 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
 
   const result = await query(`
     INSERT INTO calendar_sessions (
-      user_id, subject_id, title, start_time, end_time, duration,
+      user_id, subject_id, title, start_time, end_time, planned_duration,
       session_type, description, location
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-    RETURNING 
+    RETURNING
       id,
       title,
       start_time as "startTime",
       end_time as "endTime",
-      duration,
+      planned_duration as duration,
+      planned_duration as "plannedDuration",
+      actual_duration as "actualDuration",
       session_type as "sessionType",
       completed,
       description,
