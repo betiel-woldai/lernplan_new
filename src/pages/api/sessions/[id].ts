@@ -30,7 +30,7 @@ async function getLearningSession(req: NextApiRequest, res: NextApiResponse) {
         ls.subject_id,
         ls.user_id,
         ls.date,
-        ls.duration,
+        ls.actual_duration as duration,
         ls.completed,
         ls.points,
         ls.notes,
@@ -118,7 +118,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
       let paramIndex = 1;
 
       if (updateData.duration !== undefined) {
-        updateFields.push(`duration = $${paramIndex}`);
+        updateFields.push(`actual_duration = $${paramIndex}`);
         updateValues.push(updateData.duration);
         paramIndex++;
       }

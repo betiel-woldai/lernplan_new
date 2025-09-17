@@ -66,6 +66,8 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
         ls.completed,
         ls.points,
         ls.notes,
+        ls.manual_adjustment_reason,
+        ls.time_adjustments_log,
         ls.created_at,
         s.name as subject_name,
         s.color as subject_color
@@ -93,10 +95,13 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
       subjectId: row.subject_id,
       userId: row.user_id,
       date: row.date,
-      duration: row.duration,
+      duration: row.duration, // actual duration
+      plannedDuration: row.planned_duration,
       completed: row.completed,
       points: row.points,
       notes: row.notes,
+      manualAdjustmentReason: row.manual_adjustment_reason,
+      timeAdjustmentsLog: row.time_adjustments_log,
       createdAt: row.created_at.toISOString(),
       subject: {
         name: row.subject_name,
@@ -157,21 +162,24 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
     const totalPoints = basePoints + completionBonus;
 
     const result = await withTransaction(async (client) => {
-      // Create learning session
+      // Create learning session with audit logging support
       const sessionResult = await client.query(`
         INSERT INTO learning_sessions (
-          subject_id, user_id, date, actual_duration, planned_duration, completed, points, notes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          subject_id, user_id, date, actual_duration, planned_duration, completed, points, notes,
+          manual_adjustment_reason, time_adjustments_log
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
       `, [
         sessionData.subjectId,
         sessionData.userId,
         sessionData.date,
         sessionData.duration, // actual duration
-        sessionData.duration, // planned duration (same for now, can be updated later)
+        sessionData.plannedDuration || sessionData.duration, // planned duration
         sessionData.completed,
         totalPoints,
-        sessionData.notes || null
+        sessionData.notes || null,
+        sessionData.manualAdjustmentReason || null,
+        JSON.stringify(sessionData.timeAdjustments || [])
       ]);
 
       // Update subject completed hours (convert minutes to hours, ensuring integer-safe calculation)

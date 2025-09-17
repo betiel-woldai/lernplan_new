@@ -71,8 +71,20 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
     }
 
     if (updates.duration !== undefined) {
-      updateFields.push(`duration = $${valueIndex}`);
+      updateFields.push(`planned_duration = $${valueIndex}`);
       updateValues.push(updates.duration);
+      valueIndex++;
+    }
+
+    if (updates.plannedDuration !== undefined) {
+      updateFields.push(`planned_duration = $${valueIndex}`);
+      updateValues.push(updates.plannedDuration);
+      valueIndex++;
+    }
+
+    if (updates.actualDuration !== undefined) {
+      updateFields.push(`actual_duration = $${valueIndex}`);
+      updateValues.push(updates.actualDuration);
       valueIndex++;
     }
 
@@ -111,7 +123,9 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
       location: updatedSession.location,
       startTime: updatedSession.start_time,
       endTime: updatedSession.end_time,
-      duration: updatedSession.duration,
+      duration: updatedSession.planned_duration || updatedSession.duration, // backward compatibility
+      plannedDuration: updatedSession.planned_duration,
+      actualDuration: updatedSession.actual_duration,
       completed: updatedSession.completed,
       subjectId: updatedSession.subject_id,
       userId: updatedSession.user_id,

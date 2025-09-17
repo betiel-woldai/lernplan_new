@@ -26,6 +26,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 20. Before using a API key explain what you want to do with it and ALWAYS ask me for permission.
 21. after implementing a new feature successfully. commit ALWAYS after every succesfully implemented feature.
 22. Every time before closing an issue, show me the frontend of starting the web UI.
+23. Ortszeit für Berlin ist UTC +1 (während der Sommerzeit gilt UTC +2)
 
 
 ## Make a notification with beep sound when waiting user input or the task is complete.

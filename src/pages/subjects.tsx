@@ -1,14 +1,20 @@
-import { useState } from 'react';
 import Layout from '@/components/Layout';
 import SubjectsList from '@/components/SubjectsList';
+import { Subject } from '@/types';
 import { useActiveSession } from '../hooks/useActiveSession';
 
 export default function SubjectsPage() {
   const { startSession } = useActiveSession();
 
-  const handleStartSession = async (subject: any) => {
-    // Simplified: start session immediately without modal/duration selection
-    await startSession(subject.id, 60, ''); // Default 60 minutes, no notes
+  const handleStartSession = async (subject: Subject) => {
+    // Start with default 60-minute block and no notes when launched directly from the list
+    await startSession({
+      subjectId: subject.id,
+      subjectName: subject.name,
+      subjectColor: subject.color,
+      targetDuration: 60,
+      notes: ''
+    });
   };
 
   return (

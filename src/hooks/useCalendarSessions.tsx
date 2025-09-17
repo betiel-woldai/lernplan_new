@@ -329,8 +329,45 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
 
     const handleSessionCompleted = async (event: any) => {
       console.log('📅 useCalendarSessions: Session completed event received', event.detail);
-      
-      // Immediately refresh calendar data to show the new session
+
+      const eventData = event.detail;
+
+      // Create calendar session for the completed session if we have session data
+      if (eventData.sessionData) {
+        try {
+          const sessionData = eventData.sessionData;
+          const actualDuration = eventData.actualDuration;
+          const plannedDuration = eventData.plannedDuration;
+
+          const newSession = await createSession({
+            title: `${sessionData.subjectName} Learning Session`,
+            subjectId: sessionData.subjectId,
+            startTime: new Date(sessionData.startTime),
+            endTime: new Date(sessionData.endTime),
+            type: 'study',
+            description: `Completed learning session${actualDuration !== plannedDuration ? ` (planned: ${plannedDuration}min, actual: ${actualDuration}min)` : ''}`
+          });
+
+          // After creating, update with actual duration if different
+          if (newSession && actualDuration && actualDuration !== plannedDuration) {
+            try {
+              await updateSession(newSession.id, {
+                actualDuration: actualDuration,
+                completed: true
+              });
+              console.log('📅 Calendar session updated with actual duration');
+            } catch (updateError) {
+              console.warn('📅 Failed to update calendar session with actual duration:', updateError);
+            }
+          }
+
+          console.log('📅 Calendar session created successfully from completed session');
+        } catch (calendarError) {
+          console.error('📅 Failed to create calendar session from completed session:', calendarError);
+        }
+      }
+
+      // Refresh calendar data to show any updates
       try {
         await refreshSessions();
         console.log('📅 Calendar refreshed after session completion');

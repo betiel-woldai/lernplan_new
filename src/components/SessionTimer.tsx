@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Pause, Square, Clock, Target, Zap, Edit } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, Zap, Edit, Loader2 } from 'lucide-react';
 import { useActiveSession, SessionState } from '../hooks/useActiveSession';
 import QuickProgressStats from './QuickProgressStats';
 import SessionExtensionModal from './SessionExtensionModal';
@@ -47,6 +47,17 @@ export default function SessionTimer({ className = '', onStartSession }: Session
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
+  const formatDurationComparison = (currentDuration: number, originalDuration: number): string => {
+    const current = formatDuration(currentDuration);
+    const original = formatDuration(originalDuration);
+
+    if (currentDuration === originalDuration) {
+      return `Target: ${current}`;
+    }
+
+    return `Target: ${current} (planned: ${original})`;
+  };
+
   const getStateColor = (state: SessionState): string => {
     switch (state) {
       case 'active':
@@ -55,6 +66,8 @@ export default function SessionTimer({ className = '', onStartSession }: Session
         return 'text-yellow-600 bg-yellow-50 border-yellow-200';
       case 'completed':
         return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'saving':
+        return 'text-purple-600 bg-purple-50 border-purple-200';
       case 'extension_needed':
         return 'text-orange-600 bg-orange-50 border-orange-200';
       default:
@@ -150,7 +163,7 @@ export default function SessionTimer({ className = '', onStartSession }: Session
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Clock size={16} />
-            <span>Target: {formatDuration(sessionData.targetDuration)}</span>
+            <span>{formatDurationComparison(sessionData.targetDuration, sessionData.originalTargetDuration)}</span>
           </div>
         </div>
 
@@ -197,14 +210,21 @@ export default function SessionTimer({ className = '', onStartSession }: Session
                 {Math.round(progress.progress)}%
               </span>
               <span className="text-xs text-gray-500 mt-1">
-                {sessionState === 'active' ? 'LEARNING' : sessionState.toUpperCase()}
+                {sessionState === 'active' ? 'LEARNING' :
+                 sessionState === 'saving' ? 'SAVING TO CALENDAR...' :
+                 sessionState === 'completed' ? 'SESSION SAVED ✓' :
+                 sessionState.toUpperCase()}
               </span>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              {progress.remainingSeconds > 0 ? (
+              {sessionState === 'saving' ? (
+                'Saving session to calendar...'
+              ) : sessionState === 'completed' ? (
+                'Session successfully saved to calendar!'
+              ) : progress.remainingSeconds > 0 ? (
                 <>Remaining: {formatTime(progress.remainingSeconds)}</>
               ) : (
                 'Target time reached!'
@@ -237,15 +257,41 @@ export default function SessionTimer({ className = '', onStartSession }: Session
 
           <button
             onClick={() => completeSession(sessionData.notes)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            disabled={sessionState === 'saving' || sessionState === 'completed'}
+            className={`flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors ${
+              sessionState === 'saving' || sessionState === 'completed'
+                ? 'bg-gray-400 cursor-not-allowed'
+                : error
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-blue-500 hover:bg-blue-600'
+            }`}
           >
-            <Square size={18} />
-            <span>Complete</span>
+            {sessionState === 'saving' ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : sessionState === 'completed' ? (
+              <>
+                <span>✓</span>
+                <span>Saved</span>
+              </>
+            ) : (
+              <>
+                <Square size={18} />
+                <span>Complete</span>
+              </>
+            )}
           </button>
 
           <button
             onClick={cancelSession}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            disabled={sessionState === 'saving' || sessionState === 'completed'}
+            className={`flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors ${
+              sessionState === 'saving' || sessionState === 'completed'
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gray-500 hover:bg-gray-600'
+            }`}
           >
             <span>Cancel</span>
           </button>

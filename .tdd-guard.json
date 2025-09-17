@@ -1,0 +1,174 @@
+{
+  "name": "Lernplaner TDD Guard",
+  "description": "TDD Guard configuration for the learning tracker application",
+
+  "watchers": [
+    {
+      "name": "frontend-components",
+      "description": "Watch React components and hooks for changes",
+      "patterns": [
+        "src/components/**/*.{ts,tsx,js,jsx}",
+        "src/hooks/**/*.{ts,tsx,js,jsx}",
+        "src/pages/**/*.{ts,tsx,js,jsx}",
+        "src/utils/**/*.{ts,tsx,js,jsx}",
+        "src/lib/**/*.{ts,tsx,js,jsx}"
+      ],
+      "ignored": [
+        "node_modules/**",
+        ".next/**",
+        "dist/**",
+        "build/**"
+      ],
+      "commands": [
+        {
+          "name": "type-check",
+          "command": "npm run type-check",
+          "description": "Run TypeScript type checking"
+        },
+        {
+          "name": "lint",
+          "command": "npm run lint",
+          "description": "Run ESLint checks"
+        }
+      ]
+    },
+
+    {
+      "name": "api-routes",
+      "description": "Watch API routes and database code",
+      "patterns": [
+        "src/pages/api/**/*.{ts,js}",
+        "src/lib/db.ts",
+        "db/migrations/**/*.sql"
+      ],
+      "ignored": [
+        "node_modules/**"
+      ],
+      "commands": [
+        {
+          "name": "type-check",
+          "command": "npm run type-check",
+          "description": "Run TypeScript type checking for API"
+        },
+        {
+          "name": "api-test",
+          "command": "echo 'API tests would run here - consider adding Jest/Vitest for API testing'",
+          "description": "Placeholder for API unit tests"
+        }
+      ]
+    },
+
+    {
+      "name": "playwright-tests",
+      "description": "Run Playwright tests when test files change",
+      "patterns": [
+        "tests/**/*.{spec,test}.{ts,js}",
+        "test-*.{js,ts}",
+        "tests/**/*.{ts,js}"
+      ],
+      "ignored": [
+        "node_modules/**",
+        "tmp/**"
+      ],
+      "commands": [
+        {
+          "name": "single-test",
+          "command": "npx playwright test {file}",
+          "description": "Run specific changed test file",
+          "fileDependent": true
+        },
+        {
+          "name": "related-tests",
+          "command": "npx playwright test tests/",
+          "description": "Run all Playwright tests"
+        }
+      ]
+    },
+
+    {
+      "name": "integration-tests",
+      "description": "Run integration tests when core functionality changes",
+      "patterns": [
+        "src/hooks/useActiveSession.tsx",
+        "src/hooks/useCalendarSessions.tsx",
+        "src/hooks/useLearningSessions.tsx",
+        "src/components/SessionTimer.tsx",
+        "src/components/SessionExtensionModal.tsx"
+      ],
+      "ignored": [],
+      "commands": [
+        {
+          "name": "session-tests",
+          "command": "npx playwright test tests/session-extension-test.spec.ts tests/calendar-sync-test.spec.ts",
+          "description": "Run session-related integration tests"
+        },
+        {
+          "name": "quick-validation",
+          "command": "node test-simple-session-flow.js",
+          "description": "Run quick session validation test"
+        }
+      ]
+    },
+
+    {
+      "name": "database-changes",
+      "description": "Watch for database schema and migration changes",
+      "patterns": [
+        "db/migrations/**/*.sql",
+        "src/lib/db.ts",
+        "src/scripts/*.ts"
+      ],
+      "ignored": [],
+      "commands": [
+        {
+          "name": "migration-check",
+          "command": "echo 'Database migration detected - consider running: npm run db:migrate'",
+          "description": "Notify about database changes"
+        },
+        {
+          "name": "db-tests",
+          "command": "npx playwright test tests/calendar-uuid-verification.spec.ts",
+          "description": "Run database-related tests"
+        }
+      ]
+    }
+  ],
+
+  "global": {
+    "debounceMs": 1000,
+    "parallel": true,
+    "maxParallel": 3,
+    "continueOnError": true,
+    "notifications": {
+      "enabled": true,
+      "onSuccess": "✅ Tests passed",
+      "onFailure": "❌ Tests failed",
+      "onError": "⚠️ Test error"
+    },
+    "logging": {
+      "level": "info",
+      "timestamps": true,
+      "colors": true
+    }
+  },
+
+  "presets": {
+    "quick": {
+      "description": "Quick validation tests only",
+      "watchers": ["frontend-components"],
+      "commands": ["type-check", "lint"]
+    },
+
+    "full": {
+      "description": "Full test suite including Playwright",
+      "watchers": ["frontend-components", "api-routes", "playwright-tests", "integration-tests"],
+      "commands": ["type-check", "lint", "related-tests", "session-tests"]
+    },
+
+    "development": {
+      "description": "Development-friendly setup",
+      "watchers": ["frontend-components", "integration-tests"],
+      "commands": ["type-check", "quick-validation"]
+    }
+  }
+}

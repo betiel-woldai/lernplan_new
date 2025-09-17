@@ -1,0 +1,88 @@
+[
+    {
+      "date": "2025-03-17",
+      "title": "Beginn des Sommersemesters",
+      "details": "Beginn der planmäßigen Lehrveranstaltungen; Veröffentlichung der Studienpläne; Prüfungseinsicht nach Absprache mit den Prüfenden"
+    },
+    {
+      "date": "2025-04-09",
+      "title": "Abgabe der Prüfungskataloge",
+      "details": "Die Fakultäten geben ihre Prüfungskataloge an den Studierendenservice weiter"
+    },
+    {
+      "date_from": "2025-04-15",
+      "date_to": "2025-05-04",
+      "title": "Anmeldezeitraum Prüfungen",
+      "details": "Studierende melden sich zu Prüfungsleistungen an; Antragstellung auf Nachteilsausgleich, Kompetenzanrechnung und Fristverlängerungen möglich"
+    },
+    {
+      "date_from": "2025-04-15",
+      "date_to": "2025-06-24",
+      "title": "Abmeldezeitraum Prüfungen",
+      "details": "Studierende können sich von Prüfungsleistungen abmelden"
+    },
+    {
+      "date": "2025-05-10",
+      "title": "Tag der offenen Tür",
+      "details": "Hochschulveranstaltung zur Präsentation der Studienangebote"
+    },
+    {
+      "date": "2025-05-15",
+      "title": "Companies@Campus",
+      "details": "Karrieremesse mit Firmen und Unternehmen"
+    },
+    {
+      "date": "2025-05-28",
+      "title": "Bekanntgabe der Prüfungspläne",
+      "details": "Endgültige Prüfungspläne werden von den Fakultäten veröffentlicht; Bestellung der Prüfenden; Bekanntgabe zugelassener Hilfs- und Arbeitsmittel"
+    },
+    {
+      "date_from": "2025-06-02",
+      "date_to": "2025-06-05",
+      "title": "Blockwoche",
+      "details": "Fallstudien, Planspiele, Exkursionen etc."
+    },
+    {
+      "date_from": "2025-06-30",
+      "date_to": "2025-07-25",
+      "title": "Prüfungszeitraum",
+      "details": "Schriftliche und mündliche Prüfungen"
+    },
+    {
+      "date": "2025-08-17",
+      "title": "Endtermin Notenmeldung",
+      "details": "Letzter Tag für die Meldung der Noten durch die Prüfenden an den Studierendenservice"
+    },
+    {
+      "date_from": "2025-09-10",
+      "title": "Notenbekanntgabe online",
+      "details": "Prüfungsergebnisse werden digital veröffentlicht"
+    },
+    {
+      "date": "2025-10-01",
+      "title": "Beginn Wintersemester",
+      "details": "Start der Lehrveranstaltungen, Begrüßung der Erstsemester, Veröffentlichung der Studienpläne"
+    },
+    {
+      "date": "2025-11-? (noch offen)",
+      "title": "Absolventenfeier",
+      "details": "Feierliche Verabschiedung der Absolventinnen und Absolventen"
+    },
+    {
+      "date_from": "2026-01-19",
+      "date_to": "2026-02-13",
+      "title": "Prüfungszeitraum",
+      "details": "Schriftliche und mündliche Prüfungen"
+    },
+    {
+      "date": "2026-02-22",
+      "title": "Endtermin Notenmeldung",
+      "details": "Letzter Tag für die Meldung der Noten an den Studierendenservice"
+    },
+    {
+      "date_from": "2026-03-01",
+      "title": "Notenbekanntgabe online",
+      "details": "Prüfungsergebnisse werden digital veröffentlicht"
+    }
+  ]
+  

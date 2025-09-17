@@ -102,6 +102,17 @@ export default function SessionHistory({
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
 
+  const formatDurationWithComparison = (actualMinutes: number, plannedMinutes?: number): string => {
+    const actual = formatDuration(actualMinutes);
+
+    if (!plannedMinutes || actualMinutes === plannedMinutes) {
+      return actual;
+    }
+
+    const planned = formatDuration(plannedMinutes);
+    return `${actual} (planned: ${planned})`;
+  };
+
   const handleDeleteSession = async (sessionId: string) => {
     const success = await deleteSession(sessionId);
     if (success) {
@@ -291,12 +302,20 @@ export default function SessionHistory({
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <div className="flex items-center space-x-1">
                               <Clock className="w-4 h-4" />
-                              <span>{formatDuration(session.duration)}</span>
+                              <span>{formatDurationWithComparison(session.duration, session.plannedDuration)}</span>
                             </div>
                             {session.completed && (
                               <div className="flex items-center space-x-1">
                                 <Award className="w-4 h-4" />
                                 <span>{session.points} XP</span>
+                              </div>
+                            )}
+                            {session.manualAdjustmentReason && (
+                              <div className="flex items-center space-x-1 text-xs">
+                                <Edit2 className="w-3 h-3 text-purple-500" />
+                                <span className="text-purple-600" title={`Manual adjustment: ${session.manualAdjustmentReason}`}>
+                                  Adjusted
+                                </span>
                               </div>
                             )}
                           </div>

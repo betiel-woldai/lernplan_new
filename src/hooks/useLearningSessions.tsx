@@ -5,11 +5,14 @@ export interface LearningSession {
   subjectId: string;
   userId: string;
   date: string;
-  duration: number;
+  duration: number; // actual duration
+  plannedDuration?: number; // planned duration
   completed: boolean;
   points: number;
   notes?: string;
   createdAt: string;
+  manualAdjustmentReason?: string;
+  timeAdjustmentsLog?: string; // JSON string of adjustments
   subject?: {
     name: string;
     color: string;
@@ -22,6 +25,16 @@ export interface CreateSessionData {
   date: string;
   notes?: string;
   completed?: boolean;
+  plannedDuration?: number;
+  timeAdjustments?: Array<{
+    timestamp: number;
+    previousDuration: number;
+    newDuration: number;
+    elapsedAtAdjustment: number;
+    reason: string;
+    adjustmentType: string;
+  }>;
+  manualAdjustmentReason?: string;
 }
 
 export interface UpdateSessionData {

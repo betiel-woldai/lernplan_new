@@ -82,10 +82,10 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
   const progressQuery = `
     SELECT
       DATE(cs.start_time) as session_date,
-      SUM(cs.duration) as total_minutes,
+      SUM(COALESCE(cs.actual_duration, cs.planned_duration)) as total_minutes,
       COUNT(cs.id) as session_count,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count,
-      SUM(CASE WHEN cs.completed = true THEN cs.duration * 2 ELSE 0 END) as total_xp
+      SUM(CASE WHEN cs.completed = true THEN COALESCE(cs.actual_duration, cs.planned_duration) * 2 ELSE 0 END) as total_xp
     FROM calendar_sessions cs
     WHERE cs.user_id = $1
       AND DATE(cs.start_time) >= $2::date
@@ -135,7 +135,7 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
       s.color,
       s.target_hours,
       s.completed_hours,
-      COALESCE(SUM(cs.duration), 0) as total_minutes,
+      COALESCE(SUM(COALESCE(cs.actual_duration, cs.planned_duration)), 0) as total_minutes,
       COUNT(cs.id) as session_count,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count
     FROM subjects s

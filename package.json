@@ -11,7 +11,17 @@
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset": "tsx src/scripts/reset.ts",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:session": "npx playwright test tests/session-extension-test.spec.ts tests/calendar-sync-test.spec.ts",
+    "test:watch": "chokidar 'src/**/*.{ts,tsx}' 'tests/**/*.{ts,js}' -c 'npm run type-check'",
+    "test:watch:components": "chokidar 'src/components/**/*.{ts,tsx}' 'src/hooks/**/*.{ts,tsx}' -c 'npm run type-check'",
+    "test:watch:api": "chokidar 'src/pages/api/**/*.ts' 'src/lib/**/*.ts' -c 'npm run type-check'",
+    "test:watch:e2e": "chokidar 'tests/**/*.spec.ts' -c 'npm run test:session'",
+    "watch:dev": "chokidar 'src/**/*.{ts,tsx}' -c 'npm run type-check && echo \"✅ Type check passed\"' --initial",
+    "watch:full": "chokidar 'src/**/*.{ts,tsx}' 'tests/**/*.spec.ts' -c 'npm run type-check && npm run test:session' --debounce 2000"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -38,6 +48,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "chokidar-cli": "^3.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.0.0",
     "postcss": "^8",
