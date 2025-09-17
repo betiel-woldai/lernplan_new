@@ -492,12 +492,20 @@ export default function CalendarGrid({
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Open context menu on left click instead of calling onSessionClick
-                    setContextMenu({
-                      isOpen: true,
-                      position: { x: e.clientX, y: e.clientY },
-                      session: session,
-                    });
+                    // For learning sessions (completed), open details directly
+                    // For calendar sessions (planned), show context menu
+                    const sessionSource = (session as any).source;
+                    if (sessionSource === 'learning') {
+                      // Open details modal directly for completed learning sessions
+                      onSessionClick(session);
+                    } else {
+                      // Open context menu for planned calendar sessions
+                      setContextMenu({
+                        isOpen: true,
+                        position: { x: e.clientX, y: e.clientY },
+                        session: session,
+                      });
+                    }
                   }}
                   onDoubleClick={(e) => handleSessionDoubleClick(session, e)}
                   onMouseEnter={() => setHoveredSession(session.id)}
