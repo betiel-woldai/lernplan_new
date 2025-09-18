@@ -248,9 +248,9 @@ The Subject Management Interface allows you to create, organize, and track your 
 4. Clear search to show all subjects
 
 ### 💾 Data Storage
-- **Local Storage**: Subjects are saved in browser local storage
-- **Demo Reset**: Use "Reset Demo" button to restore mock data
-- **Persistence**: Data persists between browser sessions
+- **PostgreSQL**: Subjects and sessions are stored in the shared PostgreSQL instance
+- **Seed Reset**: Run `npm run db:setup` to recreate the default user, subjects, and study plan
+- **Persistence**: Data is durable across browser sessions and server restarts
 
 ### 📱 Responsive Design
 - **Desktop**: Multi-column grid layout with full functionality
@@ -268,12 +268,12 @@ The color picker includes light mode optimized colors:
 
 **Manual Testing Steps**:
 1. **Navigate to Subjects**: Click "Subjects" in top navigation
-2. **View Mock Data**: See 3 pre-loaded subjects (Mathematics, Physics, Chemistry)
-3. **Test Creation**: Add a new subject with custom color
+2. **Inspect Seeded Subjects**: Confirm the seeded entries (Mathematik, Physik, Chemie) load from the database
+3. **Test Creation**: Add a new subject with custom color and verify it appears in `/api/subjects`
 4. **Test Search**: Search by name "Math" or color "#3B82F6"
-5. **Test Editing**: Modify an existing subject
+5. **Test Editing**: Modify an existing subject and confirm updates persist after refresh
 6. **Test Responsive**: Resize browser window
-7. **Test Deletion**: Remove a subject (use Reset Demo to restore)
+7. **Test Deletion**: Remove a subject and verify it disappears from both UI and API response
 
 ### 🔧 Technical Implementation
 
@@ -313,8 +313,8 @@ The Interactive Calendar Component provides a comprehensive scheduling and sessi
 
 #### **Calendar Views**
 - **Month View**: Full monthly calendar with CSS Grid layout
-- **Week View**: Weekly schedule view (placeholder implemented)
-- **Day View**: Daily agenda view (placeholder implemented)
+- **Week View**: Weekly schedule with realtime completion indicators
+- **Day View**: Focused agenda for the selected date
 - **View Toggle**: Easy switching between Month/Week/Day views
 
 #### **Interactive Features**
@@ -341,7 +341,7 @@ The Interactive Calendar Component provides a comprehensive scheduling and sessi
 1. **View Sessions**: Sessions appear as colored blocks on calendar dates
 2. **Select Date**: Click any date to select it (highlights in blue)
 3. **Session Details**: Click on any session to view full details below calendar
-4. **Create Session**: Select a date and click the blue "Session" button (placeholder)
+4. **Create Session**: Select a date and click the blue "Session" button to open the creation modal
 
 #### **Understanding Session Colors**
 - **Blue Sessions** (#3B82F6): Mathematics subjects

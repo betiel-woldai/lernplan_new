@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { CalendarSession } from '../types/calendar';
-
-// Default user ID until authentication is implemented
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+import { getActiveUserId } from '@/utils/user';
 
 export interface UseCalendarSessionsReturn {
   sessions: CalendarSession[];
@@ -19,6 +17,7 @@ export interface UseCalendarSessionsReturn {
 }
 
 export const useCalendarSessions = (): UseCalendarSessionsReturn => {
+  const userId = getActiveUserId();
   const [sessions, setSessions] = useState<CalendarSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +28,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/calendar?userId=${DEFAULT_USER_ID}&year=${year}&month=${month}`);
+      const response = await fetch(`/api/calendar?userId=${userId}&year=${year}&month=${month}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch calendar sessions: ${response.statusText}`);
@@ -53,7 +52,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Fetch sessions for a date range
   const fetchSessionsForDateRange = useCallback(async (startDate: Date, endDate: Date) => {
@@ -64,7 +63,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
 
-      const response = await fetch(`/api/calendar?userId=${DEFAULT_USER_ID}&startDate=${startDateStr}&endDate=${endDateStr}`);
+      const response = await fetch(`/api/calendar?userId=${userId}&startDate=${startDateStr}&endDate=${endDateStr}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch calendar sessions: ${response.statusText}`);
@@ -88,7 +87,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Get sessions for a specific date (from loaded sessions)
   const getSessionsForDate = useCallback((date: Date): CalendarSession[] => {
@@ -107,7 +106,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       setError(null);
 
       const requestBody = {
-        userId: DEFAULT_USER_ID,
+        userId,
         subjectId: sessionData.subjectId,
         title: sessionData.title,
         startTime: sessionData.startTime.toISOString(),
@@ -147,7 +146,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Refresh current sessions
   const refreshSessions = useCallback(async () => {
@@ -166,7 +165,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       const syncResponse = await fetch('/api/calendar/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: DEFAULT_USER_ID })
+        body: JSON.stringify({ userId })
       });
       
       if (!syncResponse.ok) {
@@ -182,7 +181,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     } finally {
       setLoading(false);
     }
-  }, [refreshSessions]);
+  }, [refreshSessions, userId]);
 
   // Update a calendar session
   const updateSession = useCallback(async (sessionId: string, updates: Partial<CalendarSession>): Promise<boolean> => {
@@ -286,7 +285,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: DEFAULT_USER_ID }),
+        body: JSON.stringify({ userId }),
       });
 
       if (!response.ok) {
@@ -309,7 +308,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       console.error('Delete calendar session error:', err);
       return false;
     }
-  }, []);
+  }, [userId]);
 
   // Listen for external session updates (e.g., from SessionEditModal)
   useEffect(() => {

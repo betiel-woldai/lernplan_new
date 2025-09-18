@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
+import { getActiveUserId } from '@/utils/user';
 
 // Session update validation schema
 const updateSessionSchema = z.object({
@@ -15,7 +16,7 @@ type UpdateSessionData = z.infer<typeof updateSessionSchema>;
 async function getLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query;
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {
@@ -78,7 +79,7 @@ async function getLearningSession(req: NextApiRequest, res: NextApiResponse) {
 async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query;
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {
@@ -253,7 +254,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
 async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query;
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {

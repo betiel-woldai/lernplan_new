@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { z } from 'zod';
 import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
+import { getActiveUserId } from '@/utils/user';
 
 // Validation schema for creating/updating subjects
 const subjectSchema = z.object({
@@ -36,7 +37,7 @@ async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
   const { userId } = req.query;
 
   // For now, use a default user ID until authentication is implemented
-  const userIdToUse = userId as string || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+  const userIdToUse = (userId as string) || getActiveUserId();
 
   const result = await query(`
     SELECT 
@@ -81,7 +82,7 @@ async function createSubject(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const data = validation.data;
-  const userId = req.body.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557'; // Use provided userId or default
+  const userId = req.body.userId || getActiveUserId(); // Use provided userId or configured default
 
   const result = await query(`
     INSERT INTO subjects (

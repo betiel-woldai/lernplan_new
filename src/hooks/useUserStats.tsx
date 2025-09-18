@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { UserStats } from '../types';
-
-// Default user ID until authentication is implemented
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+import { getActiveUserId } from '@/utils/user';
 
 export interface UseUserStatsReturn {
   userStats: UserStats | null;
@@ -13,6 +11,7 @@ export interface UseUserStatsReturn {
 }
 
 export const useUserStats = (): UseUserStatsReturn => {
+  const userId = getActiveUserId();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +22,8 @@ export const useUserStats = (): UseUserStatsReturn => {
       setLoading(true);
       setError(null);
       
-      console.log('🐛 useUserStats: Fetching user stats for ID:', DEFAULT_USER_ID);
-      const response = await fetch(`/api/users/${DEFAULT_USER_ID}`);
+      console.log('🐛 useUserStats: Fetching user stats for ID:', userId);
+      const response = await fetch(`/api/users/${userId}`);
       
       console.log('🐛 useUserStats: Response status:', response.status, response.statusText);
       
@@ -57,7 +56,7 @@ export const useUserStats = (): UseUserStatsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Add XP through API
   const addXP = useCallback(async (amount: number, reason: string) => {
@@ -70,7 +69,7 @@ export const useUserStats = (): UseUserStatsReturn => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: DEFAULT_USER_ID,
+          userId,
           xpGain: amount,
           reason,
           metadata: {
@@ -108,7 +107,7 @@ export const useUserStats = (): UseUserStatsReturn => {
       setError(errorMessage);
       throw err;
     }
-  }, [userStats, fetchUserStats]);
+  }, [userStats, fetchUserStats, userId]);
 
   // Refresh stats from API
   const refreshStats = useCallback(async () => {

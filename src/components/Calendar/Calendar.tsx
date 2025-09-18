@@ -102,6 +102,32 @@ export default function Calendar({
     };
   }, [syncFromSubjects, viewState.currentDate, fetchSessionsForMonth]);
 
+  useEffect(() => {
+    const handleExternalEditRequest = (event: Event) => {
+      const { detail } = event as CustomEvent<{ sessionId?: string }>;
+      const sessionId = detail?.sessionId;
+      if (!sessionId) {
+        return;
+      }
+
+      const sessionToEdit = sessions.find(s => s.id === sessionId);
+      if (!sessionToEdit) {
+        console.warn('Calendar: requested edit for unknown session', sessionId);
+        return;
+      }
+
+      setEditModalState({
+        isOpen: true,
+        session: sessionToEdit,
+      });
+    };
+
+    window.addEventListener('calendarSessionEditRequested', handleExternalEditRequest as EventListener);
+    return () => {
+      window.removeEventListener('calendarSessionEditRequested', handleExternalEditRequest as EventListener);
+    };
+  }, [sessions]);
+
   const handleViewChange = useCallback((view: CalendarView) => {
     setViewState(prev => ({ ...prev, currentView: view }));
   }, []);
@@ -173,7 +199,7 @@ export default function Calendar({
       if (!confirmed) return;
 
       // Check session source to determine which delete function to use
-      const sessionSource = (session as any).source || 'calendar';
+      const sessionSource = session.source ?? 'calendar';
 
       let success = false;
       if (sessionSource === 'learning') {
@@ -183,6 +209,16 @@ export default function Calendar({
       }
 
       if (success) {
+        if (sessionSource === 'learning') {
+          window.dispatchEvent(new CustomEvent('sessionDeleted', {
+            detail: {
+              sessionId: session.id,
+              source: sessionSource,
+              timestamp: Date.now(),
+            }
+          }));
+        }
+
         console.log('Session deleted successfully:', session.id, 'source:', sessionSource);
         // Refresh sessions after deletion
         const currentYear = viewState.currentDate.getFullYear();
@@ -203,7 +239,7 @@ export default function Calendar({
         return false;
       }
 
-      const sessionSource = (session as any).source || 'calendar';
+      const sessionSource = session.source ?? 'calendar';
 
       let success = false;
       if (sessionSource === 'learning') {
@@ -213,6 +249,16 @@ export default function Calendar({
       }
 
       if (success) {
+        if (sessionSource === 'learning') {
+          window.dispatchEvent(new CustomEvent('sessionDeleted', {
+            detail: {
+              sessionId,
+              source: sessionSource,
+              timestamp: Date.now(),
+            }
+          }));
+        }
+
         console.log('Session deleted successfully from edit modal:', sessionId, 'source:', sessionSource);
         // Refresh sessions after deletion
         const currentYear = viewState.currentDate.getFullYear();

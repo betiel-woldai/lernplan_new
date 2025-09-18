@@ -37,29 +37,94 @@ function getDatabaseConfig(): DatabaseConfig {
 
 // Main database pool for user data
 let pool: Pool | null = null;
+let hasRegisteredProcessListeners = false;
+
+interface PoolMetrics {
+  totalQueries: number;
+  slowQueries: number;
+  errorCount: number;
+  lastError?: string;
+  lastErrorAt?: Date | null;
+  lastSlowQuery?: {
+    text: string;
+    duration: number;
+    at: Date;
+  } | null;
+}
+
+const poolMetrics: PoolMetrics = {
+  totalQueries: 0,
+  slowQueries: 0,
+  errorCount: 0,
+  lastError: undefined,
+  lastErrorAt: null,
+  lastSlowQuery: null,
+};
+
+let isResettingPool = false;
+
+async function resetPool(): Promise<void> {
+  if (!pool) return;
+
+  try {
+    await pool.end();
+  } catch (error) {
+    console.error('Failed to close database pool during reset', error);
+  } finally {
+    pool = null;
+    isResettingPool = false;
+  }
+
+  // Recreate the pool so subsequent queries can continue without manual intervention.
+  try {
+    getPool();
+  } catch (error) {
+    console.error('Failed to reinitialise database pool', error);
+  }
+}
+
+function schedulePoolReset() {
+  if (isResettingPool) {
+    return;
+  }
+
+  isResettingPool = true;
+  setTimeout(() => {
+    resetPool().catch(error => {
+      console.error('Database pool reset failed', error);
+      isResettingPool = false;
+    });
+  }, 100);
+}
 
 export function getPool(): Pool {
   if (!pool) {
     const config = getDatabaseConfig();
     pool = new Pool(config);
 
+    if (!hasRegisteredProcessListeners) {
+      process.on('SIGINT', async () => {
+        console.log('Closing database pool...');
+        await pool?.end();
+        process.exit(0);
+      });
+
+      process.on('SIGTERM', async () => {
+        console.log('Closing database pool...');
+        await pool?.end();
+        process.exit(0);
+      });
+
+      hasRegisteredProcessListeners = true;
+    }
+
     // Handle pool errors
     pool.on('error', (err, client) => {
       console.error('Unexpected error on idle client', err);
-      process.exit(-1);
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('Closing database pool...');
-      await pool?.end();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      console.log('Closing database pool...');
-      await pool?.end();
-      process.exit(0);
+      poolMetrics.errorCount += 1;
+      poolMetrics.lastError = err.message;
+      poolMetrics.lastErrorAt = new Date();
+      schedulePoolReset();
     });
   }
 
@@ -77,15 +142,21 @@ export async function query<T extends QueryResultRow = any>(
     const start = Date.now();
     const result = await client.query<T>(text, params);
     const duration = Date.now() - start;
+    poolMetrics.totalQueries += 1;
     
     // Log slow queries in development
     if (process.env.NODE_ENV === 'development' && duration > 1000) {
       console.log('Slow query detected:', { text, duration });
+      poolMetrics.slowQueries += 1;
+      poolMetrics.lastSlowQuery = { text, duration, at: new Date() };
     }
     
     return result;
   } catch (error) {
     console.error('Database query error:', error);
+    poolMetrics.errorCount += 1;
+    poolMetrics.lastError = error instanceof Error ? error.message : 'Unknown error';
+    poolMetrics.lastErrorAt = new Date();
     throw error;
   }
 }
@@ -127,6 +198,7 @@ export async function healthCheck(): Promise<{
         totalCount: poolInstance.totalCount,
         idleCount: poolInstance.idleCount,
         waitingCount: poolInstance.waitingCount,
+        metrics: getPoolHealth(),
       }
     };
   } catch (error) {
@@ -144,4 +216,27 @@ export async function closeDatabase(): Promise<void> {
     await pool.end();
     pool = null;
   }
+}
+
+export function getPoolHealth() {
+  const instance = pool;
+
+  return {
+    ...poolMetrics,
+    poolSize: instance
+      ? {
+          totalCount: instance.totalCount,
+          idleCount: instance.idleCount,
+          waitingCount: instance.waitingCount,
+        }
+      : {
+          totalCount: 0,
+          idleCount: 0,
+          waitingCount: 0,
+        },
+  };
+}
+
+export async function restartDatabasePool(): Promise<void> {
+  await resetPool();
 }

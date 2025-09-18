@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { getActiveUserId } from '@/utils/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -14,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Date parameter is required (YYYY-MM-DD format)' });
     }
 
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
 
     // Get sessions for the specific date from calendar sessions
     const dateStatsResult = await query(`

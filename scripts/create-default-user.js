@@ -10,7 +10,11 @@ const pool = new Pool({
 });
 
 async function createDefaultUser() {
-  const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+  const defaultUserId = process.env.DEFAULT_USER_ID || process.env.NEXT_PUBLIC_DEFAULT_USER_ID;
+
+  if (!defaultUserId) {
+    throw new Error('DEFAULT_USER_ID or NEXT_PUBLIC_DEFAULT_USER_ID must be set before running create-default-user.');
+  }
 
   try {
     // Check if user already exists

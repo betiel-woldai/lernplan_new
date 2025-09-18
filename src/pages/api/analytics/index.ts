@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { z } from 'zod';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, parseISO, subDays, eachDayOfInterval } from 'date-fns';
+import { getActiveUserId } from '@/utils/user';
 
 // Analytics query validation schema
 const analyticsQuerySchema = z.object({
@@ -249,7 +250,7 @@ async function getGoalsAnalytics(userId: string): Promise<GoalData[]> {
 async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
   try {
     const params = analyticsQuerySchema.parse(req.query);
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const userId = params.userId || defaultUserId;
 
     let analyticsData: any = {};

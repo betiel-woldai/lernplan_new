@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, MapPin, FileText } from 'lucide-react';
 import { useSubjects } from '../../hooks/useSubjects';
 import { CalendarSession } from '../../types/calendar';
+import { getActiveUserId } from '@/utils/user';
 
 interface CreateSessionModalProps {
   isOpen: boolean;
@@ -11,8 +12,6 @@ interface CreateSessionModalProps {
   preselectedSubjectId?: string;
 }
 
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
-
 export default function CreateSessionModal({ 
   isOpen, 
   onClose, 
@@ -20,6 +19,7 @@ export default function CreateSessionModal({
   onSessionCreated,
   preselectedSubjectId 
 }: CreateSessionModalProps) {
+  const activeUserId = getActiveUserId();
   const { subjects } = useSubjects();
   
   const [formData, setFormData] = useState({
@@ -127,7 +127,7 @@ export default function CreateSessionModal({
       endDateTime.setHours(endHour, endMinute, 0, 0);
 
       const sessionData = {
-        userId: DEFAULT_USER_ID,
+        userId: activeUserId,
         subjectId: formData.subjectId,
         title: formData.title,
         startTime: startDateTime.toISOString(),

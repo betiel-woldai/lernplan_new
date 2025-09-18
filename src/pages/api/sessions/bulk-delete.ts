@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { getActiveUserId } from '@/utils/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {
@@ -8,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
 
     // Get count of sessions to be deleted for response
     const countResult = await query(

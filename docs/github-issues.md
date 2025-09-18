@@ -2,17 +2,16 @@
 
 > 📁 **Hinweis:** Diese Datei befindet sich jetzt in `docs/github-issues.md` für bessere Organisation.
 
-## Issue #1: 🎨 Dashboard UI Components with Mock Data
+## Issue #1: 🎨 Dashboard UI Components with Live Data
 **Labels:** `frontend`, `ui`, `priority-high`, `good-first-issue`
 
 ### Description
-Create the main dashboard layout with statistics cards using mock data for immediate visual feedback. This provides the foundation for the entire application UI.
+Create the main dashboard layout with statistics cards sourced from `/api/users/:id`, `/api/session-stats`, and `/api/date-specific-stats`. This provides the foundation for the entire application UI while reflecting real progress data.
 
 ### Acceptance Criteria
 - [ ] Create responsive dashboard layout using shadcn-ui components
 - [ ] Implement 4 statistics cards: Daily Learning Time, Completed Tasks, Learning Streak, Level Progress
 - [ ] Use Tailwind CSS with glassmorphism design
-- [ ] Add mock data for realistic preview
 - [ ] Implement responsive design for mobile/tablet/desktop
 - [ ] Add Framer Motion animations for card interactions
 
@@ -24,7 +23,7 @@ Create the main dashboard layout with statistics cards using mock data for immed
 
 ### Definition of Done
 - Dashboard renders correctly on all screen sizes
-- All statistics cards display mock data
+- All statistics cards display database-backed metrics
 - Hover animations work smoothly
 - Component is documented in Storybook
 
@@ -34,7 +33,7 @@ Create the main dashboard layout with statistics cards using mock data for immed
 **Labels:** `frontend`, `gamification`, `priority-high`, `enhancement`
 
 ### Description
-Build the visual gamification system including XP bars, level displays, achievement badges, and streak counters. This should work with mock data initially for immediate visual impact.
+Build the visual gamification system including XP bars, level displays, achievement badges, and streak counters. All interactions must go through `/api/gamification/xp` and the underlying `gamification_events` table so UI feedback reflects actual rewards.
 
 ### Acceptance Criteria
 - [ ] Create XP progress bar component with animations
@@ -49,17 +48,6 @@ Build the visual gamification system including XP bars, level displays, achievem
 - Create reusable components for different XP displays
 - Implement confetti effect for level-ups using canvas-confetti
 - Use React Icons for achievements
-
-### Mock Data Structure
-```typescript
-const mockUserStats = {
-  currentXP: 1250,
-  currentLevel: 8,
-  nextLevelXP: 1600,
-  streak: 12,
-  achievements: ["First Steps", "Week Warrior", "Study Master"]
-}
-```
 
 ### Definition of Done
 - All gamification elements render with animations
@@ -132,8 +120,7 @@ Implement the main calendar view with monthly/weekly layouts, color-coded subjec
 - Integrate with subject color system via CSS custom properties
 - Implement proper TypeScript types for calendar events
 
-### Definition of Done
-- Calendar displays mock sessions correctly
+- Calendar displays seeded and user-created sessions correctly
 - All views (month/week/day) work smoothly
 - Sessions are properly color-coded
 - Calendar is fully responsive

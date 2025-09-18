@@ -1,6 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
+import { getActiveUserId } from '@/utils/user';
+
+interface DbLearningSessionRow {
+  id: string;
+  subject_id: string;
+  user_id: string;
+  date: string;
+  duration: number;
+  planned_duration: number | null;
+  session_extended: boolean;
+  completed: boolean;
+  points: number;
+  notes: string | null;
+  manual_adjustment_reason: string | null;
+  time_adjustments_log: unknown;
+  created_at: Date;
+  subject_name: string;
+  subject_color: string;
+}
+
+interface CountRow {
+  total: string;
+}
 
 // Learning Session validation schema
 const createSessionSchema = z.object({
@@ -27,11 +50,11 @@ type QuerySessionsParams = z.infer<typeof querySessionsSchema>;
 async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
   try {
     const params = querySessionsSchema.parse(req.query);
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const userId = params.userId || defaultUserId;
 
     let whereConditions = ['ls.user_id = $1'];
-    let queryParams: any[] = [userId];
+    let queryParams: Array<string | number> = [userId];
     let paramIndex = 2;
 
     if (params.subjectId) {
@@ -54,6 +77,8 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
 
     queryParams.push(params.limit, params.offset);
 
+    const filters = whereConditions.join(' AND ');
+
     const sessionsQuery = `
       SELECT
         ls.id,
@@ -73,7 +98,7 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
         s.color as subject_color
       FROM learning_sessions ls
       JOIN subjects s ON ls.subject_id = s.id
-      WHERE ${whereConditions.join(' AND ')}
+      WHERE ${filters}
       ORDER BY ls.date DESC, ls.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
@@ -82,12 +107,14 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
       SELECT COUNT(*) as total
       FROM learning_sessions ls
       JOIN subjects s ON ls.subject_id = s.id
-      WHERE ${whereConditions.slice(0, -2).join(' AND ') || 'ls.user_id = $1'}
+      WHERE ${filters}
     `;
 
+    const countParams = queryParams.slice(0, queryParams.length - 2);
+
     const [sessionsResult, countResult] = await Promise.all([
-      query(sessionsQuery, queryParams),
-      query(countQuery, queryParams.slice(0, -2))
+      query<DbLearningSessionRow>(sessionsQuery, queryParams),
+      query<CountRow>(countQuery, countParams)
     ]);
 
     const sessions = sessionsResult.rows.map(row => ({
@@ -109,7 +136,7 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
       }
     }));
 
-    const total = parseInt(countResult.rows[0].total);
+    const total = parseInt(countResult.rows[0]?.total ?? '0', 10);
 
     return res.status(200).json({
       sessions,
@@ -138,7 +165,7 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
 
 async function createLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const defaultUserId = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const defaultUserId = getActiveUserId();
     const sessionData: CreateSessionData = {
       ...createSessionSchema.parse(req.body),
       userId: req.body.userId || defaultUserId

@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Subject } from '../types';
 import { SubjectFormData } from '../schemas/subjectSchema';
-
-// Default user ID until authentication is implemented
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+import { getActiveUserId } from '@/utils/user';
 
 export interface UseSubjectsReturn {
   subjects: Subject[];
@@ -20,6 +18,7 @@ export interface UseSubjectsReturn {
 }
 
 export const useSubjects = (): UseSubjectsReturn => {
+  const userId = getActiveUserId();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +30,7 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/subjects?userId=${DEFAULT_USER_ID}`);
+      const response = await fetch(`/api/subjects?userId=${userId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch subjects: ${response.statusText}`);
@@ -76,7 +75,7 @@ export const useSubjects = (): UseSubjectsReturn => {
 
       const requestBody = {
         ...data,
-        userId: DEFAULT_USER_ID,
+        userId,
         startDate: data.startDate,
         examDate: data.examDate,
         targetHours: calculateTargetHours(data)
@@ -117,7 +116,7 @@ export const useSubjects = (): UseSubjectsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Update existing subject
   const updateSubject = useCallback(async (id: string, data: SubjectFormData) => {
@@ -169,7 +168,7 @@ export const useSubjects = (): UseSubjectsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Delete subject
   const deleteSubject = useCallback(async (id: string) => {

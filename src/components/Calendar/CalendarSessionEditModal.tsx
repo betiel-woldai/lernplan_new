@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CalendarSession } from '../../types/calendar';
 import { useSubjects } from '../../hooks/useSubjects';
 import { X, Calendar, Clock, FileText, CheckCircle, AlertCircle, Save, MapPin, Trash2 } from 'lucide-react';
+import { getActiveUserId } from '@/utils/user';
 
 interface CalendarSessionEditModalProps {
   isOpen: boolean;
@@ -11,8 +12,6 @@ interface CalendarSessionEditModalProps {
   onDelete?: (sessionId: string) => Promise<boolean>;
 }
 
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
-
 export default function CalendarSessionEditModal({ 
   isOpen, 
   onClose, 
@@ -20,6 +19,7 @@ export default function CalendarSessionEditModal({
   onSave,
   onDelete 
 }: CalendarSessionEditModalProps) {
+  const activeUserId = getActiveUserId();
   const { subjects } = useSubjects();
   
   const [formData, setFormData] = useState({
@@ -139,7 +139,7 @@ export default function CalendarSessionEditModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: DEFAULT_USER_ID,
+          userId: activeUserId,
           ...updates,
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),

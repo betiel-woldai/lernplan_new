@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { z } from 'zod';
+import { getActiveUserId } from '@/utils/user';
 
 const calendarSessionSchema = z.object({
   subjectId: z.string().uuid(),
@@ -34,8 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
   const { userId, startDate, endDate, month, year } = req.query;
 
-  // Use default user until authentication is implemented
-  const userIdToUse = userId as string || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+  // Use configured user id until authentication is implemented
+  const userIdToUse = (userId as string) || getActiveUserId();
 
   let calendarDateFilter = '';
   let learningDateFilter = '';
@@ -130,7 +131,7 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
   }
 
   const data = validation.data;
-  const userId = req.body.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+  const userId = req.body.userId || getActiveUserId();
 
   // Validate that start time is before end time
   if (data.startTime >= data.endTime) {
@@ -203,7 +204,7 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
 
 async function deleteCalendarSession(req: NextApiRequest, res: NextApiResponse) {
   const { sessionId } = req.query;
-  const userId = req.body?.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+  const userId = req.body?.userId || getActiveUserId();
 
   if (!sessionId || typeof sessionId !== 'string') {
     return res.status(400).json({ error: 'Session ID is required' });

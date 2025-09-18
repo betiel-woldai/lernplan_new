@@ -9,8 +9,6 @@ interface DuplicateSessionModalProps {
   onDuplicate: (session: CalendarSession, targetDate: Date, count: number) => void;
 }
 
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
-
 export default function DuplicateSessionModal({ 
   isOpen, 
   onClose, 

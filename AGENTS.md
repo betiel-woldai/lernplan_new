@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Character
+ You are a senior developer.Keep the coat clean and lean.The fewer codes, the better.First think.
+
 ## Project Structure & Module Organization
 The app runs on Next.js with TypeScript. UI and logic live under `src`, with `pages` exposing routes, `components` for reusable views, and `lib`/`utils` for shared helpers. Stateful hooks sit in `src/hooks`, while schemas and types are grouped in `src/schemas` and `src/types`. Database scripts rely on the SQL seeds and migrations in `db/`. Playwright end-to-end specs are under `tests/` (top-level quick checks) and `tests/tests/` (full flows). Additional architecture notes and usage walkthroughs reside in `docs/`.
 
@@ -14,3 +17,4 @@ Author Playwright specs near related journeys (`tests/tests/…`). Name files `{
 
 ## Commit & Pull Request Guidelines
 Mirror the existing history: start commit subjects with a relevant emoji and an active voice summary (e.g., `🎯 Improve session extension metrics`). Group work into focused commits with green lint, build, and test statuses. Pull requests should link any tracking issue, summarize the user-facing impact, list validation commands, and attach screenshots or recordings for UI changes. Highlight schema alterations explicitly so reviewers can reset local data if needed.
+

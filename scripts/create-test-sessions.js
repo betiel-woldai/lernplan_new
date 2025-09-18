@@ -8,7 +8,11 @@ const pool = new Pool({
   port: 5432,
 });
 
-const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
+const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || process.env.NEXT_PUBLIC_DEFAULT_USER_ID;
+
+if (!DEFAULT_USER_ID) {
+  throw new Error('DEFAULT_USER_ID or NEXT_PUBLIC_DEFAULT_USER_ID must be set before running create-test-sessions.');
+}
 
 async function createTestSessions() {
   try {

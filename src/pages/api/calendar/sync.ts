@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
+import { getActiveUserId } from '@/utils/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -9,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const userId = req.body.userId || '62d1b19b-3874-43b1-9424-ca7c2de10557';
+    const userId = req.body.userId || getActiveUserId();
 
     // Step 1: Clean all existing calendar sessions
     await query('DELETE FROM calendar_sessions WHERE user_id = $1', [userId]);

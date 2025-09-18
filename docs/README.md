@@ -215,8 +215,8 @@ export const getLevel = (totalXP: number): number => {
 
 ### Frontend-First Approach
 1. **UI Components**: Build and test components in isolation
-2. **Mock Data**: Develop with realistic mock data
-3. **API Integration**: Connect to backend endpoints
+2. **API Contracts**: Define request/response payloads before wiring the UI
+3. **Database Integration**: Seed realistic fixtures via `npm run db:setup` and iterate against PostgreSQL
 4. **Real-time Features**: Implement live updates and notifications
 
 ### Branch Strategy

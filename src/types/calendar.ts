@@ -15,6 +15,7 @@ export interface CalendarSession {
   description?: string;
   type: 'study' | 'exam' | 'break' | 'assignment';
   location?: string;
+  source?: 'calendar' | 'learning';
 }
 
 export interface CalendarDay {
