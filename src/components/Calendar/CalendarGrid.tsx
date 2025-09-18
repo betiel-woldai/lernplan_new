@@ -208,11 +208,17 @@ export default function CalendarGrid({
   const handleSessionDoubleClick = (session: CalendarSession, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    setInlineEdit({
-      sessionId: session.id,
-      newTitle: session.title,
-    });
+
+    // Open edit modal instead of inline editing
+    if (onSessionEdit) {
+      onSessionEdit(session);
+    } else {
+      // Fallback to inline editing if no edit handler
+      setInlineEdit({
+        sessionId: session.id,
+        newTitle: session.title,
+      });
+    }
   };
 
   const handleInlineEditSubmit = async (session: CalendarSession) => {
