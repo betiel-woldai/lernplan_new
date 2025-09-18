@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaClock, FaCheckCircle, FaFire } from 'react-icons/fa';
+import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
+import { getActiveUserId } from '@/utils/user';
 
 interface DirectCalendarStatsProps {
   selectedDate?: Date;
@@ -26,16 +28,19 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
     setLoading(true);
 
     try {
+      const userId = getActiveUserId();
       // Fetch calendar sessions directly
-      const calendarResponse = await fetch('/api/calendar?userId=62d1b19b-3874-43b1-9424-ca7c2de10557');
+      const calendarResponse = await fetch(`/api/calendar?userId=${userId}`);
       const sessions = await calendarResponse.json();
 
       console.log('📅 DirectCalendarStats: Found', sessions.length, 'total sessions');
 
       // Filter for selected date
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toBerlinDateString(date);
       const todaySessions = sessions.filter(session => {
-        const sessionDate = new Date(session.startTime).toISOString().split('T')[0];
+        const sessionDate = new Date(session.startTime).toLocaleDateString('en-CA', {
+          timeZone: 'Europe/Berlin',
+        });
         return sessionDate === dateStr;
       });
 
@@ -54,8 +59,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       // Calculate streak (simplified - just check if today has completed sessions)
       const streakDays = completedSessions > 0 ? 1 : 0;
 
-      const today = new Date();
-      const isToday = dateStr === today.toISOString().split('T')[0];
+      const isToday = dateStr === getBerlinDateString();
 
       const newStats = {
         completedSessions,
@@ -102,7 +106,13 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
     };
   }, [selectedDate]);
 
-  const dateLabel = stats.isToday ? 'Heute' : selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+  const dateLabel = stats.isToday
+    ? 'Heute'
+    : selectedDate.toLocaleDateString('de-DE', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'Europe/Berlin',
+      });
 
 
   return (

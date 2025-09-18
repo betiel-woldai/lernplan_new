@@ -39,6 +39,13 @@ export function toBerlinTime(date: Date): Date {
 }
 
 /**
+ * Format the provided date as YYYY-MM-DD in Berlin timezone.
+ */
+export function toBerlinDateString(date: Date): string {
+  return date.toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' });
+}
+
+/**
  * Format date for Berlin timezone display
  */
 export function formatBerlinDate(date: Date, options?: Intl.DateTimeFormatOptions): string {

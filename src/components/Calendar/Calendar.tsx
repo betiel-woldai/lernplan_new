@@ -10,6 +10,8 @@ import DuplicateSessionModal from './DuplicateSessionModal';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
 import useCalendarSessions from '../../hooks/useCalendarSessions';
 import { useLearningSessions } from '../../hooks/useLearningSessions';
+import { getActiveUserId } from '@/utils/user';
+import { getBerlinTimestamp } from '@/utils/timezone';
 
 interface CalendarProps {
   onSessionClick?: (session: CalendarSession) => void;
@@ -27,6 +29,7 @@ export default function Calendar({
   subjects
 }: CalendarProps) {
   
+  const activeUserId = getActiveUserId();
   const [viewState, setViewState] = useState<CalendarViewState>({
     currentView: 'month',
     currentDate: new Date(),
@@ -231,8 +234,6 @@ export default function Calendar({
   }, []);
 
   const handleSessionDuplicated = useCallback(async (session: CalendarSession, targetDate: Date, count: number) => {
-    const DEFAULT_USER_ID = '62d1b19b-3874-43b1-9424-ca7c2de10557';
-    
     try {
       for (let i = 0; i < count; i++) {
         const duplicateDate = new Date(targetDate);
@@ -251,7 +252,7 @@ export default function Calendar({
         newEndTime.setHours(originalEnd.getHours(), originalEnd.getMinutes(), 0, 0);
 
         const duplicateData = {
-          userId: DEFAULT_USER_ID,
+          userId: activeUserId,
           subjectId: session.subjectId,
           title: `${session.title} (Kopie)`,
           startTime: newStartTime.toISOString(),
@@ -292,7 +293,7 @@ export default function Calendar({
       console.error('Failed to duplicate session:', error);
       throw error;
     }
-  }, [viewState.currentDate, fetchSessionsForMonth]);
+  }, [viewState.currentDate, fetchSessionsForMonth, activeUserId]);
 
   const navigateMonth = useCallback((direction: 'prev' | 'next') => {
     setViewState(prev => {
@@ -307,11 +308,11 @@ export default function Calendar({
   }, []);
 
   const goToToday = useCallback(() => {
-    const today = new Date();
-    setViewState(prev => ({ 
-      ...prev, 
+    const today = getBerlinTimestamp();
+    setViewState(prev => ({
+      ...prev,
       currentDate: today,
-      selectedDate: today
+      selectedDate: today,
     }));
   }, []);
 

@@ -3,6 +3,7 @@ import { CalendarDay, CalendarSession } from '../../types/calendar';
 import { FaCheck, FaClock, FaEdit } from 'react-icons/fa';
 import SessionContextMenu from '../ContextMenu/SessionContextMenu';
 import { ContextMenuPosition } from '../ContextMenu/ContextMenu';
+import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
 
 interface CalendarGridProps {
   month: number;
@@ -374,17 +375,19 @@ export default function CalendarGrid({
     
     const days: CalendarDay[] = [];
     const currentDate = new Date(startDate);
-    const today = new Date();
+    const todayBerlinString = getBerlinDateString();
     
     while (currentDate <= endDate) {
       const sessions = getSessionsForDate(currentDate);
+      const currentDateString = toBerlinDateString(currentDate);
+      const selectedDateString = selectedDate ? toBerlinDateString(selectedDate) : null;
       
       days.push({
         date: new Date(currentDate),
         sessions,
         isCurrentMonth: currentDate.getMonth() === month,
-        isToday: currentDate.toDateString() === today.toDateString(),
-        isSelected: selectedDate ? currentDate.toDateString() === selectedDate.toDateString() : false
+        isToday: currentDateString === todayBerlinString,
+        isSelected: selectedDateString ? currentDateString === selectedDateString : false
       });
       
       currentDate.setDate(currentDate.getDate() + 1);
