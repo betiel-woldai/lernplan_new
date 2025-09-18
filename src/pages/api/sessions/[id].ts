@@ -284,9 +284,10 @@ async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) 
       `, [id, userId]);
 
       // Adjust subject completed hours (ensure proper decimal conversion)
-      const hoursToDeduct = Math.round((session.duration / 60) * 100) / 100; // Round to 2 decimal places
+      const sessionDuration = session.duration || session.actual_duration || 0;
+      const hoursToDeduct = Math.round((sessionDuration / 60) * 100) / 100; // Round to 2 decimal places
       await client.query(`
-        UPDATE subjects 
+        UPDATE subjects
         SET completed_hours = completed_hours - $1
         WHERE id = $2
       `, [hoursToDeduct, session.subject_id]);
@@ -300,12 +301,14 @@ async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) 
         `, [userId]);
 
         const currentUser = currentUserResult.rows[0];
-        const hoursToDeduct = Math.round(session.duration / 60);
+        const sessionDuration = session.duration || session.actual_duration || 0;
+        const sessionPoints = session.points || 0;
+        const hoursToDeduct = Math.round(sessionDuration / 60);
 
         // Calculate safe values that won't go negative
-        const newXp = Math.max(0, currentUser.current_xp - session.points);
-        const newDailyTime = Math.max(0, currentUser.daily_learning_time - session.duration);
-        const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time - session.duration);
+        const newXp = Math.max(0, currentUser.current_xp - sessionPoints);
+        const newDailyTime = Math.max(0, currentUser.daily_learning_time - sessionDuration);
+        const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time - sessionDuration);
         const newTotalHours = Math.max(0, currentUser.total_hours - hoursToDeduct);
         const newCompletedTasks = Math.max(0, currentUser.completed_tasks - 1);
         const newTotalCompletedTasks = Math.max(0, currentUser.total_completed_tasks - 1);
@@ -330,7 +333,7 @@ async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) 
           JSON.stringify({
             sessionId: id,
             subjectId: session.subject_id,
-            duration: session.duration,
+            duration: sessionDuration,
             action: 'delete'
           }),
           0 // No XP awarded for deletion

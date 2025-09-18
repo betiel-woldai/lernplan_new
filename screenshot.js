@@ -1,27 +1,42 @@
+// Simple screenshot script to capture the current state of the application
 const { chromium } = require('playwright');
 
-(async () => {
+async function takeScreenshot() {
   const browser = await chromium.launch();
-  const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 }
-  });
-  const page = await context.newPage();
+  const page = await browser.newPage();
 
   try {
-    console.log('📷 Taking screenshot of the Learning Tracker...');
-    await page.goto('http://localhost:3002', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(2000); // Wait for any animations
+    console.log('📸 Taking screenshot of application at http://localhost:3003');
 
-    const screenshotPath = '/tmp/learning-tracker-frontend.png';
+    await page.goto('http://localhost:3003');
+    await page.waitForLoadState('networkidle');
+
+    // Take screenshot of main page
     await page.screenshot({
-      path: screenshotPath,
-      fullPage: false // Just the viewport
+      path: 'tmp/current-application-state.png',
+      fullPage: true
     });
 
-    console.log(`✅ Screenshot saved to: ${screenshotPath}`);
+    console.log('✅ Screenshot saved: tmp/current-application-state.png');
+
+    // Navigate to subjects page if it exists
+    try {
+      await page.click('a[href="/subjects"]');
+      await page.waitForLoadState('networkidle');
+      await page.screenshot({
+        path: 'tmp/current-subjects-page.png',
+        fullPage: true
+      });
+      console.log('✅ Subjects page screenshot saved: tmp/current-subjects-page.png');
+    } catch (e) {
+      console.log('ℹ️ Subjects page navigation failed, continuing...');
+    }
+
   } catch (error) {
-    console.error('❌ Error taking screenshot:', error.message);
+    console.error('❌ Screenshot failed:', error.message);
   } finally {
     await browser.close();
   }
-})();
+}
+
+takeScreenshot();
