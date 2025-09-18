@@ -43,7 +43,7 @@ export default function Dashboard() {
   const { stats: dateStats, loading: dateStatsLoading } = useDateSpecificStats(selectedDate);
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
   const { subjects, loading: subjectsLoading, refreshSubjects } = useSubjects();
-  const { updateSession } = useLearningSessions();
+  const { updateSession, deleteSession } = useLearningSessions();
   const { updateSession: updateCalendarSession, refreshSessions: refreshCalendarSessions } = useCalendarSessions();
   
   // Session editing state
@@ -262,6 +262,17 @@ export default function Dashboard() {
     return success;
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    const success = await deleteSession(sessionId);
+    if (success) {
+      // Refresh stats after session deletion
+      refreshStats();
+      refreshSubjects();
+      refreshCalendarSessions();
+    }
+    return success;
+  };
+
   const handleDateClick = (date: Date) => {
     console.log('Date clicked:', date.toLocaleDateString('de-DE'));
     setSelectedDate(date); // Update selectedDate when user clicks on a calendar date
@@ -389,6 +400,7 @@ export default function Dashboard() {
         onClose={handleCloseEditModal}
         session={selectedSessionForEdit}
         onSave={handleSaveSessionEdit}
+        onDelete={handleDeleteSession}
       />
     </Layout>
   );

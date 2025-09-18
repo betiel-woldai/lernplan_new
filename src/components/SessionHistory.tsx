@@ -164,6 +164,16 @@ export default function SessionHistory({
     return success;
   };
 
+  const handleDeleteSessionEdit = async (sessionId: string) => {
+    const success = await deleteSession(sessionId);
+    if (success) {
+      // Session will be automatically removed from the list due to the hook's refresh
+      setShowEditModal(false);
+      setSelectedSessionForEdit(null);
+    }
+    return success;
+  };
+
   const totalStats = useMemo(() => {
     const completed = filteredSessions.filter(s => s.completed);
     const totalDuration = completed.reduce((sum, s) => sum + s.duration, 0);
@@ -455,6 +465,7 @@ export default function SessionHistory({
         onClose={handleCloseEditModal}
         session={selectedSessionForEdit}
         onSave={handleSaveSessionEdit}
+        onDelete={handleDeleteSessionEdit}
       />
     </div>
   );
