@@ -162,13 +162,14 @@ async function syncSubjectToCalendar(subject: any) {
   for (const event of calendarEvents) {
     await query(`
       INSERT INTO calendar_sessions (
-        id, subject_id, user_id, title, start_time, end_time, 
-        duration, session_type, completed, description
+        id, subject_id, user_id, title, start_time, end_time,
+        planned_duration, session_type, completed, description
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         start_time = EXCLUDED.start_time,
         end_time = EXCLUDED.end_time,
+        planned_duration = EXCLUDED.planned_duration,
         updated_at = NOW()
     `, [
       event.id,

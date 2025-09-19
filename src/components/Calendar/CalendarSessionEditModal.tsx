@@ -109,6 +109,9 @@ export default function CalendarSessionEditModal({
     
     if (!session || !validateForm()) return;
 
+    // Clear previous errors so a successful retry does not keep old messages visible.
+    setValidationErrors([]);
+
     setSaving(true);
     try {
       // Create new datetime objects
@@ -147,7 +150,16 @@ export default function CalendarSessionEditModal({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update session');
+        let message = 'Fehler beim Speichern der Session';
+        try {
+          const payload = await response.json();
+          if (payload?.error || payload?.message) {
+            message = payload.error || payload.message;
+          }
+        } catch (parseError) {
+          // Ignore parse issues – we fall back to the default message.
+        }
+        throw new Error(message);
       }
 
       // Dispatch real-time event for cross-view synchronization
@@ -165,8 +177,9 @@ export default function CalendarSessionEditModal({
         onClose();
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Fehler beim Speichern der Session';
       console.error('Failed to update session:', error);
-      setValidationErrors(['Fehler beim Speichern der Session']);
+      setValidationErrors([message]);
     } finally {
       setSaving(false);
     }
