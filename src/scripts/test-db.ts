@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 // Database connection test script
+import './env';
 
 import { healthCheck, query } from '../lib/db';
 

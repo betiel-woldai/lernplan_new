@@ -171,7 +171,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         const pointsChange = nowCompleted ? (updateData.points || current.points) : -(updateData.points || current.points);
         const taskChange = nowCompleted ? 1 : -1;
         const timeChange = nowCompleted ? (updateData.duration || current.duration) : -(updateData.duration || current.duration);
-        const hoursChange = Math.round(Math.abs(timeChange) / 60); // Always positive hours for database
+        const userHoursChange = Math.round(Math.abs(timeChange) / 60); // integer hours for users.total_hours
 
         // Get current user values to prevent negative values
         const currentUserResult = await client.query(`
@@ -185,7 +185,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         const newXp = Math.max(0, currentUser.current_xp + pointsChange);
         const newDailyTime = Math.max(0, currentUser.daily_learning_time + timeChange);
         const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time + timeChange);
-        const newTotalHours = Math.max(0, nowCompleted ? currentUser.total_hours + hoursChange : Math.max(0, currentUser.total_hours - hoursChange));
+        const newTotalHours = Math.max(0, nowCompleted ? currentUser.total_hours + userHoursChange : Math.max(0, currentUser.total_hours - userHoursChange));
         const newCompletedTasks = Math.max(0, currentUser.completed_tasks + taskChange);
         const newTotalCompletedTasks = Math.max(0, currentUser.total_completed_tasks + taskChange);
 

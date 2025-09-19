@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 // Database migration script for Lernplaner PostgreSQL setup
+import './env';
 
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';

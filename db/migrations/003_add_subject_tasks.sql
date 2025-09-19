@@ -43,4 +43,5 @@ CREATE TRIGGER update_subject_tasks_updated_at
 CREATE INDEX idx_subject_tasks_subject_id ON subject_tasks(subject_id);
 CREATE INDEX idx_subject_tasks_due_date ON subject_tasks(due_date);
 CREATE INDEX idx_subject_tasks_status ON subject_tasks(status);
-CREATE INDEX idx_subjects_exam_date ON subjects(exam_date) WHERE exam_date IS NOT NULL;
+-- Guard against re-creation; this index already exists from 002
+CREATE INDEX IF NOT EXISTS idx_subjects_exam_date ON subjects(exam_date) WHERE exam_date IS NOT NULL;

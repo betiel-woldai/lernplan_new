@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 // Database seed script for Lernplaner development data
+import './env';
 
 import { query } from '../lib/db';
 
@@ -278,9 +279,19 @@ async function seedLearningSessions(userIds: { [key: string]: string }, subjectI
       ][Math.floor(Math.random() * 6)];
       
       await query(
-        `INSERT INTO learning_sessions (subject_id, user_id, date, duration, completed, points, notes) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [subjectId, userId, sessionDate.toISOString().split('T')[0], duration, completed, points, notes]
+        `INSERT INTO learning_sessions (
+           subject_id, user_id, date, actual_duration, planned_duration, completed, points, notes
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          subjectId,
+          userId,
+          sessionDate.toISOString().split('T')[0],
+          duration,              // actual_duration
+          duration,              // planned_duration (seed parity)
+          completed,
+          points,
+          notes
+        ]
       );
       
       sessionCount++;

@@ -231,16 +231,17 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
 
       // Add XP to user if session is completed
       if (sessionData.completed) {
+        const userHoursToAdd = Math.round(sessionData.duration / 60);
         await client.query(`
           UPDATE users 
           SET current_xp = current_xp + $1,
               daily_learning_time = daily_learning_time + $2,
               weekly_learning_time = weekly_learning_time + $2,
-              total_hours = total_hours + $3::numeric,
+              total_hours = total_hours + $3,
               completed_tasks = completed_tasks + 1,
               total_completed_tasks = total_completed_tasks + 1
           WHERE id = $4
-        `, [totalPoints, sessionData.duration, sessionData.duration / 60, sessionData.userId]);
+        `, [totalPoints, sessionData.duration, userHoursToAdd, sessionData.userId]);
 
         // Record gamification event
         await client.query(`
@@ -265,7 +266,7 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
       subjectId: result.subject_id,
       userId: result.user_id,
       date: result.date,
-      duration: result.duration,
+      duration: result.actual_duration,
       completed: result.completed,
       points: result.points,
       notes: result.notes,
