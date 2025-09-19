@@ -61,6 +61,25 @@ export const useSubjects = (): UseSubjectsReturn => {
     fetchSubjects();
   }, [fetchSubjects]);
 
+  useEffect(() => {
+    const handleExamDateChanged = (event: Event) => {
+      const { detail } = event as CustomEvent<{ subjectId: string; examDate: Date }>;
+      if (!detail?.subjectId || !detail.examDate) return;
+
+      setSubjects(prev => prev.map(subject =>
+        subject.id === detail.subjectId
+          ? {
+              ...subject,
+              examDate: new Date(detail.examDate),
+            }
+          : subject
+      ));
+    };
+
+    window.addEventListener('subjectExamDateChanged', handleExamDateChanged);
+    return () => window.removeEventListener('subjectExamDateChanged', handleExamDateChanged);
+  }, []);
+
   // Filter subjects based on search term
   const filteredSubjects = subjects.filter(subject =>
     subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

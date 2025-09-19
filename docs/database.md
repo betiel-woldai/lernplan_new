@@ -41,6 +41,7 @@ The Lernplaner platform uses a dual database architecture:
 - Scheduled learning sessions with time slots
 - Supports different session types (study, exam, assignment)
 - Integration with calendar views
+- Metadata columns flag auto-generated entries and link them back to the originating subject exam (`is_auto_generated`, `source_subject_exam_id`, `scheduling_priority`)
 
 #### `gamification_events`
 - Activity tracking for XP gains, level-ups, achievements

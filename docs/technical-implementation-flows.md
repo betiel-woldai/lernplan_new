@@ -150,12 +150,18 @@ useEffect(() => {
     refreshStats();
     showXPToast(data.xpGained);
   });
+
+  eventBus.on('subjectExamDateChanged', ({ subjectId, examDate }) => {
+    // Calendar exam moved → mirror within subject overview without refetch
+    patchSubject(subjectId, examDate);
+  });
 }, []);
 ```
 
 **Events**:
 - `sessionCompleted` → Stats Update, XP Toast, Calendar Sync
 - `subjectCreated` → Calendar Generation, UI Refresh
+- `subjectExamDateChanged` → Subject list exam date mirrors calendar edits instantly
 - `levelUp` → Modal anzeigen, Konfetti Animation
 - `achievementUnlocked` → Achievement Modal, Badge Update
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaClock, FaCheckCircle, FaFire } from 'react-icons/fa';
 import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
 import { getActiveUserId } from '@/utils/user';
+import { CalendarSession } from '@/types/calendar';
 
 interface DirectCalendarStatsProps {
   selectedDate?: Date;
@@ -31,13 +32,13 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       const userId = getActiveUserId();
       // Fetch calendar sessions directly
       const calendarResponse = await fetch(`/api/calendar?userId=${userId}`);
-      const sessions = await calendarResponse.json();
+      const sessions: CalendarSession[] = await calendarResponse.json();
 
       console.log('📅 DirectCalendarStats: Found', sessions.length, 'total sessions');
 
       // Filter for selected date
       const dateStr = toBerlinDateString(date);
-      const todaySessions = sessions.filter(session => {
+      const todaySessions = sessions.filter((session) => {
         const sessionDate = new Date(session.startTime).toLocaleDateString('en-CA', {
           timeZone: 'Europe/Berlin',
         });
@@ -47,10 +48,10 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       console.log('📅 DirectCalendarStats: Found', todaySessions.length, 'sessions for', dateStr);
 
       // Calculate completed sessions and duration
-      const completedSessions = todaySessions.filter(s => s.completed).length;
+      const completedSessions = todaySessions.filter((session) => session.completed).length;
       const totalMinutes = todaySessions
-        .filter(s => s.completed)
-        .reduce((total, session) => total + (session.duration || 0), 0);
+        .filter((session) => session.completed)
+        .reduce((total, session) => total + (session.plannedDuration || session.duration || 0), 0);
 
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;

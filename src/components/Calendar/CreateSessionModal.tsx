@@ -10,6 +10,7 @@ interface CreateSessionModalProps {
   selectedDate: Date | null;
   onSessionCreated: (session: CalendarSession) => void;
   preselectedSubjectId?: string;
+  existingSessions?: CalendarSession[];
 }
 
 export default function CreateSessionModal({ 
@@ -17,7 +18,8 @@ export default function CreateSessionModal({
   onClose, 
   selectedDate,
   onSessionCreated,
-  preselectedSubjectId 
+  preselectedSubjectId,
+  existingSessions = []
 }: CreateSessionModalProps) {
   const activeUserId = getActiveUserId();
   const { subjects } = useSubjects();
@@ -42,18 +44,49 @@ export default function CreateSessionModal({
 
   useEffect(() => {
     if (selectedDate && isOpen) {
-      // Set default times when modal opens with a new date
-      const now = new Date();
-      const currentHour = now.getHours();
-      const nextHour = (currentHour + 1) % 24;
-      
+      const sortedSessions = [...existingSessions]
+        .filter(session => session.startTime.toDateString() === selectedDate.toDateString())
+        .sort((a, b) => a.endTime.getTime() - b.endTime.getTime());
+
+      if (sortedSessions.length === 0) {
+        setFormData(prev => ({
+          ...prev,
+          startTime: '09:00',
+          endTime: '10:00',
+        }));
+        return;
+      }
+
+      const lastSession = sortedSessions[sortedSessions.length - 1];
+      const nextStart = new Date(lastSession.endTime);
+
+      // Round to next quarter hour for neat scheduling sequences
+      const roundedMinutes = Math.ceil(nextStart.getMinutes() / 15) * 15;
+      if (roundedMinutes === 60) {
+        nextStart.setHours(nextStart.getHours() + 1, 0, 0, 0);
+      } else {
+        nextStart.setMinutes(roundedMinutes, 0, 0);
+      }
+
+      const proposedEnd = new Date(nextStart);
+      proposedEnd.setMinutes(proposedEnd.getMinutes() + 60);
+
+      // Clamp to late evening to avoid wrapping into next day
+      if (proposedEnd.getDate() !== nextStart.getDate()) {
+        nextStart.setHours(19, 0, 0, 0);
+        proposedEnd.setHours(20, 0, 0, 0);
+      }
+
+      const startTime = `${nextStart.getHours().toString().padStart(2, '0')}:${nextStart.getMinutes().toString().padStart(2, '0')}`;
+      const endTime = `${proposedEnd.getHours().toString().padStart(2, '0')}:${proposedEnd.getMinutes().toString().padStart(2, '0')}`;
+
       setFormData(prev => ({
         ...prev,
-        startTime: `${currentHour.toString().padStart(2, '0')}:00`,
-        endTime: `${nextHour.toString().padStart(2, '0')}:00`,
+        startTime,
+        endTime,
       }));
     }
-  }, [selectedDate, isOpen]);
+  }, [selectedDate, isOpen, existingSessions]);
 
   const selectedSubject = subjects.find(s => s.id === formData.subjectId);
 

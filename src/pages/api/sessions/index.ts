@@ -26,13 +26,25 @@ interface CountRow {
 }
 
 // Learning Session validation schema
+const timeAdjustmentSchema = z.object({
+  timestamp: z.number(),
+  previousDuration: z.number(),
+  newDuration: z.number(),
+  elapsedAtAdjustment: z.number(),
+  reason: z.string(),
+  adjustmentType: z.string()
+});
+
 const createSessionSchema = z.object({
   subjectId: z.string().uuid('Subject ID must be a valid UUID'),
   userId: z.string().uuid('User ID must be a valid UUID').optional(),
   duration: z.number().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours'),
+  plannedDuration: z.number().min(1).max(1440).optional(),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date format'),
   notes: z.string().optional(),
-  completed: z.boolean().default(true)
+  completed: z.boolean().default(true),
+  manualAdjustmentReason: z.string().optional(),
+  timeAdjustments: z.array(timeAdjustmentSchema).optional()
 });
 
 const querySessionsSchema = z.object({
@@ -152,7 +164,7 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Invalid query parameters',
-        details: error.errors
+        details: error.issues
       });
     }
 
@@ -266,7 +278,7 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         error: 'Invalid session data',
-        details: error.errors
+        details: error.issues
       });
     }
 

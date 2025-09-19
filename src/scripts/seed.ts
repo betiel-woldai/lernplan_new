@@ -334,10 +334,25 @@ async function seedCalendarSessions(userIds: { [key: string]: string }, subjectI
       const title = titles[sessionType as keyof typeof titles][Math.floor(Math.random() * 4)];
       
       await query(
-        `INSERT INTO calendar_sessions (subject_id, user_id, title, start_time, end_time, duration, session_type, completed, description) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [subjectId, userId, title, startTime.toISOString(), endTime.toISOString(), 
-         duration, sessionType, false, `Scheduled ${sessionType} session`]
+        `INSERT INTO calendar_sessions (
+           subject_id, user_id, title, start_time, end_time,
+           planned_duration, session_type, completed, description,
+           is_auto_generated, source_subject_exam_id, scheduling_priority
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          subjectId,
+          userId,
+          title,
+          startTime.toISOString(),
+          endTime.toISOString(),
+          duration,
+          sessionType,
+          false,
+          `Scheduled ${sessionType} session`,
+          false,
+          null,
+          0
+        ]
       );
       
       sessionCount++;

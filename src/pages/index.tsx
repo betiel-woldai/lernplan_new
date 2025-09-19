@@ -89,7 +89,6 @@ export default function Dashboard() {
           realtimeLevel={realtimeLevel}
           nextLevelXP={userStats?.nextLevelXP || nextLevelXP}
           selectedDate={selectedDate}
-          achievements={gamification.achievements}
           showAchievements={false}
           loading={userStatsLoading}
         />

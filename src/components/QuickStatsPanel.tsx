@@ -4,8 +4,8 @@ import StreakDisplay from '@/components/StreakDisplay';
 import AchievementBadge from '@/components/AchievementBadge';
 import useGamification from '@/hooks/useGamification';
 import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
-import { formatLearningTime, formatStreak, getXPProgress } from '@/utils/formatters';
-import { formatNumber, formatXPTotal, formatRemainingXP } from '@/utils/format';
+import { getXPProgress } from '@/utils/formatters';
+import { formatNumber, formatRemainingXP } from '@/utils/format';
 
 // React Icons
 import { 
@@ -89,7 +89,7 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
       >
         <StreakDisplay 
           streak={gamification.streak} 
-          size="xs"
+          size="sm"
           onStreakMilestone={(milestone) => {
             console.log(`Streak milestone reached: ${milestone}`);
           }}
@@ -107,13 +107,13 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
         <div className="space-y-1">
           <XPBar
             currentXP={gamification.currentXP}
-            nextLevelXP={userStats.nextLevelXP}
+            nextLevelXP={xpProgress.nextLevelXP}
             currentLevel={gamification.currentLevel}
-            size="xs"
+            size="sm"
             showNumbers={false}
           />
           <div className="text-xs text-gray-500">
-            {formatRemainingXP((userStats.nextLevelXP - gamification.currentXP), gamification.currentLevel + 1)}
+            {formatRemainingXP(Math.max(0, xpProgress.nextLevelXP - gamification.currentXP), gamification.currentLevel + 1)}
           </div>
         </div>
       </CompactStatWidget>
@@ -180,7 +180,7 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
               <AchievementBadge
                 key={index}
                 achievement={achievement}
-                size="xs"
+                size="sm"
               />
             ))}
           </div>

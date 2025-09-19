@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { CalendarView, CalendarSession, CalendarViewState } from '../../types/calendar';
 import CalendarGrid from './CalendarGrid';
 import CalendarWeekView from './CalendarWeekView';
@@ -369,6 +369,9 @@ export default function Calendar({
 
   const currentMonth = monthNames[viewState.currentDate.getMonth()];
   const currentYear = viewState.currentDate.getFullYear();
+  const createModalSessions = useMemo(() => (
+    createModalState.selectedDate ? getSessionsForDate(createModalState.selectedDate) : []
+  ), [createModalState.selectedDate, getSessionsForDate, sessions]);
 
   return (
     <div className="calendar-container space-y-6">
@@ -503,6 +506,7 @@ export default function Calendar({
         selectedDate={createModalState.selectedDate}
         onClose={handleCloseCreateModal}
         onSessionCreated={handleSessionCreated}
+        existingSessions={createModalSessions}
       />
 
       {/* Edit Session Modal */}

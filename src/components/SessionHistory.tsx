@@ -156,12 +156,8 @@ export default function SessionHistory({
   };
 
   const handleSaveSessionEdit = async (sessionId: string, updates: Partial<LearningSession>) => {
-    const success = await updateSession(sessionId, updates);
-    if (success) {
-      // The SessionEditModal will dispatch the 'sessionUpdated' event
-      // We don't need to dispatch it here as it's handled in the modal
-    }
-    return success;
+    const updated = await updateSession(sessionId, updates);
+    return Boolean(updated);
   };
 
   const handleDeleteSessionEdit = async (sessionId: string) => {

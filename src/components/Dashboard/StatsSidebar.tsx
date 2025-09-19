@@ -55,7 +55,7 @@ export function StatsSidebar({
           </div>
           <div className="flex flex-wrap gap-1 mt-2" data-testid="achievement-badges">
             {achievements.slice(0, 3).map((achievement, index) => (
-              <AchievementBadge key={index} achievement={achievement} size="xs" />
+              <AchievementBadge key={index} achievement={achievement} size="sm" />
             ))}
           </div>
         </div>
