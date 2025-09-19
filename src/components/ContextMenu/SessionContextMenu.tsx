@@ -38,9 +38,11 @@ export default function SessionContextMenu({
   const isFutureSession = sessionDate > today;
 
   // Determine current status
-  const canToggleComplete = !isFutureSession;
+  const canToggleComplete = !isFutureSession && !session.isAllDay; // No completion toggle for all-day events
   const completionText = session.completed ? 'Als ausstehend markieren' : 'Als abgeschlossen markieren';
   const completionIcon = session.completed ? <FaClock /> : <FaCheck />;
+
+  const isFixed = (session as any).isFixed;
 
   const handleAction = (action: () => void) => {
     action();
@@ -58,35 +60,46 @@ export default function SessionContextMenu({
       <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-100 bg-gray-50">
         <div className="font-medium truncate">{session.title}</div>
         <div className="truncate">{session.subjectName}</div>
-        <div className="truncate">
-          {session.startTime.toLocaleTimeString('de-DE', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })} - {session.endTime.toLocaleTimeString('de-DE', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
-        </div>
+        {!session.isAllDay && (
+          <div className="truncate">
+            {session.startTime.toLocaleTimeString('de-DE', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })} - {session.endTime.toLocaleTimeString('de-DE', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        )}
+        {session.isAllDay && (
+          <div className="truncate text-gray-400">
+            Ganztägiger Terminplan-Eintrag
+          </div>
+        )}
       </div>
 
       {/* Primary Actions */}
       <ContextMenuItem
         icon={<FaEdit />}
         onClick={() => handleAction(() => onEdit(session))}
+        disabled={isFixed}
       >
-        Bearbeiten
+        {isFixed ? 'Details anzeigen' : 'Bearbeiten'}
       </ContextMenuItem>
 
-      <ContextMenuItem
-        icon={completionIcon}
-        onClick={() => handleAction(() => onToggleComplete(session))}
-        disabled={!canToggleComplete}
-      >
-        {completionText}
-        {isFutureSession && (
-          <span className="ml-2 text-xs text-gray-400">(Zukunft)</span>
-        )}
-      </ContextMenuItem>
+      {/* Only show completion toggle for non-all-day events */}
+      {!session.isAllDay && (
+        <ContextMenuItem
+          icon={completionIcon}
+          onClick={() => handleAction(() => onToggleComplete(session))}
+          disabled={!canToggleComplete}
+        >
+          {completionText}
+          {isFutureSession && (
+            <span className="ml-2 text-xs text-gray-400">(Zukunft)</span>
+          )}
+        </ContextMenuItem>
+      )}
 
       <ContextMenuSeparator />
 
@@ -94,16 +107,18 @@ export default function SessionContextMenu({
       <ContextMenuItem
         icon={<FaCopy />}
         onClick={() => handleAction(() => onDuplicate(session))}
+        disabled={isFixed}
       >
-        Duplizieren
+        {isFixed ? 'Duplizieren (gesperrt)' : 'Duplizieren'}
       </ContextMenuItem>
 
       {onReschedule && (
         <ContextMenuItem
           icon={<FaCalendarAlt />}
           onClick={() => handleAction(() => onReschedule(session))}
+          disabled={isFixed}
         >
-          Verschieben
+          {isFixed ? 'Verschieben (gesperrt)' : 'Verschieben'}
         </ContextMenuItem>
       )}
 
@@ -114,8 +129,9 @@ export default function SessionContextMenu({
         icon={<FaTrash />}
         onClick={() => handleAction(() => onDelete(session))}
         destructive
+        disabled={isFixed}
       >
-        Löschen
+        {isFixed ? 'Löschen (gesperrt)' : 'Löschen'}
       </ContextMenuItem>
     </ContextMenu>
   );

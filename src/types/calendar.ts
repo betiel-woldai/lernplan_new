@@ -21,6 +21,11 @@ export interface CalendarSession {
   schedulingPriority?: number;
   origin?: 'auto' | 'manual';
   source?: 'calendar' | 'learning';
+  // Fixed appointments (e.g., terminplan) are non-movable/read-only
+  isFixed?: boolean;
+  fixedSource?: 'terminplan' | 'other';
+  // All-day events (no specific time, shown as full-day blocks)
+  isAllDay?: boolean;
 }
 
 export interface CalendarDay {

@@ -210,6 +210,9 @@ export default function CalendarGrid({
     e.preventDefault();
     e.stopPropagation();
 
+    // Fixed (read-only) sessions cannot be edited
+    if ((session as any).isFixed) return;
+
     // Open edit modal instead of inline editing
     if (onSessionEdit) {
       onSessionEdit(session);
@@ -254,6 +257,8 @@ export default function CalendarGrid({
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, session: CalendarSession) => {
     e.stopPropagation();
+    // Prevent dragging fixed sessions
+    if ((session as any).isFixed) return;
     setDragState({
       isDragging: true,
       draggedSession: session,
@@ -484,17 +489,23 @@ export default function CalendarGrid({
                     ${inlineEdit.sessionId === session.id ? 'cursor-text' : ''}
                   `}
                   style={{
-                    backgroundColor: isCompleted 
+                    backgroundColor: session.isAllDay
+                      ? '#ffffff'  // White background for all-day events (terminplan)
+                      : isCompleted
                       ? '#f0fdf4'  // Light green for completed
                       : isReverted
                       ? '#fef2f2'  // Light red for reverted sessions
                       : `${session.subjectColor}20`, // Subject color with transparency for default pending
-                    borderLeftColor: isCompleted 
+                    borderLeftColor: session.isAllDay
+                      ? '#6B7280'  // Gray border for all-day events
+                      : isCompleted
                       ? '#22c55e'  // Green border for completed
                       : isReverted
                       ? '#ef4444'  // Red border for reverted sessions
                       : session.subjectColor, // Subject color border for default pending
-                    color: isCompleted 
+                    color: session.isAllDay
+                      ? '#374151'  // Dark gray text for all-day events
+                      : isCompleted
                       ? '#15803d'  // Dark green text for completed
                       : isReverted
                       ? '#dc2626'  // Red text for reverted sessions
@@ -512,6 +523,11 @@ export default function CalendarGrid({
                       onSessionClick(session);
                     } else {
                       // Open context menu for planned calendar sessions
+                      if ((session as any).isFixed) {
+                        // Read-only: open details directly
+                        onSessionClick(session);
+                        return;
+                      }
                       setContextMenu({
                         isOpen: true,
                         position: { x: e.clientX, y: e.clientY },
@@ -522,10 +538,10 @@ export default function CalendarGrid({
                   onDoubleClick={(e) => handleSessionDoubleClick(session, e)}
                   onMouseEnter={() => setHoveredSession(session.id)}
                   onMouseLeave={() => setHoveredSession(null)}
-                  title={`${session.title} - ${session.startTime.toLocaleTimeString('de-DE', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })} - ${sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'} - Doppelklick zum Bearbeiten`}
+                  title={`${session.title}${!session.isAllDay ? ` - ${session.startTime.toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}` : ''} - ${session.isAllDay ? 'Terminplan-Eintrag (nicht abschließbar)' : sessionStatus === 'abgeschlossen' ? 'Abgeschlossen' : sessionStatus === 'reverted' ? 'Ausstehend (Rückgängig)' : 'Ausstehend'} - ${session.isAllDay ? 'Nur-Lese-Termin' : 'Doppelklick zum Bearbeiten'}`}
                 >
                   <div className="flex items-center justify-between">
                     {inlineEdit.sessionId === session.id ? (
@@ -548,47 +564,49 @@ export default function CalendarGrid({
                       </span>
                     )}
                     <div className="flex items-center space-x-1">
-                      {/* Edit indicator on hover */}
-                      {hoveredSession === session.id && inlineEdit.sessionId !== session.id && (
+                      {/* Edit indicator on hover - only for non-fixed sessions */}
+                      {hoveredSession === session.id && inlineEdit.sessionId !== session.id && !(session as any).isFixed && (
                         <div className="flex items-center text-gray-400">
                           <FaEdit className="w-2 h-2" title="Doppelklick zum Bearbeiten" />
                         </div>
                       )}
-                      
-                      {/* Clickable completion toggle */}
-                      <button
-                        onClick={(e) => handleSessionToggleComplete(session, e)}
-                        className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
-                          isCompleted 
-                            ? 'bg-green-100 hover:bg-green-200' 
-                            : isReverted
-                            ? 'bg-red-100 hover:bg-red-200'
-                            : sessionStatus === 'ausstehend' && new Date(session.startTime).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)
-                            ? 'bg-orange-100 hover:bg-orange-200'
-                            : 'bg-gray-100 cursor-not-allowed'
-                        }`}
-                        title={
-                          new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
-                            ? 'Zukünftige Sessions sind immer ausstehend'
-                            : isCompleted 
-                            ? 'Als ausstehend markieren' 
-                            : isReverted
-                            ? 'Als abgeschlossen markieren (war rückgängig)'
-                            : 'Als abgeschlossen markieren'
-                        }
-                      >
-                        {isCompleted ? (
-                          <FaCheck className="w-2 h-2 text-green-600" />
-                        ) : (
-                          <FaClock className={`w-2 h-2 ${
-                            new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
-                              ? 'text-gray-400'  // Gray for future sessions
+
+                      {/* Clickable completion toggle - only for non-all-day sessions (not terminplan) */}
+                      {!session.isAllDay && (
+                        <button
+                          onClick={(e) => handleSessionToggleComplete(session, e)}
+                          className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
+                            isCompleted
+                              ? 'bg-green-100 hover:bg-green-200'
                               : isReverted
-                              ? 'text-red-600'   // Red for reverted sessions
-                              : 'text-orange-500' // Orange for default pending sessions
-                          }`} />
-                        )}
-                      </button>
+                              ? 'bg-red-100 hover:bg-red-200'
+                              : sessionStatus === 'ausstehend' && new Date(session.startTime).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)
+                              ? 'bg-orange-100 hover:bg-orange-200'
+                              : 'bg-gray-100 cursor-not-allowed'
+                          }`}
+                          title={
+                            new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                              ? 'Zukünftige Sessions sind immer ausstehend'
+                              : isCompleted
+                              ? 'Als ausstehend markieren'
+                              : isReverted
+                              ? 'Als abgeschlossen markieren (war rückgängig)'
+                              : 'Als abgeschlossen markieren'
+                          }
+                        >
+                          {isCompleted ? (
+                            <FaCheck className="w-2 h-2 text-green-600" />
+                          ) : (
+                            <FaClock className={`w-2 h-2 ${
+                              new Date(session.startTime).setHours(0,0,0,0) > new Date().setHours(0,0,0,0)
+                                ? 'text-gray-400'  // Gray for future sessions
+                                : isReverted
+                                ? 'text-red-600'   // Red for reverted sessions
+                                : 'text-orange-500' // Orange for default pending sessions
+                            }`} />
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
