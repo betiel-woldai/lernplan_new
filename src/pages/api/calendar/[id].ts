@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
+import { hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -27,6 +28,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, sessionId: string) {
   try {
     const updates = req.body;
+
+    // If fixed appointment columns exist, block illegal updates for fixed rows
+    if (await hasFixedAppointmentColumns()) {
+      const fixedCheck = await query(
+        'SELECT is_fixed FROM calendar_sessions WHERE id = $1',
+        [sessionId]
+      );
+      if (fixedCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Calendar session not found' });
+      }
+      if (fixedCheck.rows[0].is_fixed) {
+        const illegal = (
+          updates.startTime !== undefined ||
+          updates.endTime !== undefined ||
+          updates.title !== undefined ||
+          updates.session_type !== undefined ||
+          updates.subjectId !== undefined ||
+          updates.subject_id !== undefined
+        );
+        if (illegal) {
+          return res.status(409).json({ error: 'Fixed appointment is read-only (terminplan)' });
+        }
+      }
+    }
     
     // Build dynamic SQL update query based on provided fields
     const updateFields: string[] = [];
@@ -171,6 +196,13 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
 
 async function deleteCalendarSession(req: NextApiRequest, res: NextApiResponse, sessionId: string) {
   try {
+    // Prevent deletion of fixed appointments if columns exist
+    if (await hasFixedAppointmentColumns()) {
+      const fixedCheck = await query('SELECT is_fixed FROM calendar_sessions WHERE id = $1', [sessionId]);
+      if (fixedCheck.rows.length > 0 && fixedCheck.rows[0].is_fixed) {
+        return res.status(409).json({ error: 'Cannot delete fixed appointment (terminplan)' });
+      }
+    }
     const result = await query('DELETE FROM calendar_sessions WHERE id = $1', [sessionId]);
     
     if (result.rowCount === 0) {

@@ -14,6 +14,14 @@ export interface UseCalendarSessionsReturn {
   deleteSession: (sessionId: string) => Promise<boolean>;
   refreshSessions: () => Promise<void>;
   syncFromSubjects: () => Promise<void>;
+  // Enhanced integration helpers
+  userSessions?: CalendarSession[];
+  terminplanSessions?: CalendarSession[];
+  allSessions?: CalendarSession[];
+  showTerminplanEvents?: boolean;
+  setShowTerminplanEvents?: (show: boolean) => void;
+  importTerminplan?: () => Promise<{ added: number; updated: number; removed: number } | null>;
+  isTerminplanImported?: boolean;
 }
 
 export const useCalendarSessions = (): UseCalendarSessionsReturn => {
@@ -21,6 +29,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
   const [sessions, setSessions] = useState<CalendarSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showTerminplanEvents, setShowTerminplanEvents] = useState(true);
 
   // Fetch sessions for a specific month
   const fetchSessionsForMonth = useCallback(async (year: number, month: number) => {
@@ -97,9 +106,11 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     
     return sessions.filter(session => {
       const sessionDate = new Date(session.startTime.getFullYear(), session.startTime.getMonth(), session.startTime.getDate());
-      return sessionDate.getTime() === targetDate.getTime();
+      if (sessionDate.getTime() !== targetDate.getTime()) return false;
+      if (!showTerminplanEvents && (session as any).isFixed && (session as any).fixedSource === 'terminplan') return false;
+      return true;
     });
-  }, [sessions]);
+  }, [sessions, showTerminplanEvents]);
 
   // Create new calendar session
   const createSession = useCallback(async (
@@ -437,6 +448,27 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     };
   }, [refreshSessions]);
 
+  // Derived collections for integration
+  const terminplanSessions = sessions.filter(s => (s as any).isFixed && (s as any).fixedSource === 'terminplan');
+  const userSessionsOnly = sessions.filter(s => !((s as any).isFixed && (s as any).fixedSource === 'terminplan'));
+  const allSessions = showTerminplanEvents ? sessions : userSessionsOnly;
+  const isTerminplanImported = terminplanSessions.length > 0;
+
+  // Import terminplan via cron endpoint
+  const importTerminplan = useCallback(async (): Promise<{ added: number; updated: number; removed: number } | null> => {
+    try {
+      const res = await fetch('/api/cron/terminplan', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Terminplan import failed');
+      await refreshSessions();
+      return data?.applied || null;
+    } catch (e) {
+      console.error('Terminplan import failed', e);
+      setError(e instanceof Error ? e.message : 'Terminplan import failed');
+      return null;
+    }
+  }, [refreshSessions]);
+
   return {
     sessions,
     loading,
@@ -449,6 +481,14 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     deleteSession,
     refreshSessions,
     syncFromSubjects,
+    // Enhanced
+    userSessions: userSessionsOnly,
+    terminplanSessions,
+    allSessions,
+    showTerminplanEvents,
+    setShowTerminplanEvents,
+    importTerminplan,
+    isTerminplanImported,
   };
 };
 

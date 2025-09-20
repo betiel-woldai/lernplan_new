@@ -14,6 +14,7 @@ import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import CalendarSection from '@/components/Dashboard/CalendarSection';
 import StatsSidebar from '@/components/Dashboard/StatsSidebar';
 import useDashboardEvents from '@/hooks/useDashboardEvents';
+import TerminplanReminderToasts from '@/components/TerminplanReminderToasts';
 
 export default function Dashboard() {
   const { userStats, loading: userStatsLoading, refreshStats } = useUserStats();
@@ -96,6 +97,7 @@ export default function Dashboard() {
 
       {/* Toast Container */}
       <XPToastContainer />
+      <TerminplanReminderToasts />
       
       {/* Level Up Modal */}
       {gamification.levelUpModalOpen && gamification.newLevelReached && (

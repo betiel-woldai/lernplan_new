@@ -53,3 +53,17 @@ Create an integration test in tests/tests/calendar-sync.spec.ts that mutates an 
 Update docs/technical-implementation-flows.md:118 with the bi-directional exam sync diagram and note the event names used across hooks.
 Run npm run lint, npm run type-check, and if Playwright runs are too heavy, at least execute the new spec locally to confirm deterministic scheduling.
 Prep release notes describing schema migration requirements and advising developers to re-run npm run db:migrate plus npm run db:setup for clean datasets.
+
+---
+
+Phase 6 — Terminplan (Scaffold)
+
+- Modules: src/lib/terminplan/{contracts,canonicalizer,diff,apply}.ts
+- Reminders: src/lib/reminders/policy.ts (policy stubs)
+- Popups: src/lib/notify/popup.ts (transport stub)
+- Admin: src/pages/admin/terminplan.tsx (dry-run preview)
+- Cron API: src/pages/api/cron/terminplan.ts (checksum + diff summary)
+
+Usage (dev): open /admin/terminplan to preview dry-run against db/terminplan.json.
+
+Next steps: persist versions, map entries → fixed events, schedule reminders.

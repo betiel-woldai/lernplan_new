@@ -12,6 +12,7 @@ import useCalendarSessions from '../../hooks/useCalendarSessions';
 import { useLearningSessions } from '../../hooks/useLearningSessions';
 import { getActiveUserId } from '@/utils/user';
 import { getBerlinTimestamp } from '@/utils/timezone';
+import useTerminplanReminders from '@/hooks/useTerminplanReminders';
 
 interface CalendarProps {
   onSessionClick?: (session: CalendarSession) => void;
@@ -60,10 +61,17 @@ export default function Calendar({
     getSessionsForDate,
     updateSession,
     deleteSession: deleteCalendarSession,
-    syncFromSubjects
+    syncFromSubjects,
+    showTerminplanEvents,
+    setShowTerminplanEvents,
+    importTerminplan,
+    isTerminplanImported
   } = useCalendarSessions();
 
   const { deleteSession: deleteLearningSession } = useLearningSessions();
+
+  // Schedule reminders for fixed (terminplan) sessions
+  useTerminplanReminders(sessions);
 
   // Load sessions for current month on mount and when month changes
   useEffect(() => {
@@ -412,6 +420,28 @@ export default function Calendar({
 
         {/* Right side controls */}
         <div className="flex items-center space-x-3">
+          {/* Terminplan toggle */}
+          <label className="flex items-center space-x-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={!!showTerminplanEvents}
+              onChange={(e) => setShowTerminplanEvents?.(e.target.checked)}
+            />
+            <span>Uni‑Termine</span>
+          </label>
+
+          {/* Import terminplan CTA when not yet imported */}
+          {!isTerminplanImported && (
+            <button
+              onClick={async () => { try { await importTerminplan?.(); } catch {} }}
+              className="px-3 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
+              title="Universitätstermine importieren"
+            >
+              Importieren
+            </button>
+          )}
+
           {/* Add Session Button */}
           <button
             onClick={() => viewState.selectedDate && handleCreateSession(viewState.selectedDate)}
