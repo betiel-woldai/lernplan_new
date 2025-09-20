@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { canonicalizer } from '@/lib/terminplan/canonicalizer';
 import { TerminplanSchema, TerminplanEntry } from '@/lib/terminplan/contracts';
+import { normalizeDates } from '@/lib/terminplan/normalize';
+import { transformAcademicCalendar } from '@/lib/terminplan/transform';
 import { diffEngine } from '@/lib/terminplan/diff';
 import { query, withTransaction } from '@/lib/db';
 import { getActiveUserId } from '@/utils/user';
@@ -15,11 +17,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const filePath = path.join(process.cwd(), 'db', 'terminplan.json');
     const raw = fs.readFileSync(filePath, 'utf8');
     const json = JSON.parse(raw);
-    if (!TerminplanSchema.validate(json)) {
-      return res.status(400).json({ error: 'Invalid terminplan format' });
-    }
 
-    const current = canonicalizer.normalize(json);
+    // Accept both formats:
+    // 1) New hierarchical { academic_calendar: {...} } → flatten to legacy entries
+    // 2) Legacy flat TerminplanEntry[] → pass through as-is
+    const transformed = transformAcademicCalendar(json);
+    const baseInput: TerminplanEntry[] = transformed
+      ? transformed
+      : (TerminplanSchema.validate(json) ? (json as TerminplanEntry[]) : null);
+    if (!baseInput) return res.status(400).json({ error: 'Invalid terminplan format' });
+
+    // Step 1: normalize date fields (accept YYYY-MM-DD; mark others as TBD)
+    const normalizedInput = normalizeDates(baseInput);
+    const current = canonicalizer.normalize(normalizedInput);
     const checksum = canonicalizer.checksum(current);
 
     if (req.method !== 'POST') {
@@ -58,61 +68,61 @@ async function loadExistingCanonical() {
   return { entries } as any;
 }
 
-function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string }>
-{
+function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string }>{
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   const mk = (d: string) => {
-    // Skip entries without fixed dates (e.g., "2025-11-? (noch offen)", "TBD", etc.)
-    // Only accept exact format: YYYY-MM-DD
-    if (!d.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      console.log(`Skipping entry with unfixed date: "${d}"`);
-      return null;
-    }
-
-    // Create all-day events: start at midnight, end at midnight next day
-    const startISO = new Date(`${d}T00:00:00+01:00`);
-    const endISO = new Date(`${d}T23:59:59+01:00`);
-
-    // Validate that dates are valid
-    if (isNaN(startISO.getTime()) || isNaN(endISO.getTime())) {
-      console.log(`Skipping entry with invalid date parsing: "${d}"`);
-      return null;
-    }
-
-    return {
-      date: d,
-      startISO,
-      endISO,
-    };
+    if (!DATE_RE.test(d)) return null;
+    const startISO = new Date(`${d}T00:00:00`); // treat as date boundary
+    const endISO = new Date(`${d}T23:59:59`);
+    if (isNaN(startISO.getTime()) || isNaN(endISO.getTime())) return null;
+    return { date: d, startISO, endISO };
   };
 
-  const base = (d: string) => {
-    const result = mk(d);
-    return result ? { ...result, title: e.title, details: e.details } : null;
+  const decorate = (d: string) => {
+    const win = mk(d);
+    return win ? { ...win, title: e.title, details: e.details } : null;
   };
 
-  const results = [];
+  const out: Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string }> = [];
 
-  // Handle single date entries
-  if (e.date) {
-    const b = base(e.date);
-    if (b) results.push(b);
+  // Single date
+  if (e.date && DATE_RE.test(e.date)) {
+    const w = decorate(e.date);
+    if (w) out.push(w);
+    return out;
   }
 
-  // Handle date range entries (from-to)
-  if (e.date_from && e.date_to) {
-    const b1 = base(e.date_from);
-    const b2 = base(e.date_to);
-    if (b1) results.push(b1);
-    if (b2 && b1 && b2.date !== b1.date) results.push(b2); // Only add end date if different
+  // Range expansion (inclusive), with guard against very large spans
+  if (e.date_from && e.date_to && DATE_RE.test(e.date_from) && DATE_RE.test(e.date_to)) {
+    const start = new Date(`${e.date_from}T00:00:00`);
+    const end = new Date(`${e.date_to}T00:00:00`);
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+      const MAX_DAYS = 120;
+      let days = 0;
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        if (days++ > MAX_DAYS) break; // guardrail
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const iso = `${yyyy}-${mm}-${dd}`;
+        const w = decorate(iso);
+        if (w) out.push(w);
+      }
+      // If we exceeded guardrail (very long range), fall back to showing only endpoints
+      if (out.length === 0) {
+        const s = decorate(e.date_from); if (s) out.push(s);
+        const t = decorate(e.date_to); if (t && t.date !== s?.date) out.push(t);
+      }
+      return out;
+    }
   }
 
-  // Handle date_from only entries
-  if (e.date_from && !e.date_to) {
-    const b = base(e.date_from);
-    if (b) results.push(b);
+  // Fallback: date_from only
+  if (e.date_from && DATE_RE.test(e.date_from)) {
+    const w = decorate(e.date_from);
+    if (w) out.push(w);
   }
-
-  return results;
+  return out;
 }
 
 function classifyType(title: string): 'exam' | 'assignment' | 'study' | 'break' {
@@ -178,7 +188,12 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
     );
     const byKey = new Map(existing.rows.map((r: any) => [r.fixed_source_key, r]));
 
-    const currentKeys = new Set(entries.map(e => e.source_key));
+    // Build set of per-day keys for accurate stale detection
+    const currentKeys = new Set<string>();
+    for (const e of entries) {
+      const windows = toEventWindows(e);
+      for (const w of windows) currentKeys.add(`${e.source_key}|${w.date}`);
+    }
 
     let added = 0, updated = 0, removed = 0;
 
@@ -186,48 +201,40 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
     for (const e of entries) {
       const windows = toEventWindows(e);
       if (windows.length === 0) continue;
-      const w = windows[0]; // keep it simple: single marker per entry
-
-      // Double-check date validity before database operations
-      if (!w || !w.startISO || !w.endISO || isNaN(w.startISO.getTime()) || isNaN(w.endISO.getTime())) {
-        console.log(`Skipping entry with invalid dates: ${e.title} (${e.source_key})`);
-        continue;
-      }
-
-      const id = stableUUID(`terminplan:${e.source_key}`);
       const sessionType = classifyType(e.title);
-      const plannedMinutes = Math.max(1, Math.round((w.endISO.getTime() - w.startISO.getTime()) / 60000));
+      for (const w of windows) {
+        const perDayKey = `${e.source_key}|${w.date}`;
+        const id = stableUUID(`terminplan:${perDayKey}`);
+        const plannedMinutes = Math.max(1, Math.round((w.endISO.getTime() - w.startISO.getTime()) / 60000));
 
-      if (byKey.has(e.source_key)) {
-        // Update
-        await client.query(
-          `UPDATE calendar_sessions SET
-             title = $1, description = $2, start_time = $3, end_time = $4,
-             planned_duration = $5, session_type = $6, is_all_day = TRUE, updated_at = NOW()
-           WHERE fixed_source = 'terminplan' AND fixed_source_key = $7`,
-          [e.title, w.details || null, w.startISO, w.endISO, plannedMinutes, sessionType, e.source_key]
-        );
-        updated++;
-      } else {
-        // Insert
-        await client.query(
-          `INSERT INTO calendar_sessions (
-             id, user_id, subject_id, title, start_time, end_time, planned_duration,
-             session_type, completed, description, is_fixed, fixed_source, fixed_source_key, is_all_day
-           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false,$9,true,'terminplan',$10,true)
-           ON CONFLICT (fixed_source, fixed_source_key)
-           DO UPDATE SET title = EXCLUDED.title,
-                         description = EXCLUDED.description,
-                         start_time = EXCLUDED.start_time,
-                         end_time = EXCLUDED.end_time,
-                         planned_duration = EXCLUDED.planned_duration,
-                         session_type = EXCLUDED.session_type,
-                         is_all_day = EXCLUDED.is_all_day,
-                         updated_at = NOW()
-          `,
-          [id, userId, subjectId, e.title, w.startISO, w.endISO, plannedMinutes, sessionType, w.details || null, e.source_key]
-        );
-        added++;
+        if (byKey.has(perDayKey)) {
+          await client.query(
+            `UPDATE calendar_sessions SET
+               title = $1, description = $2, start_time = $3, end_time = $4,
+               planned_duration = $5, session_type = $6, is_all_day = TRUE, updated_at = NOW()
+             WHERE fixed_source = 'terminplan' AND fixed_source_key = $7`,
+            [e.title, w.details || null, w.startISO, w.endISO, plannedMinutes, sessionType, perDayKey]
+          );
+          updated++;
+        } else {
+          await client.query(
+            `INSERT INTO calendar_sessions (
+               id, user_id, subject_id, title, start_time, end_time, planned_duration,
+               session_type, completed, description, is_fixed, fixed_source, fixed_source_key, is_all_day
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false,$9,true,'terminplan',$10,true)
+             ON CONFLICT (fixed_source, fixed_source_key)
+             DO UPDATE SET title = EXCLUDED.title,
+                           description = EXCLUDED.description,
+                           start_time = EXCLUDED.start_time,
+                           end_time = EXCLUDED.end_time,
+                           planned_duration = EXCLUDED.planned_duration,
+                           session_type = EXCLUDED.session_type,
+                           is_all_day = EXCLUDED.is_all_day,
+                           updated_at = NOW()`,
+            [id, userId, subjectId, e.title, w.startISO, w.endISO, plannedMinutes, sessionType, w.details || null, perDayKey]
+          );
+          added++;
+        }
       }
     }
 

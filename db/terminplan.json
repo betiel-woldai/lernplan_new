@@ -1,88 +1,318 @@
-[
-    {
-      "date": "2025-03-17",
-      "title": "Beginn des Sommersemesters",
-      "details": "Beginn der planmäßigen Lehrveranstaltungen; Veröffentlichung der Studienpläne; Prüfungseinsicht nach Absprache mit den Prüfenden"
-    },
-    {
-      "date": "2025-04-09",
-      "title": "Abgabe der Prüfungskataloge",
-      "details": "Die Fakultäten geben ihre Prüfungskataloge an den Studierendenservice weiter"
-    },
-    {
-      "date_from": "2025-04-15",
-      "date_to": "2025-05-04",
-      "title": "Anmeldezeitraum Prüfungen",
-      "details": "Studierende melden sich zu Prüfungsleistungen an; Antragstellung auf Nachteilsausgleich, Kompetenzanrechnung und Fristverlängerungen möglich"
-    },
-    {
-      "date_from": "2025-04-15",
-      "date_to": "2025-06-24",
-      "title": "Abmeldezeitraum Prüfungen",
-      "details": "Studierende können sich von Prüfungsleistungen abmelden"
-    },
-    {
-      "date": "2025-05-10",
-      "title": "Tag der offenen Tür",
-      "details": "Hochschulveranstaltung zur Präsentation der Studienangebote"
-    },
-    {
-      "date": "2025-05-15",
-      "title": "Companies@Campus",
-      "details": "Karrieremesse mit Firmen und Unternehmen"
-    },
-    {
-      "date": "2025-05-28",
-      "title": "Bekanntgabe der Prüfungspläne",
-      "details": "Endgültige Prüfungspläne werden von den Fakultäten veröffentlicht; Bestellung der Prüfenden; Bekanntgabe zugelassener Hilfs- und Arbeitsmittel"
-    },
-    {
-      "date_from": "2025-06-02",
-      "date_to": "2025-06-05",
-      "title": "Blockwoche",
-      "details": "Fallstudien, Planspiele, Exkursionen etc."
-    },
-    {
-      "date_from": "2025-06-30",
-      "date_to": "2025-07-25",
-      "title": "Prüfungszeitraum",
-      "details": "Schriftliche und mündliche Prüfungen"
-    },
-    {
-      "date": "2025-08-17",
-      "title": "Endtermin Notenmeldung",
-      "details": "Letzter Tag für die Meldung der Noten durch die Prüfenden an den Studierendenservice"
-    },
-    {
-      "date_from": "2025-09-10",
-      "title": "Notenbekanntgabe online",
-      "details": "Prüfungsergebnisse werden digital veröffentlicht"
-    },
-    {
-      "date": "2025-10-01",
-      "title": "Beginn Wintersemester",
-      "details": "Start der Lehrveranstaltungen, Begrüßung der Erstsemester, Veröffentlichung der Studienpläne"
-    },
-    {
-      "date": "2025-11-? (noch offen)",
-      "title": "Absolventenfeier",
-      "details": "Feierliche Verabschiedung der Absolventinnen und Absolventen"
-    },
-    {
-      "date_from": "2026-01-19",
-      "date_to": "2026-02-13",
-      "title": "Prüfungszeitraum",
-      "details": "Schriftliche und mündliche Prüfungen"
-    },
-    {
-      "date": "2026-02-22",
-      "title": "Endtermin Notenmeldung",
-      "details": "Letzter Tag für die Meldung der Noten an den Studierendenservice"
-    },
-    {
-      "date_from": "2026-03-01",
-      "title": "Notenbekanntgabe online",
-      "details": "Prüfungsergebnisse werden digital veröffentlicht"
-    }
-  ]
-  
+{
+  "academic_calendar": {
+    "holidays_2025": [
+      {
+        "date": "2025-04-17 to 2025-04-22",
+        "title": "Ostern",
+        "details": "Osterferien"
+      },
+      {
+        "date": "2025-05-01",
+        "title": "Maifeiertag",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2025-05-29",
+        "title": "Christi Himmelfahrt",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2025-06-06 to 2025-06-10",
+        "title": "Pfingsten",
+        "details": "Pfingstferien"
+      },
+      {
+        "date": "2025-06-19",
+        "title": "Fronleichnam",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2025-06-20",
+        "title": "Vorlesungsfreier Tag SS",
+        "details": "Keine Lehrveranstaltungen"
+      },
+      {
+        "date": "2025-07-11 to 2025-09-30",
+        "title": "Vorlesungsfreie Zeit SS",
+        "details": "Sommersemester Vorlesungsfreie Zeit"
+      }
+    ],
+    "sommersemester_2025": [
+      {
+        "date": "2025-03-17",
+        "title": "Beginn des Sommersemesters",
+        "details": "Beginn des Sommersemesters und der planmäßigen Lehrveranstaltungen, Veröffentlichung der Studienpläne"
+      },
+      {
+        "date": "2025-03-17",
+        "title": "Prüfungseinsicht",
+        "details": "Ab diesem Datum: Prüfungseinsicht nach Absprache mit den Prüfenden. U.a. Studierende mit nicht bestandenen Prüfungsleistungen, können für diese in Absprache mit den Prüfenden einen vorgezogenen Termin zur Prüfungseinsicht beantragen."
+      },
+      {
+        "date": "2025-04-09",
+        "title": "Abgabe der Prüfungskataloge",
+        "details": "Abgabe der Prüfungskataloge der Fakultäten an den Studierendenservice"
+      },
+      {
+        "date": "2025-04-15 to 2025-05-04",
+        "title": "Anmeldezeitraum für Prüfungsleistungen",
+        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Kompetenzanrechnung / Fristverlängerungen"
+      },
+      {
+        "date": "2025-04-15 to 2025-06-24",
+        "title": "Abmeldezeitraum für Prüfungsleistungen",
+        "details": "Abmeldezeitraum für Studierende von den Prüfungsleistungen"
+      },
+      {
+        "date": "2025-05-10",
+        "title": "Tag der offenen Tür",
+        "details": "Tag der offenen Tür (Programm wird separat bekannt gegeben)"
+      },
+      {
+        "date": "2025-05-15",
+        "title": "Companies@Campus",
+        "details": "Companies@Campus (Programm wird separat bekannt gegeben)"
+      },
+      {
+        "date": "2025-05-28",
+        "title": "Bekanntgabe der endgültigen Prüfungspläne",
+        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel"
+      },
+      {
+        "date": "2025-06-02 to 2025-06-05",
+        "title": "Blockwoche",
+        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis"
+      },
+      {
+        "date": "2025-06-30 to 2025-07-25",
+        "title": "Prüfungszeitraum",
+        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden"
+      },
+      {
+        "date": "2025-07-01 to 2025-08-15",
+        "title": "Rückmeldung für Wintersemester",
+        "details": "Zeitraum zur Rückmeldung für das Wintersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden"
+      },
+      {
+        "date": "2025-08-17",
+        "title": "Endtermin Notenmeldung",
+        "details": "Endtermin für die Meldung der Noten durch die Prüfenden an den Studierendenservice"
+      },
+      {
+        "date": "2025-09-10",
+        "title": "Online-Notenbekanntgabe",
+        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag"
+      }
+    ],
+    "holidays_2025_2026": [
+      {
+        "date": "2025-10-03",
+        "title": "Tag der deutschen Einheit",
+        "details": "Gesetzlicher Feiertag (vorlesungsfrei)"
+      },
+      {
+        "date": "2025-11-01",
+        "title": "Allerheiligen",
+        "details": "Gesetzlicher Feiertag (vorlesungsfrei)"
+      },
+      {
+        "date": "2025-12-23",
+        "title": "Vorlesungsfreier Tag WS",
+        "details": "Keine Lehrveranstaltungen"
+      },
+      {
+        "date": "2025-12-24 to 2026-01-06",
+        "title": "Weihnachten/Neujahr/Hl. Drei Könige",
+        "details": "Weihnachtsferien (vorlesungsfrei)"
+      },
+      {
+        "date": "2026-01-24 to 2026-03-14",
+        "title": "Vorlesungsfreie Zeit WS",
+        "details": "Wintersemester Vorlesungsfreie Zeit"
+      }
+    ],
+    "wintersemester_2025_26": [
+      {
+        "date": "2025-10-01",
+        "title": "Beginn des Wintersemesters",
+        "details": "Beginn des Wintersemesters, Veröffentlichung der Studienpläne, Begrüßung der Studienanfängerinnen und -anfänger. Es finden keine Lehrveranstaltungen für Studienanfängerinnen und -anfänger statt. Lehrveranstaltungen für Studierende in höheren Fachsemestern bitte dem Stundenplan entnehmen"
+      },
+      {
+        "date": "2025-10-01",
+        "title": "Prüfungseinsicht",
+        "details": "Ab diesem Datum: Prüfungseinsicht nach Absprache mit den Prüfenden. U.a. Studierende, die nicht bestandene Prüfungsleistung haben, können für diese in Absprache mit den Prüfenden einen vorgezogenen Termin zur Prüfungseinsicht beantragen"
+      },
+      {
+        "date": "2025-10-23",
+        "title": "Abgabe der Prüfungskataloge",
+        "details": "Abgabe der Prüfungskataloge von den Fakultäten an den Studierendenservice"
+      },
+      {
+        "date": "2025-10-30 to 2025-11-16",
+        "title": "Anmeldezeitraum für Prüfungsleistungen",
+        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Anrechnung von Kompetenzen / Fristverlängerungen"
+      },
+      {
+        "date": "2025-10-30 to 2026-01-13",
+        "title": "Abmeldezeitraum für Prüfungsleistungen",
+        "details": "Abmeldezeitraum für Studierende von Prüfungsleistungen"
+      },
+      {
+        "date": "2025-11-15",
+        "title": "Absolventenfeier",
+        "details": "Absolventenfeier der Hochschule (Programm wird separat bekannt gegeben)"
+      },
+      {
+        "date": "2025-11-17 to 2025-11-21",
+        "title": "Blockwoche",
+        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis"
+      },
+      {
+        "date": "2025-12-11",
+        "title": "Bekanntgabe der endgültigen Prüfungspläne",
+        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel"
+      },
+      {
+        "date": "2025-12-15 to 2026-02-01",
+        "title": "Rückmeldung für Sommersemester",
+        "details": "Zeitraum zur Rückmeldung für das Sommersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden"
+      },
+      {
+        "date": "2026-01-19 to 2026-02-13",
+        "title": "Prüfungszeitraum",
+        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden"
+      },
+      {
+        "date": "2026-02-22",
+        "title": "Endtermin Notenmeldung",
+        "details": "Endtermin für die Meldung der Noten durch die Prüfenden an den Studierendenservice"
+      },
+      {
+        "date": "2026-03-01",
+        "title": "Online-Notenbekanntgabe",
+        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag, erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag"
+      }
+    ],
+    "holidays_2026": [
+      {
+        "date": "2026-04-02 to 2026-04-07",
+        "title": "Ostern",
+        "details": "Osterferien"
+      },
+      {
+        "date": "2026-05-01",
+        "title": "Maifeiertag",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2026-05-14",
+        "title": "Christi Himmelfahrt",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2026-05-22 to 2026-05-26",
+        "title": "Pfingsten",
+        "details": "Pfingstferien"
+      },
+      {
+        "date": "2026-06-04",
+        "title": "Fronleichnam",
+        "details": "Gesetzlicher Feiertag"
+      },
+      {
+        "date": "2026-06-05",
+        "title": "Vorlesungsfreier Tag SS",
+        "details": "Keine Lehrveranstaltungen"
+      },
+      {
+        "date": "2026-07-11 to 2026-09-30",
+        "title": "Vorlesungsfreie Zeit SS",
+        "details": "Sommersemester Vorlesungsfreie Zeit"
+      }
+    ],
+    "sommersemester_2026": [
+      {
+        "date": "2026-03-16",
+        "title": "Beginn des Sommersemesters",
+        "details": "Beginn des Sommersemesters und der planmäßigen Lehrveranstaltungen, Veröffentlichung der Studienpläne"
+      },
+      {
+        "date": "2026-03-16",
+        "title": "Prüfungseinsicht",
+        "details": "Ab diesem Datum: Prüfungseinsicht nach Absprache mit den Prüfenden. U.a. Studierende mit nicht bestandenen Prüfungsleistungen, können für diese in Absprache mit den Prüfenden einen vorgezogenen Termin zur Prüfungseinsicht beantragen"
+      },
+      {
+        "date": "2026-04-16",
+        "title": "Abgabe der Prüfungskataloge",
+        "details": "Abgabe der Prüfungskataloge der Fakultäten an den Studierendenservice"
+      },
+      {
+        "date": "2026-04-23 to 2026-05-10",
+        "title": "Anmeldezeitraum für Prüfungsleistungen",
+        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Kompetenzanrechnung / Fristverlängerungen"
+      },
+      {
+        "date": "2026-04-23 to 2026-06-30",
+        "title": "Abmeldezeitraum für Prüfungsleistungen",
+        "details": "Abmeldezeitraum für Studierende von den Prüfungsleistungen"
+      },
+      {
+        "date": "2026-06-03",
+        "title": "Bekanntgabe der endgültigen Prüfungspläne",
+        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel"
+      },
+      {
+        "date": "2026-06-18 to 2026-06-21",
+        "title": "Blockwoche",
+        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis"
+      },
+      {
+        "date": "2026-07-06 to 2026-07-31",
+        "title": "Prüfungszeitraum",
+        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden"
+      },
+      {
+        "date": "2026-07-01 to 2026-08-15",
+        "title": "Rückmeldung für Wintersemester",
+        "details": "Zeitraum zur Rückmeldung für das Wintersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden"
+      },
+      {
+        "date": "2026-08-23",
+        "title": "Endtermin Notenmeldung",
+        "details": "Endtermin für die Meldung der Noten durch die Prüfenden an den Studierendenservice"
+      },
+      {
+        "date": "2026-09-10",
+        "title": "Online-Notenbekanntgabe",
+        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag"
+      }
+    ],
+    "events_without_specific_dates": [
+      {
+        "date": "Juni 2025",
+        "title": "Hochschulwahlen",
+        "details": "Terminbekanntgabe erfolgt separat"
+      },
+      {
+        "date": "Oktober 2025",
+        "title": "Begrüßung der Studienanfängerinnen und -anfänger der berufsbegleitenden Bachelorstudiengänge",
+        "details": "Programm und Termin werden separat bekannt gegeben"
+      },
+      {
+        "date": "Frühjahr / Sommer 2026",
+        "title": "Tag der offenen Tür",
+        "details": "Programm und Termin werden separat bekannt gegeben"
+      },
+      {
+        "date": "Frühjahr / Sommer 2026",
+        "title": "Companies@Campus",
+        "details": "Programm und Termin werden separat bekannt gegeben"
+      },
+      {
+        "date": "Juni 2026",
+        "title": "Hochschulwahlen",
+        "details": "Terminbekanntgabe erfolgt separat"
+      }
+    ]
+  }
+}
