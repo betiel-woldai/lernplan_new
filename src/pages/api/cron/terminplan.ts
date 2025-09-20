@@ -6,6 +6,7 @@ import { TerminplanSchema, TerminplanEntry } from '@/lib/terminplan/contracts';
 import { diffEngine } from '@/lib/terminplan/diff';
 import { query, withTransaction } from '@/lib/db';
 import { getActiveUserId } from '@/utils/user';
+import { hasSubjectTypeColumn } from '@/lib/schemaMetadata';
 import crypto from 'crypto';
 
 // Cron stub: dry-run only, returns diff summary without mutating DB
@@ -127,13 +128,33 @@ function stableUUID(name: string) {
 }
 
 async function ensureTerminplanSubject(userId: string) {
+  const hasType = await hasSubjectTypeColumn();
+
+  // Reuse existing by name per user
   const existing = await query(
-    `SELECT id FROM subjects WHERE user_id = $1 AND name = 'Termine & Fristen' LIMIT 1`,
+    `SELECT id${hasType ? ', subject_type' : ''} FROM subjects WHERE user_id = $1 AND name = 'Termine & Fristen' LIMIT 1`,
     [userId]
   );
-  if (existing.rows[0]?.id) return existing.rows[0].id as string;
+  if (existing.rows[0]?.id) {
+    const id = existing.rows[0].id as string;
+    if (hasType && existing.rows[0].subject_type !== 'administrative') {
+      await query(`UPDATE subjects SET subject_type = 'administrative', updated_at = NOW() WHERE id = $1`, [id]);
+    }
+    return id;
+  }
 
+  // Create new admin subject (set subject_type when available)
   const today = new Date();
+  if (hasType) {
+    const inserted = await query(
+      `INSERT INTO subjects (user_id, name, color, start_date, hours_per_week, days_per_week, intensity_weeks, target_hours, subject_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'administrative')
+       RETURNING id`,
+      [userId, 'Termine & Fristen', '#6B7280', today, 1, 1, 1, 1]
+    );
+    return inserted.rows[0].id as string;
+  }
+
   const inserted = await query(
     `INSERT INTO subjects (user_id, name, color, start_date, hours_per_week, days_per_week, intensity_weeks, target_hours)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

@@ -3,7 +3,8 @@ import { query } from '@/lib/db';
 import { z } from 'zod';
 import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
 import { getActiveUserId } from '@/utils/user';
-import { hasCalendarMetadataColumns } from '@/lib/schemaMetadata';
+import { hasCalendarMetadataColumns, hasSubjectTypeColumn } from '@/lib/schemaMetadata';
+import { isAdministrativeSubject } from '@/lib/subjects/type';
 
 // Validation schema for creating/updating subjects
 const subjectSchema = z.object({
@@ -40,31 +41,49 @@ async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
   // For now, use a default user ID until authentication is implemented
   const userIdToUse = (userId as string) || getActiveUserId();
 
-  const result = await query(`
-    SELECT 
-      id,
-      user_id as "userId",
-      name,
-      color,
-      start_date as "startDate",
-      exam_date as "examDate",
-      hours_per_week as "hoursPerWeek",
-      days_per_week as "daysPerWeek",
-      intensity_weeks as "intensityWeeks",
-      completed_hours as "completedHours",
-      target_hours as "targetHours",
-      created_at as "createdAt",
-      updated_at as "updatedAt"
-    FROM subjects 
-    WHERE user_id = $1
-    ORDER BY created_at DESC
-  `, [userIdToUse]);
+  const hasType = await hasSubjectTypeColumn();
+
+  const result = await query(
+    `SELECT 
+       id,
+       user_id as "userId",
+       name,
+       color,
+       start_date as "startDate",
+       exam_date as "examDate",
+       hours_per_week as "hoursPerWeek",
+       days_per_week as "daysPerWeek",
+       intensity_weeks as "intensityWeeks",
+       completed_hours as "completedHours",
+       target_hours as "targetHours",
+       ${hasType ? 'subject_type as "subjectType",' : ''}
+       created_at as "createdAt",
+       updated_at as "updatedAt"
+     FROM subjects 
+     WHERE user_id = $1
+     ${hasType ? "AND subject_type <> 'administrative'" : ''}
+     ORDER BY created_at DESC`,
+    [userIdToUse]
+  );
 
   // Convert dates to ISO strings for JSON serialization
-  const subjects = result.rows.map(subject => ({
-    ...subject,
+  // Fallback filtering when subject_type column is absent
+  const filtered = hasType
+    ? result.rows
+    : result.rows.filter(s => !isAdministrativeSubject({ name: s.name }, false));
+
+  const subjects = filtered.map(subject => ({
+    id: subject.id,
+    userId: subject.userId,
+    name: subject.name,
+    color: subject.color,
     startDate: subject.startDate?.toISOString(),
     examDate: subject.examDate?.toISOString(),
+    hoursPerWeek: subject.hoursPerWeek,
+    daysPerWeek: subject.daysPerWeek,
+    intensityWeeks: subject.intensityWeeks,
+    completedHours: subject.completedHours,
+    targetHours: subject.targetHours,
     createdAt: subject.createdAt?.toISOString(),
     updatedAt: subject.updatedAt?.toISOString(),
   }));

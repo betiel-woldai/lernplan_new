@@ -39,3 +39,23 @@ export async function hasFixedAppointmentColumns(): Promise<boolean> {
     return false;
   }
 }
+
+// Detects whether the subjects table has a subject_type column
+// Used to enable filtering of administrative subjects while maintaining
+// backwards compatibility when the migration hasn't been applied yet.
+export async function hasSubjectTypeColumn(): Promise<boolean> {
+  try {
+    const result = await query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'subjects'
+           AND column_name = 'subject_type'
+       ) AS "exists"`
+    );
+    return Boolean(result.rows[0]?.exists);
+  } catch (error) {
+    console.warn('Failed to detect subjects.subject_type column:', error);
+    return false;
+  }
+}
