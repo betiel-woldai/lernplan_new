@@ -4,7 +4,7 @@ import { dispatchEvent, createThrottledDispatcher } from '../utils/eventBus';
 import { LearningSession as DomainLearningSession, TimeAdjustment } from '../types';
 import { getBerlinDateString } from '../utils/timezone';
 
-export type SessionState = 'idle' | 'active' | 'paused' | 'completed' | 'saving' | 'extension_needed';
+export type SessionState = 'idle' | 'active' | 'paused' | 'completed' | 'saving' | 'extension_needed' | 'pending-approval';
 
 interface ActiveSessionData {
   subjectId: string;
@@ -44,6 +44,7 @@ export function useActiveSession() {
   const [pausedDuration, setPausedDuration] = useState<number>(0);
   const [pauseStartedAt, setPauseStartedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingSessionData, setPendingSessionData] = useState<CreateSessionData | null>(null);
   
   // Flag to prevent circular sync events
   const isSyncingRef = useRef(false);
@@ -363,9 +364,6 @@ export function useActiveSession() {
 
     try {
       setError(null);
-      // Immediately show saving state for user feedback
-      setSessionState('saving');
-
       // Calculate final elapsed time
       const now = Date.now();
       const totalPausedDuration = pauseStartedAt
@@ -376,7 +374,7 @@ export function useActiveSession() {
 
       const adjustmentsCount = sessionData.timeAdjustments?.length ?? 0;
 
-      // Create session data for API (all subjects including Deep Work)
+      // Create session data for approval (don't save yet)
       const sessionApiData: CreateSessionData = {
         subjectId: sessionData.subjectId,
         duration: elapsedMinutes,
@@ -391,73 +389,10 @@ export function useActiveSession() {
           : undefined
       };
 
-      // Save session to database (now includes Deep Work with proper UUID)
-      const savedSession = await createSession(sessionApiData);
-      console.log('Session saved to database:', {
-        id: savedSession?.id,
-        subject: sessionData.subjectName,
-        duration: elapsedMinutes,
-        points: savedSession?.points
-      });
-      
-      if (savedSession) {
-        // Set to completed state after successful save
-        setSessionState('completed');
-        console.log(`Session completed: ${elapsedMinutes} minutes, ${savedSession.points} XP earned`);
-
-        const adjustmentsLog: TimeAdjustment[] | undefined = sessionApiData.timeAdjustments?.map(adjustment => ({
-          timestamp: new Date(adjustment.timestamp),
-          previousDuration: adjustment.previousDuration,
-          newDuration: adjustment.newDuration,
-          reason: adjustment.reason
-        }));
-
-        const completedSession: DomainLearningSession = {
-          id: savedSession.id,
-          subjectId: savedSession.subjectId,
-          userId: savedSession.userId,
-          date: new Date(savedSession.date),
-          actualDuration: elapsedMinutes,
-          plannedDuration: sessionData.originalTargetDuration,
-          duration: elapsedMinutes,
-          completed: savedSession.completed,
-          points: savedSession.points,
-          notes: savedSession.notes || undefined,
-          sessionExtended: sessionData.totalExtensions > 0,
-          manualAdjustmentReason: sessionApiData.manualAdjustmentReason,
-          timeAdjustmentsLog: adjustmentsLog
-        };
-
-        // Dispatch enhanced session completed event with actual/planned duration info
-        dispatchEvent('sessionCompleted', {
-          session: completedSession,
-          xpGained: savedSession.points,
-          completedAt: Date.now(),
-          elapsedMinutes
-        }, 'useActiveSession');
-
-        // Clear localStorage immediately
-        localStorage.removeItem(STORAGE_KEY);
-
-        // Clear session state after a short delay
-        setTimeout(() => {
-          setSessionState('idle');
-          setSessionData(null);
-          setStartTime(null);
-          setPausedDuration(0);
-          setPauseStartedAt(null);
-          setProgress({
-            elapsedSeconds: 0,
-            targetSeconds: 0,
-            progress: 0,
-          remainingSeconds: 0
-        });
-        }, 1500); // 1.5 second delay to show completion state
-
-        return completedSession;
-      } else {
-        throw new Error('Failed to save session to database');
-      }
+      // Store data for approval modal, don't save yet
+      setPendingSessionData(sessionApiData);
+      setSessionState('pending-approval');
+      return null; // Return null since session isn't saved yet
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save session to calendar';
       setError(errorMessage);
@@ -474,6 +409,76 @@ export function useActiveSession() {
       return null;
     }
   }, [sessionData, sessionState, startTime, pausedDuration, pauseStartedAt, createSession]);
+
+  const approveAndSaveSession = useCallback(async (finalDuration?: number, finalNotes?: string): Promise<DomainLearningSession | null> => {
+    if (!pendingSessionData || sessionState !== 'pending-approval') {
+      setError('No pending session to approve');
+      return null;
+    }
+
+    try {
+      setError(null);
+      setSessionState('saving');
+
+      // Update session data with final values
+      const finalSessionData = {
+        ...pendingSessionData,
+        duration: finalDuration ?? pendingSessionData.duration,
+        notes: finalNotes ?? pendingSessionData.notes
+      };
+
+      // Save session to database
+      const savedSession = await createSession(finalSessionData);
+
+      if (savedSession) {
+        // Clear pending data
+        setPendingSessionData(null);
+        setSessionState('completed');
+
+        // Clear localStorage and session state
+        localStorage.removeItem(STORAGE_KEY);
+        setTimeout(() => {
+          setSessionState('idle');
+          setSessionData(null);
+          setStartTime(null);
+          setPausedDuration(0);
+          setPauseStartedAt(null);
+          setProgress({
+            elapsedSeconds: 0,
+            targetSeconds: 0,
+            progress: 0,
+            remainingSeconds: 0
+          });
+        }, 1500);
+
+        return savedSession;
+      } else {
+        throw new Error('Failed to save session to database');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save session';
+      setError(errorMessage);
+      console.error('Approve session error:', err);
+      setSessionState('pending-approval');
+      return null;
+    }
+  }, [pendingSessionData, sessionState, createSession]);
+
+  const discardPendingSession = useCallback(() => {
+    setPendingSessionData(null);
+    setSessionState('idle');
+    setSessionData(null);
+    setStartTime(null);
+    setPausedDuration(0);
+    setPauseStartedAt(null);
+    setProgress({
+      elapsedSeconds: 0,
+      targetSeconds: 0,
+      progress: 0,
+      remainingSeconds: 0
+    });
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
 
   const cancelSession = useCallback(() => {
     if (sessionState === 'idle') {
@@ -593,12 +598,15 @@ export function useActiveSession() {
   return {
     sessionState,
     sessionData,
+    pendingSessionData,
     progress,
     error,
     startSession,
     pauseSession,
     resumeSession,
     completeSession,
+    approveAndSaveSession,
+    discardPendingSession,
     cancelSession,
     extendSession,
     adjustSessionTime,
