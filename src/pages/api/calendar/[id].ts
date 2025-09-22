@@ -154,6 +154,37 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
         };
       }
 
+      // Award XP when session is marked as completed
+      if (updates.completed === true && sessionRow.planned_duration) {
+        const basePoints = Math.floor(sessionRow.planned_duration / 15) * 10;
+        const completionBonus = Math.floor(basePoints * 0.2);
+        const totalPoints = basePoints + completionBonus;
+
+        if (totalPoints > 0) {
+          // Update user XP
+          await client.query(`
+            UPDATE users
+            SET current_xp = current_xp + $1
+            WHERE id = $2
+          `, [totalPoints, sessionRow.user_id]);
+
+          // Record gamification event
+          await client.query(`
+            INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
+            VALUES ($1, 'session_complete', $2, $3)
+          `, [
+            sessionRow.user_id,
+            JSON.stringify({
+              sessionId: sessionRow.id,
+              duration: sessionRow.planned_duration,
+              sessionType: sessionRow.session_type,
+              source: 'calendar'
+            }),
+            totalPoints
+          ]);
+        }
+      }
+
       return { session: sessionRow, subjectExamUpdate: examUpdate };
     });
 
