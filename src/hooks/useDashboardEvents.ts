@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getLevel, getXPForLevel } from '@/utils/formatters';
 
 interface DashboardEventsOptions {
   refreshSubjects: () => Promise<void> | void;
@@ -9,9 +10,6 @@ interface DashboardEventsOptions {
   setRealtimeLevel: (value: number) => void;
   setRealtimeStreak: (value: number) => void;
   setLastUpdateTime: (value: number) => void;
-  realtimeXP: number;
-  realtimeLevel: number;
-  nextLevelXP: number;
 }
 
 // Centralises all dashboard-level event listeners so the page component remains lean.
@@ -24,9 +22,6 @@ export function useDashboardEvents({
   setRealtimeLevel,
   setRealtimeStreak,
   setLastUpdateTime,
-  realtimeXP,
-  realtimeLevel,
-  nextLevelXP,
 }: DashboardEventsOptions) {
   useEffect(() => {
     const updateTimestamp = () => setLastUpdateTime(Date.now());

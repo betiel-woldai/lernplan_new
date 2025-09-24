@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
+import { getLevel, getXPForLevel } from '@/utils/formatters';
 
 const xpUpdateSchema = z.object({
   userId: z.string(),
@@ -55,16 +56,9 @@ async function addXP(req: NextApiRequest, res: NextApiResponse) {
 
     const currentUser = userResult.rows[0];
     const newXP = currentUser.current_xp + xpGain;
-    let newLevel = currentUser.current_level;
-    let newNextLevelXP = currentUser.next_level_xp;
-    let leveledUp = false;
-
-    // Check if user levels up (simple progression: each level needs 100 more XP)
-    while (newXP >= newNextLevelXP) {
-      newLevel++;
-      newNextLevelXP = newLevel * 100; // Simple formula: level * 100
-      leveledUp = true;
-    }
+    const newLevel = getLevel(newXP);
+    const newNextLevelXP = getXPForLevel(newLevel + 1);
+    const leveledUp = newLevel > currentUser.current_level;
 
     // Update user stats
     await client.query(`

@@ -33,12 +33,47 @@ export function calculateXP(minutes: number, onTime: boolean = true, streak: num
   return baseXP + streakBonus + punctualityBonus;
 }
 
+// German learning ranks - Fun but professional progression
+export const LEARNING_RANKS: Record<number, string> = {
+  1: 'Wissenshunger', // Knowledge hunger
+  2: 'Aufsteiger', // Rising star
+  3: 'Durchstarter', // Go-getter
+  4: 'Wissensjäger', // Knowledge hunter
+  5: 'Lernrakete', // Learning rocket
+  6: 'Denkpilot', // Think pilot
+  7: 'Ideensammler', // Idea collector
+  8: 'Wissensarchitekt', // Knowledge architect
+  9: 'Lernmeister', // Learning master
+  10: 'Denkvirtuose', // Thinking virtuoso
+  11: 'Wissensguru', // Knowledge guru
+  12: 'Lernlegende', // Learning legend
+  13: 'Gedächtnistitan', // Memory titan
+  14: 'Wissenskönig', // Knowledge king
+  15: 'Lernphilosoph' // Learning philosopher
+};
+
 export function getLevel(totalXP: number): number {
-  return Math.floor(Math.sqrt(totalXP / 100)) + 1;
+  if (totalXP < 100) return 1;
+  if (totalXP < 500) return 2;
+  if (totalXP < 1000) return 3;
+
+  // Level 4+ follows pattern: Level n = 500 + (n-3) * 500
+  // Level 4 = 1500, Level 5 = 2000, etc.
+  const level = Math.floor((totalXP - 1000) / 500) + 4;
+  return Math.max(4, level);
 }
 
 export function getXPForLevel(level: number): number {
-  return Math.pow(level - 1, 2) * 100;
+  if (level <= 1) return 100;
+  if (level === 2) return 500;
+  if (level === 3) return 1000;
+
+  // Level 4+ follows pattern: 500 + (level-3) * 500
+  return 500 + (level - 3) * 500;
+}
+
+export function getLearningRank(level: number): string {
+  return LEARNING_RANKS[level] || `Level ${level}`;
 }
 
 export function getXPProgress(currentXP: number, currentLevel: number): {

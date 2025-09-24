@@ -9,7 +9,7 @@ import { useSessionStats } from '@/hooks/useSessionStats';
 import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
 import useCalendarSessions from '@/hooks/useCalendarSessions';
 import { CalendarSession } from '@/types/calendar';
-import { getXPProgress } from '@/utils/formatters';
+import { getXPProgress, getLevel, getXPForLevel } from '@/utils/formatters';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import CalendarSection from '@/components/Dashboard/CalendarSection';
 import StatsSidebar from '@/components/Dashboard/StatsSidebar';
@@ -27,11 +27,12 @@ export default function Dashboard() {
   const { refreshSessions: refreshCalendarSessions } = useCalendarSessions();
   // Use real user stats XP data with gamification fallback when unavailable
   const currentXP = userStats?.currentXP ?? gamification.currentXP;
-  const currentLevel = userStats?.currentLevel ?? gamification.currentLevel;
+  const calculatedLevel = getLevel(currentXP); // Always calculate level from XP
+  const currentLevel = calculatedLevel;
   const learningStreak = userStats?.learningStreak ?? gamification.streak;
-  
+
   const xpProgress = getXPProgress(currentXP, currentLevel);
-  const nextLevelXP = userStats?.nextLevelXP ?? xpProgress.nextLevelXP;
+  const nextLevelXP = getXPForLevel(currentLevel + 1);
   
   // Real-time update states - now using database values as base
   const [realtimeXP, setRealtimeXP] = useState(currentXP);
@@ -41,8 +42,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (userStats) {
-      setRealtimeXP(userStats.currentXP || 0);
-      setRealtimeLevel(userStats.currentLevel || 1);
+      const xp = userStats.currentXP || 0;
+      setRealtimeXP(xp);
+      setRealtimeLevel(getLevel(xp)); // Always calculate level from XP
       setRealtimeStreak(userStats.learningStreak || 0);
     }
   }, [userStats]);
@@ -88,7 +90,7 @@ export default function Dashboard() {
         <StatsSidebar
           realtimeXP={realtimeXP}
           realtimeLevel={realtimeLevel}
-          nextLevelXP={userStats?.nextLevelXP || nextLevelXP}
+          nextLevelXP={getXPForLevel(realtimeLevel + 1)}
           selectedDate={selectedDate}
           showAchievements={false}
           loading={userStatsLoading}

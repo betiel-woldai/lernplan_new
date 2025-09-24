@@ -3,6 +3,7 @@ import DirectCalendarStats from '@/components/DirectCalendarStats';
 import AchievementBadge from '@/components/AchievementBadge';
 import { Achievement } from '@/types';
 import { formatXPTotal } from '@/utils/format';
+import { getLearningRank } from '@/utils/formatters';
 import { FaTrophy } from 'react-icons/fa';
 
 interface StatsSidebarProps {
@@ -29,12 +30,16 @@ export function StatsSidebar({
   const progressXP = loading ? 0 : realtimeXP;
   const progressNext = loading ? nextLevelXP : nextLevelXP;
   const progressLevel = loading ? 0 : realtimeLevel;
+  const rankName = loading ? '…' : getLearningRank(realtimeLevel);
 
   return (
     <div className="lg:col-span-1 space-y-4">
       <div className="bg-white rounded-xl border border-gray-200 p-4" data-testid="gamification-section">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900">Level</h3>
+          <div className="flex flex-col">
+            <h3 className="text-base font-semibold text-gray-900">Rank</h3>
+            <span className="text-sm text-indigo-600 font-medium">{rankName}</span>
+          </div>
           <span className="text-xs text-gray-500" data-testid="total-xp">
             {xpLabel}
           </span>

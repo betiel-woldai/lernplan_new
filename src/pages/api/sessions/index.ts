@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
 import { getActiveUserId } from '@/utils/user';
+import { getLevel, getXPForLevel } from '@/utils/formatters';
 
 interface DbLearningSessionRow {
   id: string;
@@ -231,17 +232,29 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
 
       // Add XP to user if session is completed
       if (sessionData.completed) {
+        // Get current user XP to calculate new level
+        const userXPResult = await client.query(`
+          SELECT current_xp FROM users WHERE id = $1
+        `, [sessionData.userId]);
+
+        const currentXP = userXPResult.rows[0]?.current_xp || 0;
+        const newXP = currentXP + totalPoints;
+        const newLevel = getLevel(newXP);
+        const newNextLevelXP = getXPForLevel(newLevel + 1);
+
         const userHoursToAdd = Math.round(sessionData.duration / 60);
         await client.query(`
-          UPDATE users 
-          SET current_xp = current_xp + $1,
-              daily_learning_time = daily_learning_time + $2,
-              weekly_learning_time = weekly_learning_time + $2,
-              total_hours = total_hours + $3,
+          UPDATE users
+          SET current_xp = $1,
+              current_level = $2,
+              next_level_xp = $3,
+              daily_learning_time = daily_learning_time + $4,
+              weekly_learning_time = weekly_learning_time + $4,
+              total_hours = total_hours + $5,
               completed_tasks = completed_tasks + 1,
               total_completed_tasks = total_completed_tasks + 1
-          WHERE id = $4
-        `, [totalPoints, sessionData.duration, userHoursToAdd, sessionData.userId]);
+          WHERE id = $6
+        `, [newXP, newLevel, newNextLevelXP, sessionData.duration, userHoursToAdd, sessionData.userId]);
 
         // Record gamification event
         await client.query(`
