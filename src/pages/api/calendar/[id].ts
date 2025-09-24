@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
+import { calculateXP } from '@/utils/formatters';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -154,34 +155,81 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
         };
       }
 
-      // Award XP when session is marked as completed
-      if (updates.completed === true && sessionRow.planned_duration) {
-        const basePoints = Math.floor(sessionRow.planned_duration / 15) * 10;
-        const completionBonus = Math.floor(basePoints * 0.2);
-        const totalPoints = basePoints + completionBonus;
+      // Handle XP changes when completion status changes
+      if (updates.completed !== undefined) {
+        const completionStatusChanged = updates.completed !== sessionRow.completed;
 
-        if (totalPoints > 0) {
-          // Update user XP
-          await client.query(`
-            UPDATE users
-            SET current_xp = current_xp + $1
-            WHERE id = $2
-          `, [totalPoints, sessionRow.user_id]);
+        if (completionStatusChanged) {
+          let xpChange = 0;
+          let xpAwarded = 0;
 
-          // Record gamification event
-          await client.query(`
-            INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
-            VALUES ($1, 'session_complete', $2, $3)
-          `, [
-            sessionRow.user_id,
-            JSON.stringify({
-              sessionId: sessionRow.id,
-              duration: sessionRow.planned_duration,
-              sessionType: sessionRow.session_type,
-              source: 'calendar'
-            }),
-            totalPoints
-          ]);
+          if (updates.completed === true) {
+            // When marking complete: Calculate exact XP with bonuses using current streak
+            const sessionDuration = sessionRow.actual_duration || sessionRow.planned_duration;
+            const currentUserResult = await client.query(`
+              SELECT learning_streak
+              FROM users WHERE id = $1
+            `, [sessionRow.user_id]);
+
+            const userStreak = currentUserResult.rows[0]?.learning_streak || 0;
+            xpAwarded = calculateXP(sessionDuration, true, userStreak); // Calculate with bonuses
+            xpChange = xpAwarded;
+
+            // Update calendar session with awarded XP
+            await client.query(`
+              UPDATE calendar_sessions
+              SET xp_awarded = $1
+              WHERE id = $2
+            `, [xpAwarded, sessionRow.id]);
+
+          } else if (updates.completed === false) {
+            // When unmarking: Use stored xp_awarded for exact reversal
+            xpAwarded = 0;
+            xpChange = -(sessionRow.xp_awarded || 0); // Subtract exact XP that was awarded
+
+            // Reset xp_awarded to 0
+            await client.query(`
+              UPDATE calendar_sessions
+              SET xp_awarded = 0
+              WHERE id = $1
+            `, [sessionRow.id]);
+          }
+
+          if (xpChange !== 0) {
+            // Get current user values to prevent negative values
+            const currentUserResult = await client.query(`
+              SELECT current_xp
+              FROM users WHERE id = $1
+            `, [sessionRow.user_id]);
+
+            const currentUser = currentUserResult.rows[0];
+            const newXp = Math.max(0, currentUser.current_xp + xpChange);
+
+            // Update user XP
+            await client.query(`
+              UPDATE users
+              SET current_xp = $1
+              WHERE id = $2
+            `, [newXp, sessionRow.user_id]);
+
+            // Record gamification event
+            const eventType = updates.completed === true ? 'session_complete' : 'xp_loss';
+            await client.query(`
+              INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
+              VALUES ($1, $2, $3, $4)
+            `, [
+              sessionRow.user_id,
+              eventType,
+              JSON.stringify({
+                sessionId: sessionRow.id,
+                duration: sessionRow.actual_duration || sessionRow.planned_duration,
+                sessionType: sessionRow.session_type,
+                source: 'calendar',
+                action: updates.completed === true ? 'complete' : 'uncomplete'
+              }),
+              updates.completed === true ? Math.max(0, xpChange) : 0
+            ]);
+          }
         }
       }
 
