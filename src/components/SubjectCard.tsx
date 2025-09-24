@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import { Subject } from '../types';
-import { FaEdit, FaTrash, FaCalendarAlt, FaClock, FaCalendarWeek, FaFire, FaPlay } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaCalendarAlt, FaClock, FaCalendarWeek, FaFire } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 
 export interface SubjectCardProps {
   subject: Subject;
   onEdit: (subject: Subject) => void;
   onDelete: (id: string) => void;
-  onStartSession?: (subject: Subject) => void;
 }
 
-export const SubjectCard: React.FC<SubjectCardProps> = ({ 
-  subject, 
-  onEdit, 
-  onDelete,
-  onStartSession
+export const SubjectCard: React.FC<SubjectCardProps> = ({
+  subject,
+  onEdit,
+  onDelete
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -76,18 +74,8 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
             </div>
           </div>
           
-          {/* Action buttons - Start button prominent */}
+          {/* Action buttons */}
           <div className="flex space-x-2">
-            {onStartSession && (
-              <button
-                onClick={() => onStartSession(subject)}
-                className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
-                title="Start learning session"
-              >
-                <FaPlay className="w-3 h-3 mr-1.5 inline" />
-                Start
-              </button>
-            )}
             <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <button
                 onClick={() => onEdit(subject)}
