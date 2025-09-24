@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
 import { getActiveUserId } from '@/utils/user';
+import { calculateXP } from '@/utils/formatters';
 
 // Session update validation schema
 const updateSessionSchema = z.object({
@@ -142,6 +143,21 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         paramIndex++;
       }
 
+      // Add xp_awarded field when completion status changes
+      if (completionStatusChanged) {
+        // Calculate XP to store (will be set later in the transaction)
+        let xpToStore = 0;
+        if (nowCompleted) {
+          const sessionDuration = updateData.duration || current.duration;
+          const userResult = await client.query(`SELECT learning_streak FROM users WHERE id = $1`, [userId]);
+          const userStreak = userResult.rows[0]?.learning_streak || 0;
+          xpToStore = calculateXP(sessionDuration, true, userStreak);
+        }
+        updateFields.push(`xp_awarded = $${paramIndex}`);
+        updateValues.push(xpToStore);
+        paramIndex++;
+      }
+
       if (updateFields.length === 0) {
         throw new Error('No fields to update');
       }
@@ -168,21 +184,41 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
 
       // Update user stats if completion status changed
       if (completionStatusChanged) {
-        const pointsChange = nowCompleted ? (updateData.points || current.points) : -(updateData.points || current.points);
+        // Calculate XP change based on completion status
+        let xpChange = 0;
+        let xpAwarded = 0;
+
+        if (nowCompleted) {
+          // When marking complete: Calculate exact XP with bonuses using current streak
+          const sessionDuration = updateData.duration || current.duration;
+          const currentUserResult = await client.query(`
+            SELECT learning_streak
+            FROM users WHERE id = $1
+          `, [userId]);
+
+          const userStreak = currentUserResult.rows[0]?.learning_streak || 0;
+          xpAwarded = calculateXP(sessionDuration, true, userStreak); // Calculate with bonuses
+          xpChange = xpAwarded;
+        } else {
+          // When unmarking: Use stored xp_awarded for exact reversal
+          xpAwarded = 0;
+          xpChange = -(current.xp_awarded || 0); // Subtract exact XP that was awarded
+        }
+
         const taskChange = nowCompleted ? 1 : -1;
         const timeChange = nowCompleted ? (updateData.duration || current.duration) : -(updateData.duration || current.duration);
         const userHoursChange = Math.round(Math.abs(timeChange) / 60); // integer hours for users.total_hours
 
         // Get current user values to prevent negative values
         const currentUserResult = await client.query(`
-          SELECT current_xp, daily_learning_time, weekly_learning_time, total_hours, completed_tasks, total_completed_tasks
+          SELECT current_xp, daily_learning_time, weekly_learning_time, total_hours, completed_tasks, total_completed_tasks, learning_streak
           FROM users WHERE id = $1
         `, [userId]);
 
         const currentUser = currentUserResult.rows[0];
-        
+
         // Calculate safe values that won't go negative
-        const newXp = Math.max(0, currentUser.current_xp + pointsChange);
+        const newXp = Math.max(0, currentUser.current_xp + xpChange);
         const newDailyTime = Math.max(0, currentUser.daily_learning_time + timeChange);
         const newWeeklyTime = Math.max(0, currentUser.weekly_learning_time + timeChange);
         const newTotalHours = Math.max(0, nowCompleted ? currentUser.total_hours + userHoursChange : Math.max(0, currentUser.total_hours - userHoursChange));
@@ -214,7 +250,7 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
               subjectId: current.subject_id,
               action: 'update'
             }),
-            nowCompleted ? Math.max(0, pointsChange) : 0 // XP only for completion, 0 for incompletion
+            nowCompleted ? Math.max(0, xpChange) : 0 // XP only for completion, 0 for incompletion
           ]);
         }
       }
