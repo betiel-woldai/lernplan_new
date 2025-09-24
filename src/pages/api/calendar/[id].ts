@@ -134,6 +134,19 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
     `;
 
     const { session: updatedSession, subjectExamUpdate } = await withTransaction(async client => {
+      // FIRST: Get current session state BEFORE updating
+      const currentSessionResult = await client.query(
+        'SELECT * FROM calendar_sessions WHERE id = $1',
+        [sessionId]
+      );
+
+      if (currentSessionResult.rows.length === 0) {
+        return { session: null, subjectExamUpdate: null };
+      }
+
+      const oldSessionRow = currentSessionResult.rows[0];
+
+      // SECOND: Update the session
       const result = await client.query(sqlQuery, updateValues);
 
       if (result.rows.length === 0) {
@@ -157,7 +170,7 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
 
       // Handle XP changes when completion status changes
       if (updates.completed !== undefined) {
-        const completionStatusChanged = updates.completed !== sessionRow.completed;
+        const completionStatusChanged = updates.completed !== oldSessionRow.completed;
 
         if (completionStatusChanged) {
           let xpChange = 0;
@@ -185,7 +198,7 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
           } else if (updates.completed === false) {
             // When unmarking: Use stored xp_awarded for exact reversal
             xpAwarded = 0;
-            xpChange = -(sessionRow.xp_awarded || 0); // Subtract exact XP that was awarded
+            xpChange = -(oldSessionRow.xp_awarded || 0); // Subtract exact XP that was awarded
 
             // Reset xp_awarded to 0
             await client.query(`
@@ -212,23 +225,24 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
               WHERE id = $2
             `, [newXp, sessionRow.user_id]);
 
-            // Record gamification event
-            const eventType = updates.completed === true ? 'session_complete' : 'xp_loss';
-            await client.query(`
-              INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
-              VALUES ($1, $2, $3, $4)
-            `, [
-              sessionRow.user_id,
-              eventType,
-              JSON.stringify({
-                sessionId: sessionRow.id,
-                duration: sessionRow.actual_duration || sessionRow.planned_duration,
-                sessionType: sessionRow.session_type,
-                source: 'calendar',
-                action: updates.completed === true ? 'complete' : 'uncomplete'
-              }),
-              updates.completed === true ? Math.max(0, xpChange) : 0
-            ]);
+            // Record gamification event (only for completion, not for unmarking)
+            if (updates.completed === true) {
+              await client.query(`
+                INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
+                VALUES ($1, $2, $3, $4)
+              `, [
+                sessionRow.user_id,
+                'session_complete',
+                JSON.stringify({
+                  sessionId: sessionRow.id,
+                  duration: sessionRow.actual_duration || sessionRow.planned_duration,
+                  sessionType: sessionRow.session_type,
+                  source: 'calendar',
+                  action: 'complete'
+                }),
+                Math.max(0, xpChange)
+              ]);
+            }
           }
         }
       }
