@@ -92,26 +92,35 @@ function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Dat
     return out;
   }
 
-  // Range expansion (inclusive), with guard against very large spans
+  // Range expansion: Only mark start and end dates to reduce visual clutter
   if (e.date_from && e.date_to && DATE_RE.test(e.date_from) && DATE_RE.test(e.date_to)) {
     const start = new Date(`${e.date_from}T00:00:00`);
     const end = new Date(`${e.date_to}T00:00:00`);
     if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
-      const MAX_DAYS = 120;
-      let days = 0;
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        if (days++ > MAX_DAYS) break; // guardrail
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        const iso = `${yyyy}-${mm}-${dd}`;
-        const w = decorate(iso);
+      // Check if start and end are the same date
+      if (e.date_from === e.date_to) {
+        // Same date: create single event with original title
+        const w = decorate(e.date_from);
         if (w) out.push(w);
-      }
-      // If we exceeded guardrail (very long range), fall back to showing only endpoints
-      if (out.length === 0) {
-        const s = decorate(e.date_from); if (s) out.push(s);
-        const t = decorate(e.date_to); if (t && t.date !== s?.date) out.push(t);
+      } else {
+        // Different dates: create start and end markers
+        const startWin = mk(e.date_from);
+        if (startWin) {
+          out.push({
+            ...startWin,
+            title: `Start ${e.title}`,
+            details: e.details
+          });
+        }
+
+        const endWin = mk(e.date_to);
+        if (endWin) {
+          out.push({
+            ...endWin,
+            title: `Ende ${e.title}`,
+            details: e.details
+          });
+        }
       }
       return out;
     }
