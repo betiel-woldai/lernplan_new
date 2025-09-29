@@ -9,7 +9,14 @@
       {
         "date": "2025-05-01",
         "title": "Maifeiertag",
-        "details": "Gesetzlicher Feiertag"
+        "details": "Gesetzlicher Feiertag",
+        "popupMessage": "🌸 Maifeiertag! Zeit zum Durchatmen und Energie tanken für die kommenden Wochen! 💪"
+      },
+      {
+        "date": "2025-09-29",
+        "title": "Popup-Test Tag",
+        "details": "Test-Event für das neue Popup-Reminder System",
+        "popupMessage": "🎉 <strong>System-Test erfolgreich!</strong><br>Das neue Popup-Reminder System funktioniert perfekt. Zeit für produktives Lernen! 📚"
       },
       {
         "date": "2025-05-29",
