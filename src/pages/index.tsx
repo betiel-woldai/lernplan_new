@@ -15,6 +15,9 @@ import CalendarSection from '@/components/Dashboard/CalendarSection';
 import StatsSidebar from '@/components/Dashboard/StatsSidebar';
 import useDashboardEvents from '@/hooks/useDashboardEvents';
 import TerminplanReminderToasts from '@/components/TerminplanReminderToasts';
+import { TodaysTerminplanModal } from '@/components/TodaysTerminplanModal';
+import { useTodaysTerminplanEvents } from '@/hooks/useTodaysTerminplanEvents';
+import { useTodaysTerminplanModal } from '@/hooks/useTodaysTerminplanModal';
 
 export default function Dashboard() {
   const { userStats, loading: userStatsLoading, refreshStats } = useUserStats();
@@ -24,7 +27,18 @@ export default function Dashboard() {
   const { stats: dateStats, loading: dateStatsLoading } = useDateSpecificStats(selectedDate);
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
   const { subjects, refreshSubjects } = useSubjects();
-  const { refreshSessions: refreshCalendarSessions } = useCalendarSessions();
+  const { refreshSessions: refreshCalendarSessions, sessions: allSessions, fetchSessionsForDateRange } = useCalendarSessions();
+
+  // Today's terminplan events popup system
+  const { todaysEvents, hasEvents } = useTodaysTerminplanEvents(allSessions);
+  const { isModalOpen, dismissModal, dismissForToday } = useTodaysTerminplanModal(hasEvents);
+
+  // Ensure today's sessions are loaded for popup evaluation (isolated from Calendar's own hook instance)
+  useEffect(() => {
+    const today = new Date();
+    fetchSessionsForDateRange(today, today).catch(() => {});
+  }, [fetchSessionsForDateRange]);
+
   // Use real user stats XP data with gamification fallback when unavailable
   const currentXP = userStats?.currentXP ?? gamification.currentXP;
   const calculatedLevel = getLevel(currentXP); // Always calculate level from XP
@@ -109,6 +123,14 @@ export default function Dashboard() {
           onClose={gamification.closeLevelUpModal}
         />
       )}
+
+      {/* Today's Terminplan Events Modal */}
+      <TodaysTerminplanModal
+        isOpen={isModalOpen}
+        events={todaysEvents}
+        onClose={dismissModal}
+        onDismissForToday={dismissForToday}
+      />
 
     </Layout>
   );

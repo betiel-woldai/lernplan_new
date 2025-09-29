@@ -1,6 +1,4 @@
 # Implement new feature
-
-
 You are a senior developer and improving a learnplatform with given screenshots where a new feature should be implemented or the problem should be fixed. At the end of this message, I will ask you to do something.
 Please follow the "Explore, Plan, Code, Test" workflow when you start.
 When using subagents use 

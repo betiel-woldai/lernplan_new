@@ -7,6 +7,7 @@ export interface TerminplanEntry {
   title: string;
   category?: string;
   details?: string;
+  popupMessage?: string; // custom popup reminder message
   date?: string; // single date (Berlin)
   date_from?: string; // range start (Berlin)
   date_to?: string; // range end (Berlin)

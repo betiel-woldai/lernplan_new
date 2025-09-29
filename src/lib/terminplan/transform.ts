@@ -27,6 +27,7 @@ export function transformAcademicCalendar(json: unknown): TerminplanEntry[] | nu
     for (const raw of items) {
       const title = (raw?.title || raw?.name || '').toString();
       const details = (raw?.details || raw?.description)?.toString();
+      const popupMessage = raw?.popupMessage?.toString();
       const rawDate = (raw?.date || '').toString().trim();
 
       let date: string | undefined;
@@ -41,7 +42,7 @@ export function transformAcademicCalendar(json: unknown): TerminplanEntry[] | nu
         date = rawDate;
       }
 
-      out.push({ title, details, category: section, date, date_from, date_to });
+      out.push({ title, details, popupMessage, category: section, date, date_from, date_to });
     }
   }
 

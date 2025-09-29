@@ -26,6 +26,8 @@ export interface CalendarSession {
   fixedSource?: 'terminplan' | 'other';
   // All-day events (no specific time, shown as full-day blocks)
   isAllDay?: boolean;
+  // Custom popup reminder message for terminplan events
+  popupMessage?: string;
 }
 
 export interface CalendarDay {

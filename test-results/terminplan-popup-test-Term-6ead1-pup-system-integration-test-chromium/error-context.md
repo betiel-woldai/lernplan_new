@@ -1,0 +1,202 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "L Lernplaner" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9] [cursor=pointer]: L
+          - heading "Lernplaner" [level=1] [ref=e10] [cursor=pointer]
+        - navigation [ref=e11]:
+          - link "Übersicht" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - link "Fächer" [ref=e13] [cursor=pointer]:
+            - /url: /subjects
+          - link "Statistiken" [ref=e14] [cursor=pointer]:
+            - /url: /analytics
+          - button "Start" [ref=e16] [cursor=pointer]:
+            - img [ref=e17] [cursor=pointer]
+            - generic [ref=e19] [cursor=pointer]: Start
+          - button "Einstellungen" [ref=e20] [cursor=pointer]:
+            - img [ref=e21] [cursor=pointer]
+          - generic "Version und Build-Info" [ref=e23]: v1.8.0 (18a9e54)
+    - main [ref=e24]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]: "2"
+          - generic [ref=e30]:
+            - heading "Übersicht 📅" [level=1] [ref=e31]
+            - paragraph [ref=e32]: Dein zentraler Lernplaner mit Kalender und Fortschritt
+        - generic [ref=e33]: Willkommen zurück, Default User! 👋
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - paragraph [ref=e37]:
+            - strong [ref=e38]: "Kalender-Funktionen:"
+            - text: Klicken Sie auf leere Termine, um neue Sessions zu erstellen. Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für Schnellbearbeitung.
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - heading "Lernkalender" [level=2] [ref=e41]
+              - generic [ref=e42]: Klicke auf Termine für Details
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - generic [ref=e45]:
+                  - generic [ref=e46]:
+                    - button "Vorheriger Monat" [ref=e47] [cursor=pointer]:
+                      - img [ref=e48] [cursor=pointer]
+                    - heading "September 2025" [level=2] [ref=e50]
+                    - button "Nächster Monat" [ref=e51] [cursor=pointer]:
+                      - img [ref=e52] [cursor=pointer]
+                  - button "Heute" [ref=e54] [cursor=pointer]
+                - generic [ref=e55]:
+                  - generic [ref=e56]:
+                    - checkbox "Uni‑Termine" [checked] [ref=e57]
+                    - generic [ref=e58]: Uni‑Termine
+                  - button "Session" [disabled] [ref=e59]:
+                    - img [ref=e60]
+                    - generic [ref=e62]: Session
+                  - generic [ref=e63]:
+                    - button "Monat" [ref=e64] [cursor=pointer]:
+                      - img [ref=e65] [cursor=pointer]
+                      - generic [ref=e67] [cursor=pointer]: Monat
+                    - button "Woche" [ref=e68] [cursor=pointer]:
+                      - img [ref=e69] [cursor=pointer]
+                      - generic [ref=e71] [cursor=pointer]: Woche
+                    - button "Tag" [ref=e72] [cursor=pointer]:
+                      - img [ref=e73] [cursor=pointer]
+                      - generic [ref=e75] [cursor=pointer]: Tag
+              - generic [ref=e77]:
+                - generic [ref=e78]:
+                  - generic [ref=e79]: So
+                  - generic [ref=e80]: Mo
+                  - generic [ref=e81]: Di
+                  - generic [ref=e82]: Mi
+                  - generic [ref=e83]: Do
+                  - generic [ref=e84]: Fr
+                  - generic [ref=e85]: Sa
+                - generic [ref=e86]:
+                  - generic [ref=e88] [cursor=pointer]: "31"
+                  - generic [ref=e90] [cursor=pointer]: "1"
+                  - generic [ref=e92] [cursor=pointer]: "2"
+                  - generic [ref=e94] [cursor=pointer]: "3"
+                  - generic [ref=e96] [cursor=pointer]: "4"
+                  - generic [ref=e98] [cursor=pointer]: "5"
+                  - generic [ref=e100] [cursor=pointer]: "6"
+                  - generic [ref=e102] [cursor=pointer]: "7"
+                  - generic [ref=e104] [cursor=pointer]: "8"
+                  - generic [ref=e106] [cursor=pointer]: "9"
+                  - generic [ref=e107] [cursor=pointer]:
+                    - generic [ref=e108] [cursor=pointer]: "10"
+                    - generic [ref=e113] [cursor=pointer]: Online-Notenbekanntgabe
+                  - generic [ref=e115] [cursor=pointer]: "11"
+                  - generic [ref=e117] [cursor=pointer]: "12"
+                  - generic [ref=e119] [cursor=pointer]: "13"
+                  - generic [ref=e121] [cursor=pointer]: "14"
+                  - generic [ref=e123] [cursor=pointer]: "15"
+                  - generic [ref=e125] [cursor=pointer]: "16"
+                  - generic [ref=e127] [cursor=pointer]: "17"
+                  - generic [ref=e129] [cursor=pointer]: "18"
+                  - generic [ref=e131] [cursor=pointer]: "19"
+                  - generic [ref=e133] [cursor=pointer]: "20"
+                  - generic [ref=e135] [cursor=pointer]: "21"
+                  - generic [ref=e136] [cursor=pointer]:
+                    - generic [ref=e137] [cursor=pointer]: "22"
+                    - generic [ref=e140] [cursor=pointer]:
+                      - generic [ref=e141] [cursor=pointer]:
+                        - generic [ref=e142] [cursor=pointer]: Mathe Study Session
+                        - generic [ref=e143] [cursor=pointer]: auto
+                      - button "Als abgeschlossen markieren" [ref=e145] [cursor=pointer]:
+                        - img [ref=e146] [cursor=pointer]
+                  - generic [ref=e148] [cursor=pointer]:
+                    - generic [ref=e149] [cursor=pointer]: "23"
+                    - generic [ref=e152] [cursor=pointer]:
+                      - generic [ref=e153] [cursor=pointer]:
+                        - generic [ref=e154] [cursor=pointer]: Mathe Study Session
+                        - generic [ref=e155] [cursor=pointer]: auto
+                      - button "Als abgeschlossen markieren" [ref=e157] [cursor=pointer]:
+                        - img [ref=e158] [cursor=pointer]
+                  - generic [ref=e160] [cursor=pointer]:
+                    - generic [ref=e161] [cursor=pointer]: "24"
+                    - generic [ref=e162] [cursor=pointer]:
+                      - generic [ref=e164] [cursor=pointer]:
+                        - generic [ref=e165] [cursor=pointer]:
+                          - generic [ref=e166] [cursor=pointer]: Mathe Study Session
+                          - generic [ref=e167] [cursor=pointer]: auto
+                        - button "Als abgeschlossen markieren" [ref=e169] [cursor=pointer]:
+                          - img [ref=e170] [cursor=pointer]
+                      - generic [ref=e173] [cursor=pointer]:
+                        - generic [ref=e175] [cursor=pointer]: Test Session for XP
+                        - button "Als ausstehend markieren" [ref=e177] [cursor=pointer]:
+                          - img [ref=e178] [cursor=pointer]
+                  - generic [ref=e180] [cursor=pointer]:
+                    - generic [ref=e181] [cursor=pointer]: "25"
+                    - generic [ref=e184] [cursor=pointer]:
+                      - generic [ref=e186] [cursor=pointer]: uni
+                      - button "Als abgeschlossen markieren" [ref=e188] [cursor=pointer]:
+                        - img [ref=e189] [cursor=pointer]
+                  - generic [ref=e192] [cursor=pointer]: "26"
+                  - generic [ref=e194] [cursor=pointer]: "27"
+                  - generic [ref=e196] [cursor=pointer]: "28"
+                  - generic [ref=e197] [cursor=pointer]:
+                    - generic [ref=e198] [cursor=pointer]: "29"
+                    - generic [ref=e201] [cursor=pointer]:
+                      - generic [ref=e202] [cursor=pointer]:
+                        - generic [ref=e203] [cursor=pointer]: Mathe Study Session
+                        - generic [ref=e204] [cursor=pointer]: auto
+                      - button "Zukünftige Sessions sind immer ausstehend" [ref=e206]:
+                        - img [ref=e207]
+                  - generic [ref=e209] [cursor=pointer]:
+                    - generic [ref=e210] [cursor=pointer]: "30"
+                    - generic [ref=e211] [cursor=pointer]:
+                      - generic [ref=e215] [cursor=pointer]: Ende Vorlesungsfreie Zeit SS
+                      - generic [ref=e217] [cursor=pointer]:
+                        - generic [ref=e218] [cursor=pointer]:
+                          - generic [ref=e219] [cursor=pointer]: Mathe Study Session
+                          - generic [ref=e220] [cursor=pointer]: auto
+                        - button "Zukünftige Sessions sind immer ausstehend" [ref=e222]:
+                          - img [ref=e223]
+                  - generic [ref=e226] [cursor=pointer]: "1"
+                  - generic [ref=e228] [cursor=pointer]: "2"
+                  - generic [ref=e230] [cursor=pointer]: "3"
+                  - generic [ref=e232] [cursor=pointer]: "4"
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - generic [ref=e235]:
+              - generic [ref=e236]:
+                - heading "Rank" [level=3] [ref=e237]
+                - generic [ref=e238]: Aufsteiger
+              - generic [ref=e239]: 140 XP Total
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - generic [ref=e242]: Level 2
+                - generic [ref=e243]: 40 / 900 XP
+              - generic [ref=e246]:
+                - generic [ref=e247]: 4.4% bis Level 3
+                - generic [ref=e248]: 860 XP verbleibend
+          - generic [ref=e249]:
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - generic [ref=e252]:
+                  - img [ref=e253]
+                  - generic [ref=e255]: Heute
+                - generic [ref=e256]: 0h 0m
+              - generic [ref=e258]: von 2h Ziel
+            - generic [ref=e259]:
+              - generic [ref=e260]:
+                - generic [ref=e261]:
+                  - img [ref=e262]
+                  - generic [ref=e264]: Sessions
+                - generic [ref=e265]: "0"
+              - generic [ref=e266]: heute abgeschlossen
+            - generic [ref=e267]:
+              - generic [ref=e268]:
+                - generic [ref=e269]:
+                  - img [ref=e270]
+                  - generic [ref=e272]: Streak
+                - generic [ref=e273]: "0"
+              - generic [ref=e274]: Tage in Folge bis heute
+    - contentinfo [ref=e275]:
+      - paragraph [ref=e278]: © 2024 Lernplaner. Für besseres Lernen mit Gamification.
+  - alert [ref=e279]
+```

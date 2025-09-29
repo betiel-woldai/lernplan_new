@@ -68,7 +68,7 @@ async function loadExistingCanonical() {
   return { entries } as any;
 }
 
-function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string }>{
+function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string; popupMessage?: string }>{
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   const mk = (d: string) => {
     if (!DATE_RE.test(d)) return null;
@@ -80,10 +80,10 @@ function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Dat
 
   const decorate = (d: string) => {
     const win = mk(d);
-    return win ? { ...win, title: e.title, details: e.details } : null;
+    return win ? { ...win, title: e.title, details: e.details, popupMessage: e.popupMessage } : null;
   };
 
-  const out: Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string }> = [];
+  const out: Array<{ date: string; startISO: Date; endISO: Date; title: string; details?: string; popupMessage?: string }> = [];
 
   // Single date
   if (e.date && DATE_RE.test(e.date)) {
@@ -109,7 +109,8 @@ function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Dat
           out.push({
             ...startWin,
             title: `Start ${e.title}`,
-            details: e.details
+            details: e.details,
+            popupMessage: e.popupMessage
           });
         }
 
@@ -118,7 +119,8 @@ function toEventWindows(e: TerminplanEntry): Array<{ date: string; startISO: Dat
           out.push({
             ...endWin,
             title: `Ende ${e.title}`,
-            details: e.details
+            details: e.details,
+            popupMessage: e.popupMessage
           });
         }
       }
@@ -216,13 +218,20 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
         const id = stableUUID(`terminplan:${perDayKey}`);
         const plannedMinutes = Math.max(1, Math.round((w.endISO.getTime() - w.startISO.getTime()) / 60000));
 
+        // Store both details and popupMessage in description field as JSON
+        const descriptionData = {
+          details: w.details || null,
+          popupMessage: w.popupMessage || null
+        };
+        const descriptionJson = JSON.stringify(descriptionData);
+
         if (byKey.has(perDayKey)) {
           await client.query(
             `UPDATE calendar_sessions SET
                title = $1, description = $2, start_time = $3, end_time = $4,
                planned_duration = $5, session_type = $6, is_all_day = TRUE, updated_at = NOW()
              WHERE fixed_source = 'terminplan' AND fixed_source_key = $7`,
-            [e.title, w.details || null, w.startISO, w.endISO, plannedMinutes, sessionType, perDayKey]
+            [w.title, descriptionJson, w.startISO, w.endISO, plannedMinutes, sessionType, perDayKey]
           );
           updated++;
         } else {
@@ -240,7 +249,7 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
                            session_type = EXCLUDED.session_type,
                            is_all_day = EXCLUDED.is_all_day,
                            updated_at = NOW()`,
-            [id, userId, subjectId, e.title, w.startISO, w.endISO, plannedMinutes, sessionType, w.details || null, perDayKey]
+            [id, userId, subjectId, w.title, w.startISO, w.endISO, plannedMinutes, sessionType, descriptionJson, perDayKey]
           );
           added++;
         }

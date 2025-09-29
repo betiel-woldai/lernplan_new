@@ -134,14 +134,33 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
 
   const result = calendarSessionsResult;
 
-  // Convert dates
-  const sessions = result.rows.map(session => ({
-    ...session,
-    startTime: session.startTime?.toISOString(),
-    endTime: session.endTime?.toISOString(),
-    createdAt: session.createdAt?.toISOString(),
-    updatedAt: session.updatedAt?.toISOString(),
-  }));
+  // Convert dates and parse terminplan description JSON
+  const sessions = result.rows.map(session => {
+    let parsedDescription = session.description;
+    let popupMessage = undefined;
+
+    // Parse JSON description for terminplan sessions to extract popupMessage
+    if (session.isFixed && session.fixedSource === 'terminplan' && session.description) {
+      try {
+        const descriptionData = JSON.parse(session.description);
+        parsedDescription = descriptionData.details;
+        popupMessage = descriptionData.popupMessage;
+      } catch (e) {
+        // If parsing fails, use description as-is (backward compatibility)
+        parsedDescription = session.description;
+      }
+    }
+
+    return {
+      ...session,
+      description: parsedDescription,
+      popupMessage,
+      startTime: session.startTime?.toISOString(),
+      endTime: session.endTime?.toISOString(),
+      createdAt: session.createdAt?.toISOString(),
+      updatedAt: session.updatedAt?.toISOString(),
+    };
+  });
 
   return res.status(200).json(sessions);
 }

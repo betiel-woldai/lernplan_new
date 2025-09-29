@@ -32,6 +32,7 @@ function normalizeEntry(e: TerminplanEntry & { source_key?: string }) {
     title: clean(e.title),
     category: clean(e.category),
     details: clean(e.details),
+    popupMessage: clean((e as any).popupMessage),
     date: trim(e.date),
     date_from: trim(e.date_from),
     date_to: trim(e.date_to),
@@ -48,4 +49,3 @@ function djb2(str: string): string {
   }
   return (hash >>> 0).toString(36);
 }
-
