@@ -77,7 +77,8 @@ export const TodaysTerminplanModal: React.FC<TodaysTerminplanModalProps> = ({
           isOpen && isAnimating ? 'scale-100' : 'scale-95'
         }`}
         style={{
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1))',
+          background: 'linear-gradient(135deg, rgba(241, 245, 249, 0.98), rgba(226, 232, 240, 0.98))',
+          backdropFilter: 'blur(10px)',
           maxHeight: '80vh',
           overflow: 'auto'
         }}
