@@ -1,4 +1,3 @@
-import XPBar from '@/components/XPBar';
 import DirectCalendarStats from '@/components/DirectCalendarStats';
 import AchievementBadge from '@/components/AchievementBadge';
 import { Achievement } from '@/types';
@@ -27,9 +26,6 @@ export function StatsSidebar({
   loading = false,
 }: StatsSidebarProps) {
   const xpLabel = loading ? '…' : formatXPTotal(realtimeXP);
-  const progressXP = loading ? 0 : realtimeXP;
-  const progressNext = loading ? nextLevelXP : nextLevelXP;
-  const progressLevel = loading ? 0 : realtimeLevel;
   const rankName = loading ? '…' : getLearningRank(realtimeLevel);
 
   return (
@@ -44,7 +40,7 @@ export function StatsSidebar({
             {xpLabel}
           </span>
         </div>
-        <XPBar currentXP={progressXP} nextLevelXP={progressNext} currentLevel={progressLevel} animated size="sm" />
+        {/* Progress bar removed to avoid showing potentially non-actual XP progress */}
       </div>
 
       <DirectCalendarStats selectedDate={selectedDate || undefined} />

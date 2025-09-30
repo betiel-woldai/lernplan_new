@@ -189,20 +189,21 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         let xpAwarded = 0;
 
         if (nowCompleted) {
-          // When marking complete: Calculate exact XP with bonuses using current streak
+          // Points algorithm (consistent with creation) + minimum floor
           const sessionDuration = updateData.duration || current.duration;
-          const currentUserResult = await client.query(`
-            SELECT learning_streak
-            FROM users WHERE id = $1
-          `, [userId]);
-
-          const userStreak = currentUserResult.rows[0]?.learning_streak || 0;
-          xpAwarded = calculateXP(sessionDuration, true, userStreak); // Calculate with bonuses
+          const basePoints = Math.floor(sessionDuration / 15) * 10;
+          const completionBonus = Math.floor(basePoints * 0.2);
+          xpAwarded = Math.max(5, basePoints + completionBonus);
           xpChange = xpAwarded;
+          // Persist points on the session for reconciliation
+          await client.query(`UPDATE learning_sessions SET points = $1 WHERE id = $2`, [xpAwarded, id]);
         } else {
-          // When unmarking: Use stored xp_awarded for exact reversal
+          // Revert points to 0 when unmarking
+          await client.query(`UPDATE learning_sessions SET points = 0 WHERE id = $1`, [id]);
           xpAwarded = 0;
-          xpChange = -(current.xp_awarded || 0); // Subtract exact XP that was awarded
+          // Best-effort reversal: subtract stored points if available; fallback to 0
+          const storedPoints = Number(current.points) || 0;
+          xpChange = -storedPoints;
         }
 
         const taskChange = nowCompleted ? 1 : -1;

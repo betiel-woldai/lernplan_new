@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type React from 'react';
 import { getLevel, getXPForLevel } from '@/utils/formatters';
 
 interface DashboardEventsOptions {
@@ -6,10 +7,10 @@ interface DashboardEventsOptions {
   refreshStats: () => Promise<void> | void;
   refreshSessionStats: () => Promise<void> | void;
   refreshCalendarSessions: () => Promise<void> | void;
-  setRealtimeXP: (value: number) => void;
-  setRealtimeLevel: (value: number) => void;
-  setRealtimeStreak: (value: number) => void;
-  setLastUpdateTime: (value: number) => void;
+  setRealtimeXP: React.Dispatch<React.SetStateAction<number>>;
+  setRealtimeLevel: React.Dispatch<React.SetStateAction<number>>;
+  setRealtimeStreak: React.Dispatch<React.SetStateAction<number>>;
+  setLastUpdateTime: React.Dispatch<React.SetStateAction<number>>;
 }
 
 // Centralises all dashboard-level event listeners so the page component remains lean.
@@ -24,6 +25,17 @@ export function useDashboardEvents({
   setLastUpdateTime,
 }: DashboardEventsOptions) {
   useEffect(() => {
+    const recalcXP = async () => {
+      try {
+        const res = await fetch('/api/gamification/recalculate', { method: 'POST' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data?.newXP === 'number') {
+          setRealtimeXP(data.newXP);
+          setRealtimeLevel(getLevel(data.newXP));
+        }
+      } catch {}
+    };
     const updateTimestamp = () => setLastUpdateTime(Date.now());
 
     const handleSubjectChange = () => {
@@ -38,23 +50,43 @@ export function useDashboardEvents({
       updateTimestamp();
 
       const detail: any = event.detail;
-      if ((window as any).triggerXPToast) {
-        (window as any).triggerXPToast(
-          detail?.xpGained ?? 0,
-          'session_complete',
-          `Session completed! +${detail?.xpGained ?? 0} XP`
-        );
+      const gained = typeof detail?.xpDelta === 'number' ? Math.max(0, Number(detail.xpDelta)) : Number(detail?.xpGained || 0);
+
+      // Optimistically bump XP and derived level for instant UI feedback
+      if (!Number.isNaN(gained) && gained > 0) {
+        setRealtimeXP(prev => {
+          const nextXP = (typeof prev === 'number' ? prev : 0) + gained;
+          setRealtimeLevel(getLevel(nextXP));
+          return nextXP;
+        });
       }
+      if ((window as any).triggerXPToast) {
+        (window as any).triggerXPToast(gained, 'session_complete', `Session completed! +${gained} XP`);
+      }
+      // Ensure persisted XP stays in sync with accomplished sessions only
+      recalcXP();
     };
 
-    const handleSessionIncomplete = () => {
+    const handleSessionIncomplete = (event: CustomEvent) => {
       refreshSubjects();
       refreshStats();
       updateTimestamp();
 
+      const detail: any = event.detail;
+      const delta = typeof detail?.xpDelta === 'number' ? Number(detail.xpDelta) : -Number(detail?.xpGained || 0);
+      if (!Number.isNaN(delta) && delta < 0) {
+        setRealtimeXP(prev => {
+          const nextXP = Math.max(0, (typeof prev === 'number' ? prev : 0) + delta);
+          setRealtimeLevel(getLevel(nextXP));
+          return nextXP;
+        });
+      }
+
       if ((window as any).triggerXPToast) {
         (window as any).triggerXPToast(0, 'session_incomplete', 'Session marked as pending');
       }
+      // Ensure persisted XP is corrected when reversing completion
+      recalcXP();
     };
 
     const handleSessionUpdated = (event: CustomEvent) => {

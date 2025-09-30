@@ -11,6 +11,7 @@ interface DirectCalendarStatsProps {
 interface CalendarStatsData {
   completedSessions: number;
   formattedDuration: string;
+  completedMinutes: number;
   streakDays: number;
   isToday: boolean;
 }
@@ -19,6 +20,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
   const [stats, setStats] = useState<CalendarStatsData>({
     completedSessions: 0,
     formattedDuration: '0h 0m',
+    completedMinutes: 0,
     streakDays: 0,
     isToday: true
   });
@@ -54,7 +56,10 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       const completedSessions = learningSessions.filter((session) => session.completed).length;
       const totalMinutes = learningSessions
         .filter((session) => session.completed)
-        .reduce((total, session) => total + (session.plannedDuration || session.duration || 0), 0);
+        .reduce((total, session) => {
+          const minutes = (session as any).actualDuration ?? session.plannedDuration ?? session.duration ?? 0;
+          return total + Math.max(0, Number(minutes) || 0);
+        }, 0);
 
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
@@ -65,9 +70,10 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
 
       const isToday = dateStr === getBerlinDateString();
 
-      const newStats = {
+      const newStats: CalendarStatsData = {
         completedSessions,
         formattedDuration,
+        completedMinutes: totalMinutes,
         streakDays,
         isToday
       };
@@ -135,7 +141,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
         <div className="w-full bg-blue-200 rounded-full h-1">
           <div
             className="bg-blue-500 h-1 rounded-full transition-all duration-500"
-            style={{ width: loading ? '0%' : `${Math.min(100, (parseInt(stats.formattedDuration) / 2) * 100)}%` }}
+            style={{ width: loading ? '0%' : `${Math.min(100, (stats.completedMinutes / 120) * 100)}%` }}
           />
         </div>
         <div className="text-xs text-blue-700 mt-1">von 2h Ziel</div>

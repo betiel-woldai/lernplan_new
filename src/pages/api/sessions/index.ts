@@ -197,9 +197,13 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
     }
 
     // Calculate XP points based on duration and completion
+    // Points algorithm with minimum XP floor for completed sessions
     const basePoints = Math.floor(sessionData.duration / 15) * 10; // 10 points per 15 minutes
     const completionBonus = sessionData.completed ? Math.floor(basePoints * 0.2) : 0;
-    const totalPoints = basePoints + completionBonus;
+    let totalPoints = basePoints + completionBonus;
+    if (sessionData.completed && sessionData.duration > 0) {
+      totalPoints = Math.max(5, totalPoints); // Minimum 5 XP for a completed session
+    }
 
     const result = await withTransaction(async (client) => {
       // Create learning session with audit logging support

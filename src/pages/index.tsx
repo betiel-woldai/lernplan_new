@@ -74,6 +74,22 @@ export default function Dashboard() {
     setLastUpdateTime,
   });
   
+  // Ensure persisted XP is reconciled with accomplished sessions on initial load
+  useEffect(() => {
+    const reconcile = async () => {
+      try {
+        const res = await fetch('/api/gamification/recalculate', { method: 'POST' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data?.newXP === 'number') {
+          setRealtimeXP(data.newXP);
+          setRealtimeLevel(getLevel(data.newXP));
+        }
+      } catch {}
+    };
+    reconcile();
+  }, []);
+  
   const handleSessionClick = (session: CalendarSession) => {
     setSelectedSession(session);
     window.dispatchEvent(new CustomEvent('calendarSessionEditRequested', {

@@ -304,11 +304,14 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       // Also trigger a more specific event for completion status changes
       if (updates.completed !== undefined) {
         const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
+        const approxXP = Math.floor((updates.duration || 0) * 2); // optimistic: 2 XP per minute
+        const xpDelta = updates.completed ? approxXP : -approxXP;
         window.dispatchEvent(new CustomEvent(eventName, {
           detail: {
             sessionId,
             completed: updates.completed,
-            xpGained: updates.completed ? Math.floor((updates.duration || 0) * 2) : 0, // 2 XP per minute
+            xpGained: updates.completed ? approxXP : 0,
+            xpDelta,
             timestamp: Date.now()
           }
         }));

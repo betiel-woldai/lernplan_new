@@ -1,11 +1,10 @@
 import CompactStatWidget from '@/components/CompactStatWidget';
-import XPBar from '@/components/XPBar';
 import StreakDisplay from '@/components/StreakDisplay';
 import AchievementBadge from '@/components/AchievementBadge';
 import useGamification from '@/hooks/useGamification';
 import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
-import { getXPProgress } from '@/utils/formatters';
-import { formatNumber, formatRemainingXP } from '@/utils/format';
+// Progress removed; keep level/XP numbers only
+import { formatNumber } from '@/utils/format';
 
 // React Icons
 import { 
@@ -24,7 +23,6 @@ interface QuickStatsPanelProps {
 export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) {
   const { stats, loading, error } = useDateSpecificStats(selectedDate);
   const gamification = useGamification();
-  const xpProgress = getXPProgress(gamification.currentXP, gamification.currentLevel);
 
   // Format the date label for the UI
   const getDateLabel = () => {
@@ -96,27 +94,14 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
         />
       </CompactStatWidget>
 
-      {/* Level Progress */}
+      {/* Level & XP (numbers only; progress removed) */}
       <CompactStatWidget
         title="Level & XP"
         value={`Level ${gamification.currentLevel}`}
         subtitle={`${formatNumber(gamification.currentXP)} XP`}
         icon={FaTrophy}
         iconColor="text-yellow-500"
-      >
-        <div className="space-y-1">
-          <XPBar
-            currentXP={gamification.currentXP}
-            nextLevelXP={xpProgress.nextLevelXP}
-            currentLevel={gamification.currentLevel}
-            size="sm"
-            showNumbers={false}
-          />
-          <div className="text-xs text-gray-500">
-            {formatRemainingXP(Math.max(0, xpProgress.nextLevelXP - gamification.currentXP), gamification.currentLevel + 1)}
-          </div>
-        </div>
-      </CompactStatWidget>
+      />
 
       {/* Completed Sessions */}
       <CompactStatWidget

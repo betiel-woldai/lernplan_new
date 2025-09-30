@@ -1,4 +1,5 @@
 import { formatNumber } from '../utils/format';
+import { getXPForLevel } from '../utils/formatters';
 
 interface XPBarProps {
   currentXP: number;
@@ -17,11 +18,13 @@ export default function XPBar({
   showNumbers = true,
   size = 'md'
 }: XPBarProps) {
-  // Calculate XP for current level
-  const currentLevelXP = Math.pow(currentLevel - 1, 2) * 100;
-  const progressXP = currentXP - currentLevelXP;
-  const neededXP = nextLevelXP - currentLevelXP;
-  const progress = Math.max(0, Math.min(100, (progressXP / neededXP) * 100));
+  // Calculate XP for current level using shared thresholds
+  const levelStartXP = getXPForLevel(currentLevel);
+  const levelEndXP = nextLevelXP; // already computed via shared util upstream
+  const levelRange = Math.max(1, levelEndXP - levelStartXP);
+  const earnedInLevel = Math.max(0, currentXP - levelStartXP);
+  const remainingInLevel = Math.max(0, levelRange - earnedInLevel);
+  const progress = Math.max(0, Math.min(100, (earnedInLevel / levelRange) * 100));
 
   const sizeClasses = {
     sm: 'h-2',
@@ -37,7 +40,7 @@ export default function XPBar({
             Level {currentLevel}
           </span>
           <span className="text-xs text-gray-500">
-            {formatNumber(progressXP)} / {formatNumber(neededXP)} XP
+            {formatNumber(earnedInLevel)} / {formatNumber(levelRange)} XP
           </span>
         </div>
       )}
@@ -60,7 +63,7 @@ export default function XPBar({
             {progress.toFixed(1)}% bis Level {currentLevel + 1}
           </span>
           <span className="text-xs font-semibold text-blue-600">
-            {formatNumber(neededXP - progressXP)} XP verbleibend
+            {formatNumber(remainingInLevel)} XP verbleibend
           </span>
         </div>
       )}
