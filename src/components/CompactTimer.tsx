@@ -125,13 +125,13 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
 
       {/* Session Completion Modal */}
       <SessionCompletionModal
-        isOpen={sessionState === 'pending-approval'}
+        isOpen={sessionState === 'pending-approval' && !!pendingSessionData}
         onApprove={handleApproveSession}
         onDiscard={handleDiscardSession}
         subjectName={sessionData?.subjectName || ''}
         subjectColor={sessionData?.subjectColor || '#000'}
         targetDuration={sessionData?.originalTargetDuration || 0}
-        actualDuration={pendingSessionData?.duration || 0}
+        actualDuration={pendingSessionData?.duration ?? Math.floor(progress.elapsedSeconds / 60)}
         notes={pendingSessionData?.notes || ''}
       />
     </>

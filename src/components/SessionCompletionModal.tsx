@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, CheckCircle, XCircle, Edit3 } from 'lucide-react';
 
 interface SessionCompletionModalProps {
@@ -24,6 +24,14 @@ export default function SessionCompletionModal({
 }: SessionCompletionModalProps) {
   const [editedDuration, setEditedDuration] = useState<number>(actualDuration);
   const [editedNotes, setEditedNotes] = useState<string>(notes || '');
+
+  // Keep local state in sync when the modal opens or incoming values change
+  useEffect(() => {
+    if (isOpen) {
+      setEditedDuration(actualDuration);
+      setEditedNotes(notes || '');
+    }
+  }, [isOpen, actualDuration, notes]);
 
   if (!isOpen) return null;
 
