@@ -4,7 +4,8 @@
       {
         "date": "2025-04-17 to 2025-04-22",
         "title": "Ostern",
-        "details": "Osterferien"
+        "details": "Osterferien",
+        "popupMessage": "🐰 <strong>Frohe Ostern!</strong><br>Gönn dir eine verdiente Pause und tanke neue Energie. Die Batterien wieder aufladen ist genauso wichtig wie das Lernen selbst! 🌷"
       },
       {
         "date": "2025-05-01",
@@ -21,17 +22,20 @@
       {
         "date": "2025-05-29",
         "title": "Christi Himmelfahrt",
-        "details": "Gesetzlicher Feiertag"
+        "details": "Gesetzlicher Feiertag",
+        "popupMessage": "☀️ <strong>Feiertag!</strong><br>Perfekt für einen Kurztrip oder Quality-Time mit Freunden und Familie. Dein Gehirn dankt dir für die Abwechslung! 🎈"
       },
       {
         "date": "2025-06-06 to 2025-06-10",
         "title": "Pfingsten",
-        "details": "Pfingstferien"
+        "details": "Pfingstferien",
+        "popupMessage": "🌸 <strong>Pfingstferien!</strong><br>Eine Woche Pause vom 06.-10.06. - perfekt zum Akku aufladen! Erholt lernst du danach wieder effektiver. Genieße die freie Zeit! 💚"
       },
       {
         "date": "2025-06-19",
         "title": "Fronleichnam",
-        "details": "Gesetzlicher Feiertag"
+        "details": "Gesetzlicher Feiertag",
+        "popupMessage": "☀️ <strong>Fronleichnam - Feiertag!</strong><br>Vorlesungsfrei! Nutze den Tag für Erholung oder ein entspanntes Lernen ohne Zeitdruck. Balance ist der Schlüssel zum Erfolg! 🌟"
       },
       {
         "date": "2025-06-20",
@@ -41,14 +45,16 @@
       {
         "date": "2025-07-11 to 2025-09-30",
         "title": "Vorlesungsfreie Zeit SS",
-        "details": "Sommersemester Vorlesungsfreie Zeit"
+        "details": "Sommersemester Vorlesungsfreie Zeit",
+        "popupMessage": "🌞 <strong>Vorlesungsfreie Zeit startet!</strong><br>Sommerpause vom 11.07.-30.09.! Perfekt für Entspannung, Praktika oder in Ruhe Themen vertiefen. Du hast dir die Pause verdient! 🎉"
       }
     ],
     "sommersemester_2025": [
       {
         "date": "2025-03-17",
         "title": "Beginn des Sommersemesters",
-        "details": "Beginn des Sommersemesters und der planmäßigen Lehrveranstaltungen, Veröffentlichung der Studienpläne"
+        "details": "Beginn des Sommersemesters und der planmäßigen Lehrveranstaltungen, Veröffentlichung der Studienpläne",
+        "popupMessage": "🚀 <strong>Neues Semester, neue Chancen!</strong><br>Ein frischer Start voller Möglichkeiten! Setze dir klare Ziele und gehe sie motiviert an. Du schaffst das! 📚✨"
       },
       {
         "date": "2025-03-17",
@@ -63,7 +69,8 @@
       {
         "date": "2025-04-15 to 2025-05-04",
         "title": "Anmeldezeitraum für Prüfungsleistungen",
-        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Kompetenzanrechnung / Fristverlängerungen"
+        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Kompetenzanrechnung / Fristverlängerungen",
+        "popupMessage": "📝 <strong>Prüfungsanmeldung bis 04.05.!</strong><br>Jetzt zu Prüfungen anmelden! Auch Anträge für Nachteilsausgleich, Kompetenzanrechnung und Fristverlängerungen sind möglich. <em>Tipp:</em> Früh anmelden = ein Punkt weniger auf der To-Do-Liste! 🎯"
       },
       {
         "date": "2025-04-15 to 2025-06-24",
@@ -73,32 +80,38 @@
       {
         "date": "2025-05-10",
         "title": "Tag der offenen Tür",
-        "details": "Tag der offenen Tür (Programm wird separat bekannt gegeben)"
+        "details": "Tag der offenen Tür (Programm wird separat bekannt gegeben)",
+        "popupMessage": "🏫 <strong>Tag der offenen Tür heute!</strong><br>Spannende Einblicke in die Hochschule erwarten dich. Perfekte Gelegenheit zum Netzwerken und neue Perspektiven entdecken! Programm wird separat bekannt gegeben. 🌟"
       },
       {
         "date": "2025-05-15",
         "title": "Companies@Campus",
-        "details": "Companies@Campus (Programm wird separat bekannt gegeben)"
+        "details": "Companies@Campus (Programm wird separat bekannt gegeben)",
+        "popupMessage": "💼 <strong>Companies@Campus - Deine Karrierechance!</strong><br>Heute treffen sich Top-Unternehmen auf dem Campus. Knüpfe wertvolle Kontakte für deine Zukunft! Programm wird separat bekannt gegeben. 🚀"
       },
       {
         "date": "2025-05-28",
         "title": "Bekanntgabe der endgültigen Prüfungspläne",
-        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel"
+        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel",
+        "popupMessage": "📋 <strong>Prüfungspläne sind da!</strong><br>Die endgültigen Prüfungspläne mit Prüfenden und zugelassenen Hilfsmitteln werden heute veröffentlicht. Jetzt hast du alle Infos für deine optimale Vorbereitung! Zeit, deinen Lernplan zu finalisieren! 💪"
       },
       {
         "date": "2025-06-02 to 2025-06-05",
         "title": "Blockwoche",
-        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis"
+        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis",
+        "popupMessage": "🎯 <strong>Blockwoche startet!</strong><br>Fallstudien, Planspiele und Exkursionen erwarten dich diese Woche! Praxisnah lernen und theoretisches Wissen anwenden. Details im Online-Vorlesungsverzeichnis. Viel Erfolg! 🌟"
       },
       {
         "date": "2025-06-30 to 2025-07-25",
         "title": "Prüfungszeitraum",
-        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden"
+        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden",
+        "popupMessage": "🎓 <strong>Prüfungsphase beginnt!</strong><br>Schriftliche & mündliche Prüfungen bis 25.07. Du hast dich gut vorbereitet - jetzt zeig was du kannst! <em>Tipp:</em> Pausen einplanen, ausreichend schlafen, gesund essen. Du packst das! 💪✨"
       },
       {
         "date": "2025-07-01 to 2025-08-15",
         "title": "Rückmeldung für Wintersemester",
-        "details": "Zeitraum zur Rückmeldung für das Wintersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden"
+        "details": "Zeitraum zur Rückmeldung für das Wintersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden",
+        "popupMessage": "📝 <strong>Rückmeldung nicht vergessen!</strong><br>Bis 15.08. online im Studierendenportal für das Wintersemester zurückmelden. Bescheinigungen ab Semesterstart verfügbar. Erledige es früh und hab's vom Tisch! ✓"
       },
       {
         "date": "2025-08-17",
@@ -108,14 +121,16 @@
       {
         "date": "2025-09-10",
         "title": "Online-Notenbekanntgabe",
-        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag"
+        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag",
+        "popupMessage": "🎉 <strong>Notenergebnisse verfügbar!</strong><br>Ab heute werden die Prüfungsergebnisse online bekannt gegeben. Deine harte Arbeit zahlt sich aus! Bei Wochenende/Feiertag: nächster Arbeitstag. Viel Erfolg! 🌟"
       }
     ],
     "holidays_2025_2026": [
       {
         "date": "2025-10-03",
         "title": "Tag der deutschen Einheit",
-        "details": "Gesetzlicher Feiertag (vorlesungsfrei)"
+        "details": "Gesetzlicher Feiertag (vorlesungsfrei)",
+        "popupMessage": "🇩🇪 <strong>Tag der deutschen Einheit!</strong><br>Feiertag, vorlesungsfrei! Perfekter Tag für einen Ausflug oder um dich auf das neue Semester einzustimmen. Genieß den Tag! 🎈"
       },
       {
         "date": "2025-11-01",
@@ -130,7 +145,8 @@
       {
         "date": "2025-12-24 to 2026-01-06",
         "title": "Weihnachten/Neujahr/Hl. Drei Könige",
-        "details": "Weihnachtsferien (vorlesungsfrei)"
+        "details": "Weihnachtsferien (vorlesungsfrei)",
+        "popupMessage": "🎄 <strong>Frohe Weihnachten & guten Rutsch!</strong><br>Weihnachtsferien vom 24.12.-06.01.! Zeit für Familie, Freunde und Entspannung. Komm gut ins neue Jahr! 🎆✨"
       },
       {
         "date": "2026-01-24 to 2026-03-14",
@@ -142,7 +158,8 @@
       {
         "date": "2025-10-01",
         "title": "Beginn des Wintersemesters",
-        "details": "Beginn des Wintersemesters, Veröffentlichung der Studienpläne, Begrüßung der Studienanfängerinnen und -anfänger. Es finden keine Lehrveranstaltungen für Studienanfängerinnen und -anfänger statt. Lehrveranstaltungen für Studierende in höheren Fachsemestern bitte dem Stundenplan entnehmen"
+        "details": "Beginn des Wintersemesters, Veröffentlichung der Studienpläne, Begrüßung der Studienanfängerinnen und -anfänger. Es finden keine Lehrveranstaltungen für Studienanfängerinnen und -anfänger statt. Lehrveranstaltungen für Studierende in höheren Fachsemestern bitte dem Stundenplan entnehmen",
+        "popupMessage": "🎓 <strong>Wintersemester startet!</strong><br>Studienpläne online, Erstsemester-Begrüßung heute! Für Erstis: Keine Vorlesungen heute. Höhere Semester: Check Stundenplan. Neues Semester, neue Ziele - let's go! 🚀"
       },
       {
         "date": "2025-10-01",
@@ -157,7 +174,8 @@
       {
         "date": "2025-10-30 to 2025-11-16",
         "title": "Anmeldezeitraum für Prüfungsleistungen",
-        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Anrechnung von Kompetenzen / Fristverlängerungen"
+        "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Anrechnung von Kompetenzen / Fristverlängerungen",
+        "popupMessage": "📝 <strong>Prüfungsanmeldung bis 16.11.!</strong><br>Jetzt für Winterprüfungen anmelden! Auch Anträge für Nachteilsausgleich, Kompetenzanrechnung & Fristverlängerungen möglich. Früh erledigt = Kopf frei fürs Lernen! 🎯"
       },
       {
         "date": "2025-10-30 to 2026-01-13",
@@ -167,27 +185,32 @@
       {
         "date": "2025-11-15",
         "title": "Absolventenfeier",
-        "details": "Absolventenfeier der Hochschule (Programm wird separat bekannt gegeben)"
+        "details": "Absolventenfeier der Hochschule (Programm wird separat bekannt gegeben)",
+        "popupMessage": "🎊 <strong>Absolventenfeier heute!</strong><br>Feiere die Erfolge deiner Kommilitonen und lass dich inspirieren! Bald bist du auch dran. Programm wird separat bekannt gegeben. 🎓✨"
       },
       {
         "date": "2025-11-17 to 2025-11-21",
         "title": "Blockwoche",
-        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis"
+        "details": "In dieser Woche finden Fallstudien, Planspiele, Exkursionen etc. statt; nähere Informationen siehe Online-Vorlesungsverzeichnis",
+        "popupMessage": "🎯 <strong>Blockwoche läuft!</strong><br>Fallstudien, Planspiele & Exkursionen diese Woche! Theorie trifft Praxis - nutze die Chance zum aktiven Lernen. Details im Online-Vorlesungsverzeichnis. Viel Spaß! 🌟"
       },
       {
         "date": "2025-12-11",
         "title": "Bekanntgabe der endgültigen Prüfungspläne",
-        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel"
+        "details": "Bekanntgabe der endgültigen Prüfungspläne durch die Fakultäten mit Bestellung der Prüfenden sowie Bekanntgabe der zugelassenen Hilfs- und Arbeitsmittel",
+        "popupMessage": "📋 <strong>Prüfungspläne veröffentlicht!</strong><br>Endgültige Pläne mit Prüfenden & zugelassenen Hilfsmitteln sind da! Perfekt, um deine Lernstrategie zu optimieren. Zeit für den Endspurt! 💪"
       },
       {
         "date": "2025-12-15 to 2026-02-01",
         "title": "Rückmeldung für Sommersemester",
-        "details": "Zeitraum zur Rückmeldung für das Sommersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden"
+        "details": "Zeitraum zur Rückmeldung für das Sommersemester. Die Rückmeldung erfolgt online im Studierendenportal; Bescheinigungen können frühestens zu Beginn des neuen Semesters gedruckt werden",
+        "popupMessage": "📝 <strong>Rückmeldung bis 01.02.!</strong><br>Online im Studierendenportal für Sommersemester zurückmelden. Bescheinigungen ab neuem Semester. Erledige es zwischen den Jahren - dann hast du's durch! ✓"
       },
       {
         "date": "2026-01-19 to 2026-02-13",
         "title": "Prüfungszeitraum",
-        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden"
+        "details": "Zeitraum der schriftlichen und mündlichen Prüfungen. In Teilzeitstudiengängen, berufsbegleitenden Studiengängen sowie Zertifikatslehrgängen können auch andere Termine für Prüfungsleistungen festgelegt werden",
+        "popupMessage": "🎓 <strong>Winterprüfungen starten!</strong><br>Schriftliche & mündliche Prüfungen bis 13.02. Deine Vorbereitung zahlt sich jetzt aus! Bleib fokussiert, gönn dir Pausen. Du rockst das! 💪✨"
       },
       {
         "date": "2026-02-22",
@@ -197,7 +220,8 @@
       {
         "date": "2026-03-01",
         "title": "Online-Notenbekanntgabe",
-        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag, erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag"
+        "details": "Ab diesem Datum: Online-Notenbekanntgabe der festgestellten Prüfungsergebnisse. Fällt der Tag der Bekanntgabe auf einen Samstag, Sonntag oder Feiertag, erfolgt die Bekanntgabe ab dem darauffolgenden Arbeitstag",
+        "popupMessage": "🎉 <strong>Winternotenbekannt gegeben!</strong><br>Ab heute sind die Prüfungsergebnisse online! Du hast hart gearbeitet - sei stolz auf dich! Bei Wochenende/Feiertag: nächster Arbeitstag. 🌟"
       }
     ],
     "holidays_2026": [
