@@ -92,7 +92,7 @@ export const TodaysTerminplanModal: React.FC<TodaysTerminplanModalProps> = ({
             Termine heute
           </h2>
           <p className="text-gray-600 text-sm">
-            {events.length === 1 ? 'Ein wichtiger Termin' : `${events.length} wichtige Termine`} für heute
+            {events.length === 1 ? 'Benachrichtigung' : `${events.length} wichtige Termine`} für heute
           </p>
         </div>
 
