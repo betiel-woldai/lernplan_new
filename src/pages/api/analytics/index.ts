@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { hasSubjectTypeColumn, hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 import { z } from 'zod';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, parseISO, subDays, eachDayOfInterval } from 'date-fns';
 import { getActiveUserId } from '@/utils/user';
@@ -50,8 +51,11 @@ interface GoalData {
 }
 
 async function getProgressAnalytics(userId: string, period: string, startDate?: string, endDate?: string): Promise<ProgressData[]> {
+  const hasType = await hasSubjectTypeColumn();
+  const hasFixed = await hasFixedAppointmentColumns();
+
   let dateRange: { start: Date; end: Date };
-  
+
   if (startDate && endDate) {
     dateRange = {
       start: parseISO(startDate),
@@ -80,17 +84,28 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
     }
   }
 
+  // Always join subjects for name-based fallback
+  const joinSubjects = 'JOIN subjects s ON s.id = cs.subject_id';
+  // Triple fallback: subject_type > fixed columns > name
+  const whereAcademic = hasType
+    ? "AND s.subject_type = 'academic'"
+    : hasFixed
+    ? "AND NOT (cs.is_fixed = TRUE AND cs.fixed_source = 'terminplan')"
+    : "AND (s.name IS NULL OR s.name <> 'Termine & Fristen')";
+
   const progressQuery = `
     SELECT
       DATE(cs.start_time) as session_date,
-      SUM(COALESCE(cs.actual_duration, cs.planned_duration)) as total_minutes,
+      SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END) as total_minutes,
       COUNT(cs.id) as session_count,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count,
-      SUM(CASE WHEN cs.completed = true THEN COALESCE(cs.actual_duration, cs.planned_duration) * 2 ELSE 0 END) as total_xp
+      SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) * 2 ELSE 0 END) as total_xp
     FROM calendar_sessions cs
+    ${joinSubjects}
     WHERE cs.user_id = $1
       AND DATE(cs.start_time) >= $2::date
       AND DATE(cs.start_time) <= $3::date
+      ${whereAcademic}
     GROUP BY DATE(cs.start_time)
     ORDER BY session_date ASC
   `;
@@ -129,6 +144,27 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
 }
 
 async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
+  const hasType = await hasSubjectTypeColumn();
+  const hasFixed = await hasFixedAppointmentColumns();
+
+  // Build filter based on schema capabilities
+  const academicFilter = hasType
+    ? "AND s.subject_type = 'academic'"
+    : hasFixed
+    ? ''
+    : "AND (s.name IS NULL OR s.name <> 'Termine & Fristen')";
+
+  // Apply filter to aggregation - when hasFixed, exclude via LEFT JOIN condition
+  const fixedExclude = !hasType && hasFixed
+    ? " AND NOT (cs.is_fixed = TRUE AND cs.fixed_source = 'terminplan')"
+    : '';
+
+  const minutesExpr = `COALESCE(SUM(CASE WHEN cs.completed${fixedExclude} THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) as total_minutes`;
+  const sessionCountExpr = `COUNT(cs.id) FILTER (WHERE 1=1${fixedExclude}) as session_count`;
+  const completedCountExpr = `COUNT(cs.id) FILTER (WHERE cs.completed = true${fixedExclude}) as completed_session_count`;
+
+  const whereSubjects = `WHERE s.user_id = $1 ${academicFilter}`;
+
   const subjectsQuery = `
     SELECT
       s.id,
@@ -136,12 +172,12 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
       s.color,
       s.target_hours,
       s.completed_hours,
-      COALESCE(SUM(COALESCE(cs.actual_duration, cs.planned_duration)), 0) as total_minutes,
-      COUNT(cs.id) as session_count,
-      COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count
+      ${minutesExpr},
+      ${sessionCountExpr},
+      ${completedCountExpr}
     FROM subjects s
     LEFT JOIN calendar_sessions cs ON s.id = cs.subject_id
-    WHERE s.user_id = $1
+    ${whereSubjects}
     GROUP BY s.id, s.name, s.color, s.target_hours, s.completed_hours
     ORDER BY total_minutes DESC
   `;
@@ -162,19 +198,32 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
 }
 
 async function getStreakAnalytics(userId: string, days: number = 30): Promise<StreakData[]> {
+  const hasType = await hasSubjectTypeColumn();
+  const hasFixed = await hasFixedAppointmentColumns();
+
   const startDate = subDays(new Date(), days);
   const endDate = new Date();
 
-  // Get daily session data from calendar sessions
+  // Always join subjects for name-based fallback
+  const joinSubjects = 'JOIN subjects s ON s.id = cs.subject_id';
+  // Triple fallback: subject_type > fixed columns > name
+  const whereAcademic = hasType
+    ? "AND s.subject_type = 'academic'"
+    : hasFixed
+    ? "AND NOT (cs.is_fixed = TRUE AND cs.fixed_source = 'terminplan')"
+    : "AND (s.name IS NULL OR s.name <> 'Termine & Fristen')";
+
   const streakQuery = `
     SELECT
       DATE(cs.start_time) as session_date,
       COUNT(cs.id) > 0 as has_session
     FROM calendar_sessions cs
+    ${joinSubjects}
     WHERE cs.user_id = $1
       AND DATE(cs.start_time) >= $2::date
       AND DATE(cs.start_time) <= $3::date
       AND cs.completed = true
+      ${whereAcademic}
     GROUP BY DATE(cs.start_time)
     ORDER BY session_date ASC
   `;
@@ -215,22 +264,31 @@ async function getStreakAnalytics(userId: string, days: number = 30): Promise<St
 }
 
 async function getGoalsAnalytics(userId: string): Promise<GoalData[]> {
+  const hasType = await hasSubjectTypeColumn();
+  const hasFixed = await hasFixedAppointmentColumns();
+
+  // Triple fallback for filtering
+  const whereAcademic = hasType
+    ? "AND s.subject_type = 'academic'"
+    : "AND s.name <> 'Termine & Fristen'"; // Always exclude by name as fallback
+
   const goalsQuery = `
-    SELECT 
+    SELECT
       s.id,
       s.name,
       s.target_hours,
       s.completed_hours,
       s.exam_date,
-      CASE 
-        WHEN s.exam_date IS NOT NULL 
+      CASE
+        WHEN s.exam_date IS NOT NULL
         THEN (s.exam_date - CURRENT_DATE)
         ELSE NULL
       END as days_remaining
     FROM subjects s
     WHERE s.user_id = $1
       AND s.target_hours > 0
-    ORDER BY 
+      ${whereAcademic}
+    ORDER BY
       CASE WHEN s.exam_date IS NOT NULL THEN s.exam_date END ASC NULLS LAST,
       s.name ASC
   `;
