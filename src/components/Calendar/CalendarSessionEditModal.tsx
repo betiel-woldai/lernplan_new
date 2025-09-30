@@ -135,19 +135,36 @@ export default function CalendarSessionEditModal({
         location: formData.location || undefined,
       };
 
-      // Call API to update session
-      const response = await fetch(`/api/calendar/${session.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: activeUserId,
-          ...updates,
-          startTime: startDateTime.toISOString(),
-          endTime: endDateTime.toISOString(),
-        }),
-      });
+      // Route to correct API based on source
+      const isLearning = (session as any).source === 'learning';
+      const response = await (async () => {
+        if (isLearning) {
+          // learning_sessions only supports duration/completed/notes/points
+          const learningPayload: any = {
+            duration: updates.duration,
+            completed: updates.completed,
+          };
+          if (updates.description !== undefined) {
+            learningPayload.notes = updates.description;
+          }
+          return fetch(`/api/sessions/${session.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(learningPayload),
+          });
+        }
+        // Default: calendar session update
+        return fetch(`/api/calendar/${session.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: activeUserId,
+            ...updates,
+            startTime: startDateTime.toISOString(),
+            endTime: endDateTime.toISOString(),
+          }),
+        });
+      })();
 
       if (!response.ok) {
         let message = 'Fehler beim Speichern der Session';
@@ -163,10 +180,14 @@ export default function CalendarSessionEditModal({
       }
 
       // Dispatch real-time event for cross-view synchronization
+      const updatesForEvent = (isLearning
+        ? { completed: updates.completed, duration: updates.duration, description: updates.description }
+        : updates
+      );
       window.dispatchEvent(new CustomEvent('sessionUpdated', {
         detail: {
           sessionId: session.id,
-          updates,
+          updates: updatesForEvent,
           timestamp: Date.now(),
           completionChanged: formData.completed !== session.completed
         }

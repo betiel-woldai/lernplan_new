@@ -208,44 +208,74 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     try {
       setError(null);
 
-      // Prepare calendar session updates
-      const calendarSessionUpdates: any = {};
-      
-      if (updates.completed !== undefined) {
-        calendarSessionUpdates.completed = updates.completed;
-      }
-      
-      if (updates.duration !== undefined) {
-        calendarSessionUpdates.duration = Math.round(updates.duration);
-      }
-      
-      if (updates.description !== undefined) {
-        calendarSessionUpdates.description = updates.description;
-      }
-      
-      if (updates.title !== undefined) {
-        calendarSessionUpdates.title = updates.title;
-      }
-      
-      if (updates.location !== undefined) {
-        calendarSessionUpdates.location = updates.location;
-      }
-      
-      if (updates.startTime !== undefined) {
-        calendarSessionUpdates.startTime = updates.startTime;
-      }
-      
-      if (updates.endTime !== undefined) {
-        calendarSessionUpdates.endTime = updates.endTime;
+      // Determine the source of the session to route the update correctly
+      const targetSession = sessions.find(s => s.id === sessionId);
+      const source = targetSession?.source ?? 'calendar';
+
+      // Normalize common update fields
+      const normalized: any = {};
+      if (updates.completed !== undefined) normalized.completed = updates.completed;
+      if (updates.duration !== undefined) normalized.duration = Math.round(updates.duration);
+      if (updates.description !== undefined) normalized.description = updates.description;
+      if (updates.title !== undefined) normalized.title = updates.title;
+      if (updates.location !== undefined) normalized.location = updates.location;
+      if (updates.startTime !== undefined) normalized.startTime = updates.startTime;
+      if (updates.endTime !== undefined) normalized.endTime = updates.endTime;
+
+      if (source === 'learning') {
+        // Tracker-created sessions live in learning_sessions; use its API
+        const learningUpdates: any = {};
+        if (normalized.completed !== undefined) learningUpdates.completed = normalized.completed;
+        if (normalized.duration !== undefined) learningUpdates.duration = normalized.duration;
+
+        const resp = await fetch(`/api/sessions/${sessionId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(learningUpdates),
+        });
+
+        if (!resp.ok) {
+          const errorData = await resp.json().catch(() => ({ error: 'Failed to update learning session' }));
+          throw new Error(errorData.error || 'Failed to update learning session');
+        }
+
+        // Update local state optimistically
+        setSessions(prev => prev.map(s => (s.id === sessionId ? { ...s, ...updates } : s)));
+
+        // Dispatch events to keep UI in sync (mirror calendar path behavior)
+        window.dispatchEvent(new CustomEvent('sessionUpdated', {
+          detail: {
+            sessionId,
+            updates: learningUpdates,
+            timestamp: Date.now(),
+            completionChanged: updates.completed !== undefined,
+            wasCompleted: updates.completed,
+          }
+        }));
+
+        if (updates.completed !== undefined) {
+          const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
+          const approxXP = Math.floor((updates.duration || 0) * 2);
+          const xpDelta = updates.completed ? approxXP : -approxXP;
+          window.dispatchEvent(new CustomEvent(eventName, {
+            detail: {
+              sessionId,
+              completed: updates.completed,
+              xpGained: updates.completed ? approxXP : 0,
+              xpDelta,
+              timestamp: Date.now(),
+            }
+          }));
+        }
+
+        return true;
       }
 
-      // Call the calendar sessions API
+      // Default path: calendar sessions API
       const response = await fetch(`/api/calendar/${sessionId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(calendarSessionUpdates),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(normalized),
       });
 
       if (!response.ok) {
@@ -268,43 +298,30 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
           }
         : null;
 
-      // Update the local calendar session state
-      setSessions(prev => 
-        prev.map(session => 
-          session.id === sessionId 
-            ? {
-                ...session,
-                ...(normalizedSession || {}),
-                ...updates,
-              }
-            : session
-        )
-      );
+      setSessions(prev => prev.map(session => (session.id === sessionId ? { ...session, ...(normalizedSession || {}), ...updates } : session)));
 
       if (payload?.subjectExamUpdate?.subjectId && payload.subjectExamUpdate.examDate) {
         window.dispatchEvent(new CustomEvent('subjectExamDateChanged', {
           detail: {
             subjectId: payload.subjectExamUpdate.subjectId,
-            examDate: new Date(payload.subjectExamUpdate.examDate)
+            examDate: new Date(payload.subjectExamUpdate.examDate),
           }
         }));
       }
 
-      // Dispatch the sessionUpdated event for cross-view synchronization
       window.dispatchEvent(new CustomEvent('sessionUpdated', {
         detail: {
           sessionId,
-          updates: calendarSessionUpdates,
+          updates: normalized,
           timestamp: Date.now(),
           completionChanged: updates.completed !== undefined,
-          wasCompleted: updates.completed
+          wasCompleted: updates.completed,
         }
       }));
 
-      // Also trigger a more specific event for completion status changes
       if (updates.completed !== undefined) {
         const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
-        const approxXP = Math.floor((updates.duration || 0) * 2); // optimistic: 2 XP per minute
+        const approxXP = Math.floor((updates.duration || 0) * 2);
         const xpDelta = updates.completed ? approxXP : -approxXP;
         window.dispatchEvent(new CustomEvent(eventName, {
           detail: {
@@ -312,7 +329,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
             completed: updates.completed,
             xpGained: updates.completed ? approxXP : 0,
             xpDelta,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
         }));
       }
@@ -324,7 +341,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       console.error('Update calendar session error:', err);
       return false;
     }
-  }, []);
+  }, [sessions]);
 
   // Delete a calendar session
   const deleteSession = useCallback(async (sessionId: string): Promise<boolean> => {
