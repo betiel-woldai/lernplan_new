@@ -99,6 +99,10 @@ export default function CalendarGrid({
   
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
+    // Fixed/all-day/admin entries are informational; treat as ausstehend
+    if ((session as any).isFixed || session.isAllDay || session.subjectName === 'Termine & Fristen') {
+      return 'ausstehend';
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sessionDate = new Date(session.startTime);
@@ -121,8 +125,13 @@ export default function CalendarGrid({
   const handleSessionToggleComplete = async (session: CalendarSession, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!onSessionToggleComplete) return;
+
+    // Do not allow toggling for fixed, all-day, or administrative subject sessions
+    if ((session as any).isFixed || session.isAllDay || session.subjectName === 'Termine & Fristen') {
+      return;
+    }
     
     // Check if session is in the future - future sessions cannot be completed
     const today = new Date();
@@ -572,7 +581,7 @@ export default function CalendarGrid({
                       )}
 
                       {/* Clickable completion toggle - only for non-all-day sessions (not terminplan) */}
-                      {!session.isAllDay && (
+                      {!session.isAllDay && !(session as any).isFixed && session.subjectName !== 'Termine & Fristen' && (
                         <button
                           onClick={(e) => handleSessionToggleComplete(session, e)}
                           className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${

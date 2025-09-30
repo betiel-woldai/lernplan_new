@@ -59,6 +59,10 @@ export default function CalendarWeekView({
   
   // Helper function to determine session status based on date and completion
   const getSessionStatus = (session: CalendarSession) => {
+    // Fixed/all-day/admin entries are informational; treat as ausstehend
+    if ((session as any).isFixed || session.isAllDay || session.subjectName === 'Termine & Fristen') {
+      return 'ausstehend';
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sessionDate = new Date(session.startTime);
@@ -84,6 +88,11 @@ export default function CalendarWeekView({
     e.stopPropagation();
     
     if (!onSessionToggleComplete) return;
+
+    // Do not allow toggling for fixed, all-day, or administrative subject sessions
+    if ((session as any).isFixed || session.isAllDay || session.subjectName === 'Termine & Fristen') {
+      return;
+    }
     
     // Check if session is in the future - future sessions cannot be completed
     const today = new Date();

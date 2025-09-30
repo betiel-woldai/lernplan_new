@@ -47,9 +47,12 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
 
       console.log('📅 DirectCalendarStats: Found', todaySessions.length, 'sessions for', dateStr);
 
-      // Calculate completed sessions and duration
-      const completedSessions = todaySessions.filter((session) => session.completed).length;
-      const totalMinutes = todaySessions
+      // Exclude fixed terminplan events from learning stats
+      const learningSessions = todaySessions.filter((s: any) => !(s.isFixed && s.fixedSource === 'terminplan'));
+
+      // Calculate completed sessions and duration (learning only)
+      const completedSessions = learningSessions.filter((session) => session.completed).length;
+      const totalMinutes = learningSessions
         .filter((session) => session.completed)
         .reduce((total, session) => total + (session.plannedDuration || session.duration || 0), 0);
 

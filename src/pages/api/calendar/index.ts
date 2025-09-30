@@ -140,13 +140,28 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
     let popupMessage = undefined;
 
     // Parse JSON description for terminplan sessions to extract popupMessage
-    if (session.isFixed && session.fixedSource === 'terminplan' && session.description) {
+    const tryParseDescriptionJson = () => {
+      if (!session?.description || typeof session.description !== 'string') return false;
       try {
-        const descriptionData = JSON.parse(session.description);
-        parsedDescription = descriptionData.details;
-        popupMessage = descriptionData.popupMessage;
-      } catch (e) {
-        // If parsing fails, use description as-is (backward compatibility)
+        const data = JSON.parse(session.description);
+        // Only adopt if it looks like our terminplan payload
+        if (data && (typeof data.details === 'string' || typeof data.popupMessage === 'string' || data.details === null || data.popupMessage === null)) {
+          parsedDescription = data.details ?? null;
+          popupMessage = data.popupMessage ?? undefined;
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    if (session.isFixed && session.fixedSource === 'terminplan' && session.description) {
+      // Primary path: fixed terminplan entries
+      if (!tryParseDescriptionJson()) {
+        parsedDescription = session.description;
+      }
+    } else {
+      // Fallback: Some environments may not have fixed columns yet; still parse if JSON-shaped
+      if (!tryParseDescriptionJson()) {
         parsedDescription = session.description;
       }
     }
@@ -162,7 +177,7 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
     };
   });
 
-  return res.status(200).json(sessions);
+    return res.status(200).json(sessions);
 }
 
 async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) {

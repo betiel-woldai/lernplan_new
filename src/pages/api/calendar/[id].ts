@@ -46,7 +46,10 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
           updates.title !== undefined ||
           updates.session_type !== undefined ||
           updates.subjectId !== undefined ||
-          updates.subject_id !== undefined
+          updates.subject_id !== undefined ||
+          updates.completed !== undefined ||
+          updates.description !== undefined ||
+          updates.location !== undefined
         );
         if (illegal) {
           return res.status(409).json({ error: 'Fixed appointment is read-only (terminplan)' });

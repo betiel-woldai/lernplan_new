@@ -302,43 +302,45 @@ export default function CalendarSessionEditModal({
             </div>
           )}
 
-          {/* Completion Status */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className={`w-3 h-3 rounded-full ${
-                  formData.completed ? 'bg-green-500' : 'bg-yellow-500'
-                }`} />
-                <span className="font-medium text-gray-900">
-                  Status: {formData.completed ? 'Abgeschlossen' : 'Ausstehend'}
-                </span>
+          {/* Completion Status (hidden for fixed terminplan events) */}
+          {!isFixed && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    formData.completed ? 'bg-green-500' : 'bg-yellow-500'
+                  }`} />
+                  <span className="font-medium text-gray-900">
+                    Status: {formData.completed ? 'Abgeschlossen' : 'Ausstehend'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleCompletion}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    formData.completed 
+                      ? 'bg-green-100 hover:bg-green-200 text-green-800'
+                      : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800'
+                  }`}
+                >
+                  {formData.completed ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    <Clock className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {formData.completed ? 'Als ausstehend markieren' : 'Als abgeschlossen markieren'}
+                  </span>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={toggleCompletion}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  formData.completed 
-                    ? 'bg-green-100 hover:bg-green-200 text-green-800'
-                    : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800'
-                }`}
-              >
-                {formData.completed ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : (
-                  <Clock className="w-4 h-4" />
-                )}
-                <span className="text-sm font-medium">
-                  {formData.completed ? 'Als ausstehend markieren' : 'Als abgeschlossen markieren'}
-                </span>
-              </button>
+              
+              {formData.completed && duration > 0 && (
+                <div className="mt-3 text-sm text-gray-600">
+                  <span className="font-medium text-green-600">+{Math.floor(duration * 2)} XP</span> für diese abgeschlossene Session
+                </div>
+              )}
             </div>
-            
-            {formData.completed && duration > 0 && (
-              <div className="mt-3 text-sm text-gray-600">
-                <span className="font-medium text-green-600">+{Math.floor(duration * 2)} XP</span> für diese abgeschlossene Session
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Title */}
           <div>
