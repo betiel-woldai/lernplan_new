@@ -184,17 +184,24 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
 
   const result = await query(subjectsQuery, [userId]);
 
-  return result.rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    color: row.color,
-    hours: Math.round((row.total_minutes / 60) * 100) / 100,
-    sessions: parseInt(row.session_count),
-    completedSessions: parseInt(row.completed_session_count),
-    targetHours: parseFloat(row.target_hours),
-    completedHours: parseFloat(row.completed_hours),
-    progress: Math.round((parseFloat(row.completed_hours) / parseFloat(row.target_hours)) * 100)
-  }));
+  return result.rows.map(row => {
+    // Calculate completed hours from actual calendar sessions instead of stale completed_hours field
+    const actualCompletedHours = Math.round((row.total_minutes / 60) * 100) / 100;
+    const targetHours = parseFloat(row.target_hours);
+    const progress = targetHours > 0 ? Math.round((actualCompletedHours / targetHours) * 100) : 0;
+
+    return {
+      id: row.id,
+      name: row.name,
+      color: row.color,
+      hours: actualCompletedHours,
+      sessions: parseInt(row.session_count),
+      completedSessions: parseInt(row.completed_session_count),
+      targetHours: targetHours,
+      completedHours: actualCompletedHours,
+      progress: progress
+    };
+  });
 }
 
 async function getStreakAnalytics(userId: string, days: number = 30): Promise<StreakData[]> {
@@ -263,7 +270,7 @@ async function getStreakAnalytics(userId: string, days: number = 30): Promise<St
   });
 }
 
-async function getGoalsAnalytics(userId: string): Promise<GoalData[]> {
+async function getGoalsAnalytics(userId: string, period: string = 'month', startDate?: string, endDate?: string): Promise<GoalData[]> {
   const hasType = await hasSubjectTypeColumn();
   const hasFixed = await hasFixedAppointmentColumns();
 
@@ -272,37 +279,97 @@ async function getGoalsAnalytics(userId: string): Promise<GoalData[]> {
     ? "AND s.subject_type = 'academic'"
     : "AND s.name <> 'Termine & Fristen'"; // Always exclude by name as fallback
 
+  // Apply filter to aggregation - when hasFixed, exclude via LEFT JOIN condition
+  const fixedExclude = !hasType && hasFixed
+    ? " AND NOT (cs.is_fixed = TRUE AND cs.fixed_source = 'terminplan')"
+    : '';
+
+  // Calculate date range based on period
+  let dateRange: { start: Date; end: Date };
+  if (startDate && endDate) {
+    dateRange = {
+      start: parseISO(startDate),
+      end: parseISO(endDate)
+    };
+  } else {
+    const now = new Date();
+    switch (period) {
+      case 'week':
+        dateRange = {
+          start: startOfWeek(now, { weekStartsOn: 1 }),
+          end: endOfWeek(now, { weekStartsOn: 1 })
+        };
+        break;
+      case 'year':
+        dateRange = {
+          start: new Date(now.getFullYear(), 0, 1),
+          end: new Date(now.getFullYear(), 11, 31)
+        };
+        break;
+      default: // month
+        dateRange = {
+          start: startOfMonth(now),
+          end: endOfMonth(now)
+        };
+    }
+  }
+
   const goalsQuery = `
     SELECT
       s.id,
       s.name,
       s.target_hours,
+      s.hours_per_week,
       s.completed_hours,
       s.exam_date,
       CASE
         WHEN s.exam_date IS NOT NULL
         THEN (s.exam_date - CURRENT_DATE)
         ELSE NULL
-      END as days_remaining
+      END as days_remaining,
+      COALESCE(SUM(CASE WHEN cs.completed${fixedExclude} AND DATE(cs.start_time) >= $2::date AND DATE(cs.start_time) <= $3::date THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) as period_minutes
     FROM subjects s
+    LEFT JOIN calendar_sessions cs ON s.id = cs.subject_id
     WHERE s.user_id = $1
       AND s.target_hours > 0
       ${whereAcademic}
+    GROUP BY s.id, s.name, s.target_hours, s.hours_per_week, s.completed_hours, s.exam_date
     ORDER BY
       CASE WHEN s.exam_date IS NOT NULL THEN s.exam_date END ASC NULLS LAST,
       s.name ASC
   `;
 
-  const result = await query(goalsQuery, [userId]);
+  const result = await query(goalsQuery, [
+    userId,
+    format(dateRange.start, 'yyyy-MM-dd'),
+    format(dateRange.end, 'yyyy-MM-dd')
+  ]);
 
-  return result.rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    targetHours: parseFloat(row.target_hours),
-    completedHours: parseFloat(row.completed_hours),
-    progress: Math.round((parseFloat(row.completed_hours) / parseFloat(row.target_hours)) * 100),
-    daysRemaining: row.days_remaining ? parseInt(row.days_remaining) : undefined
-  }));
+  return result.rows.map(row => {
+    // Calculate completed hours for the selected period from actual calendar sessions
+    const periodCompletedHours = Math.round((row.period_minutes / 60) * 100) / 100;
+
+    // Determine target hours based on period
+    let targetHours: number;
+    if (period === 'week') {
+      // For weekly view, use hours_per_week
+      targetHours = parseFloat(row.hours_per_week) || 0;
+    } else {
+      // For month/year view, use total target_hours
+      targetHours = parseFloat(row.target_hours);
+    }
+
+    const progress = targetHours > 0 ? Math.round((periodCompletedHours / targetHours) * 100) : 0;
+
+    return {
+      id: row.id,
+      name: row.name,
+      targetHours: targetHours,
+      completedHours: periodCompletedHours,
+      progress: progress,
+      daysRemaining: row.days_remaining ? parseInt(row.days_remaining) : undefined
+    };
+  });
 }
 
 async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
@@ -331,7 +398,12 @@ async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (!params.type || params.type === 'goals') {
-      analyticsData.goals = await getGoalsAnalytics(userId);
+      analyticsData.goals = await getGoalsAnalytics(
+        userId,
+        params.period,
+        params.startDate,
+        params.endDate
+      );
     }
 
     // Add summary statistics

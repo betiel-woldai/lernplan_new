@@ -390,14 +390,14 @@ export default function AnalyticsPage() {
               {realtimeUpdate && (
                 <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                  <span className="text-xs font-medium text-blue-700">Updating...</span>
+                  <span className="text-xs font-medium text-blue-700">{t('analytics.updating')}</span>
                 </div>
               )}
             </div>
             <p className="text-gray-600 mt-2">
-              Track your learning progress and insights
+              {t('analytics.subtitle')}
               <span className="text-xs text-gray-400 ml-2">
-                Last updated: {new Date(lastUpdateTime).toLocaleTimeString()}
+                {t('analytics.lastUpdated')} {new Date(lastUpdateTime).toLocaleTimeString()}
               </span>
             </p>
           </div>
@@ -453,30 +453,30 @@ export default function AnalyticsPage() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Session</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.avgSession')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.averageSessionLength}h</p>
                 </div>
                 <FaBullseye className="h-8 w-8 text-orange-600" />
               </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.completed')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.completedSessions}</p>
-                  <p className="text-xs text-gray-500">of {analyticsData.summary.totalSessions} sessions</p>
+                  <p className="text-xs text-gray-500">{t('analytics.of')} {analyticsData.summary.totalSessions} {t('analytics.sessions').toLowerCase()}</p>
                 </div>
                 <FaCheck className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                  <p className="text-sm font-medium text-gray-600">{t('analytics.successRate')}</p>
                   <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.completionRate}%</p>
-                  <p className="text-xs text-gray-500">completion rate</p>
+                  <p className="text-xs text-gray-500">{t('analytics.completionRate').toLowerCase()}</p>
                 </div>
                 <FaPercentage className="h-8 w-8 text-indigo-600" />
               </div>
@@ -488,13 +488,13 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Progress Over Time */}
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Progress Over Time</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('analytics.progressOverTime')}</h3>
             <div className="h-80">
               {getProgressChartConfig() ? (
                 <Line data={getProgressChartConfig()!.data} options={getProgressChartConfig()!.options} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  No progress data available for selected period
+                  {t('analytics.noData')}
                 </div>
               )}
             </div>
@@ -502,13 +502,13 @@ export default function AnalyticsPage() {
 
           {/* Subject Distribution */}
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Time Distribution by Subject</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('analytics.timeBySubject')}</h3>
             <div className="h-80">
               {getSubjectChartConfig() ? (
                 <Pie data={getSubjectChartConfig()!.data} options={getSubjectChartConfig()!.options} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  No subject data available
+                  {t('analytics.noSubjectData')}
                 </div>
               )}
             </div>
@@ -516,13 +516,13 @@ export default function AnalyticsPage() {
 
           {/* Learning Streaks */}
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Streaks</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('analytics.learningStreaks')}</h3>
             <div className="h-80">
               {getStreakChartConfig() ? (
                 <Bar data={getStreakChartConfig()!.data} options={getStreakChartConfig()!.options} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  No streak data available
+                  {t('analytics.noStreakData')}
                 </div>
               )}
             </div>
@@ -530,7 +530,7 @@ export default function AnalyticsPage() {
 
           {/* Goal Progress */}
           <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Goal Progress</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('analytics.goalProgress')}</h3>
             <div className="h-80">
               {analyticsData?.goals && analyticsData.goals.length > 0 ? (
                 <div className="space-y-4">
@@ -543,21 +543,21 @@ export default function AnalyticsPage() {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${Math.min(goal.progress, 100)}%` }}
                         ></div>
                       </div>
-                      {goal.daysRemaining && (
+                      {goal.daysRemaining !== undefined && (
                         <p className="text-xs text-gray-500">
-                          {goal.daysRemaining > 0 ? `${goal.daysRemaining} days remaining` : 'Overdue'}
+                          {goal.daysRemaining > 0 ? `${goal.daysRemaining} ${t('analytics.daysRemaining')}` : t('analytics.overdue')}
                         </p>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center mt-32">No goals found</p>
+                <p className="text-gray-500 text-center mt-32">{t('analytics.noGoals')}</p>
               )}
             </div>
           </div>
@@ -567,16 +567,16 @@ export default function AnalyticsPage() {
         {analyticsData?.subjects && analyticsData.subjects.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Subject Details</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('analytics.subjectDetails')}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('analytics.subject')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('analytics.hours')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('analytics.sessions')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('analytics.progress')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -584,7 +584,7 @@ export default function AnalyticsPage() {
                     <tr key={subject.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div 
+                          <div
                             className="w-4 h-4 rounded-full mr-3"
                             style={{ backgroundColor: subject.color }}
                           ></div>
@@ -600,8 +600,8 @@ export default function AnalyticsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
                               style={{ width: `${Math.min(subject.progress, 100)}%` }}
                             ></div>
                           </div>
