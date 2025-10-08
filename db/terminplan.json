@@ -169,12 +169,13 @@
         "date": "2025-10-30 to 2025-11-16",
         "title": "Anmeldezeitraum für Prüfungsleistungen",
         "details": "Anmeldezeitraum für Studierende zu Prüfungsleistungen, Zeitraum zur Antragstellung auf Nachteilsausgleich / Anrechnung von Kompetenzen / Fristverlängerungen",
-        "popupMessage": "📝 <strong>Prüfungsanmeldung bis 16.11.!</strong><br>Jetzt für Winterprüfungen anmelden! Auch Anträge für Nachteilsausgleich, Kompetenzanrechnung & Fristverlängerungen möglich. Früh erledigt = Kopf frei fürs Lernen! 🎯"
+        "popupMessage": "📝 <strong>Prüfungsanmeldung bis 16.11.!</strong><br><br><strong>Zeitraum:</strong> 30.10. - 16.11.2025<br><br><strong>Was kannst du tun?</strong><ul style='margin: 8px 0; padding-left: 20px;'><li>Anmeldung im <a href='https://www3.primuss.de/cgi-bin/login/index.pl' target='_blank' rel='noopener noreferrer'>Studienportal</a></li><li>Anträge für Nachteilsausgleich</li><li>Kompetenzanrechnung</li><li>Fristverlängerungen</li></ul><strong>Weitere Infos:</strong> <a href='https://www.hs-ansbach.de/infos/fuer-studierende/pruefungen-und-leistungserbringung/' target='_blank' rel='noopener noreferrer'>Prüfungen & Leistungserbringung</a>"
       },
       {
         "date": "2025-10-30 to 2026-01-13",
         "title": "Abmeldezeitraum für Prüfungsleistungen",
-        "details": "Abmeldezeitraum für Studierende von Prüfungsleistungen"
+        "details": "Abmeldezeitraum für Studierende von Prüfungsleistungen",
+        "popupMessage": "Abmeldezeitraum für Studierende von Prüfungsleistungen<br><br><strong>Links:</strong><ul style='margin: 8px 0; padding-left: 20px;'><li><a href='https://www3.primuss.de/cgi-bin/login/index.pl' target='_blank' rel='noopener noreferrer'>Studentenportal</a></li><li><a href='https://www.hs-ansbach.de/infos/fuer-studierende/pruefungen-und-leistungserbringung/' target='_blank' rel='noopener noreferrer'>Weitere Infos</a></li></ul>"
       },
       {
         "date": "2025-11-15",

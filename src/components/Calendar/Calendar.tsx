@@ -428,7 +428,14 @@ export default function Calendar({
               checked={!!showTerminplanEvents}
               onChange={(e) => setShowTerminplanEvents?.(e.target.checked)}
             />
-            <span>Uni‑Termine</span>
+            <a
+              href="https://www.hs-ansbach.de/fileadmin/Redaktion/Terminplan_SS_25-SS_26_D.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              HS‑Termine
+            </a>
           </label>
 
           {/* Import terminplan CTA when not yet imported */}
