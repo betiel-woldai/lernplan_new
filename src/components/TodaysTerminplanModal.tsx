@@ -39,13 +39,13 @@ export const TodaysTerminplanModal: React.FC<TodaysTerminplanModalProps> = ({
   const getPriorityColor = (priority: 'low' | 'medium' | 'high') => {
     switch (priority) {
       case 'high':
-        return 'from-red-100 to-red-50 border-red-200';
+        return 'bg-orange-50 border-orange-100';
       case 'medium':
-        return 'from-blue-100 to-blue-50 border-blue-200';
+        return 'bg-blue-50 border-blue-100';
       case 'low':
-        return 'from-green-100 to-green-50 border-green-200';
+        return 'bg-green-50 border-green-100';
       default:
-        return 'from-gray-100 to-gray-50 border-gray-200';
+        return 'bg-gray-50 border-gray-100';
     }
   };
 
@@ -115,7 +115,7 @@ export const TodaysTerminplanModal: React.FC<TodaysTerminplanModalProps> = ({
                   {/* Custom popup message or fallback to details */}
                   {event.popupMessage ? (
                     <div
-                      className="text-gray-700 text-sm leading-relaxed"
+                      className="text-gray-700 text-sm leading-relaxed [&_a]:text-blue-600 [&_a]:underline [&_a]:hover:text-blue-800 [&_a]:font-medium"
                       dangerouslySetInnerHTML={{ __html: event.popupMessage }}
                     />
                   ) : event.details ? (
