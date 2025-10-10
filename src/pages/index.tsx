@@ -122,6 +122,7 @@ export default function Dashboard() {
           realtimeLevel={realtimeLevel}
           nextLevelXP={getXPForLevel(realtimeLevel + 1)}
           selectedDate={selectedDate}
+          realtimeStreak={realtimeStreak}
           showAchievements={false}
           loading={userStatsLoading}
         />

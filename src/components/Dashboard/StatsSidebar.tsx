@@ -10,6 +10,7 @@ interface StatsSidebarProps {
   realtimeLevel: number;
   nextLevelXP: number;
   selectedDate: Date | null;
+  realtimeStreak?: number;
   achievements?: Achievement[];
   showAchievements?: boolean;
   loading?: boolean;
@@ -21,6 +22,7 @@ export function StatsSidebar({
   realtimeLevel,
   nextLevelXP,
   selectedDate,
+  realtimeStreak,
   achievements = [],
   showAchievements = false,
   loading = false,
@@ -43,7 +45,7 @@ export function StatsSidebar({
         {/* Progress bar removed to avoid showing potentially non-actual XP progress */}
       </div>
 
-      <DirectCalendarStats selectedDate={selectedDate || undefined} />
+      <DirectCalendarStats selectedDate={selectedDate || undefined} streak={realtimeStreak} />
 
       {showAchievements && (
         <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border border-yellow-200">

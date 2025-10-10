@@ -6,22 +6,21 @@ import { CalendarSession } from '@/types/calendar';
 
 interface DirectCalendarStatsProps {
   selectedDate?: Date;
+  streak?: number;
 }
 
 interface CalendarStatsData {
   completedSessions: number;
   formattedDuration: string;
   completedMinutes: number;
-  streakDays: number;
   isToday: boolean;
 }
 
-export default function DirectCalendarStats({ selectedDate = new Date() }: DirectCalendarStatsProps) {
+export default function DirectCalendarStats({ selectedDate = new Date(), streak }: DirectCalendarStatsProps) {
   const [stats, setStats] = useState<CalendarStatsData>({
     completedSessions: 0,
     formattedDuration: '0h 0m',
     completedMinutes: 0,
-    streakDays: 0,
     isToday: true
   });
   const [loading, setLoading] = useState(true);
@@ -65,16 +64,12 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       const minutes = totalMinutes % 60;
       const formattedDuration = `${hours}h ${minutes}m`;
 
-      // Calculate streak (simplified - just check if today has completed sessions)
-      const streakDays = completedSessions > 0 ? 1 : 0;
-
       const isToday = dateStr === getBerlinDateString();
 
       const newStats: CalendarStatsData = {
         completedSessions,
         formattedDuration,
         completedMinutes: totalMinutes,
-        streakDays,
         isToday
       };
 
@@ -173,11 +168,11 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
             <span className="text-xs font-medium text-orange-900">Streak</span>
           </div>
           <span className="text-sm font-bold text-orange-900">
-            {loading ? '...' : stats.streakDays}
+            {loading ? '...' : (streak ?? 0)}
           </span>
         </div>
         <div className="text-xs text-orange-700">
-          {stats.isToday ? 'Tage in Folge bis heute' : 'Tage in Folge bis ' + selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
+          Tage in Folge
         </div>
       </div>
     </div>
