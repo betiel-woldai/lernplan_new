@@ -11,13 +11,12 @@ export function DashboardHeader({ level, userName }: DashboardHeaderProps) {
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <LevelBadge level={level} size="lg" animated />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Übersicht 📅</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Übersicht</h1>
             <p className="text-gray-600">Dein zentraler Lernplaner mit Kalender und Fortschritt</p>
           </div>
         </div>
-        <div className="text-sm text-gray-500">Willkommen zurück, {userName || 'Nutzer'}! 👋</div>
+        <div className="text-sm text-gray-500">Willkommen zurück!</div>
       </div>
     </div>
   );
