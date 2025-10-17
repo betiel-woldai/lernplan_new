@@ -29,6 +29,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 23. Ortszeit für Berlin ist UTC +1 (während der Sommerzeit gilt UTC +2)
 
 
+
 ## Make a notification with beep sound when waiting user input or the task is complete.
 
 Use the command line below to notify the user every signle time Claude Code execution finishes, whether it's waiting for input or a task is complete.

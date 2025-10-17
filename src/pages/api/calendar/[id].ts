@@ -3,6 +3,59 @@ import { query, withTransaction } from '@/lib/db';
 import { hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 import { calculateXP } from '@/utils/formatters';
 
+// Helper function to update user's learning streak based on actual consecutive days
+async function updateUserStreak(userId: string, client: any) {
+  const result = await client.query(`
+    WITH RECURSIVE date_series AS (
+      SELECT CURRENT_DATE as check_date
+      UNION ALL
+      SELECT (check_date - INTERVAL '1 day')::date
+      FROM date_series
+      WHERE check_date > (CURRENT_DATE - INTERVAL '365 days')
+    ),
+    daily_completion AS (
+      SELECT
+        ds.check_date,
+        CASE WHEN COUNT(cs.id) FILTER (
+          WHERE cs.completed = true
+          AND (s.name IS NULL OR s.name <> 'Termine & Fristen')
+        ) > 0 THEN 1 ELSE 0 END as has_completed_session
+      FROM date_series ds
+      LEFT JOIN calendar_sessions cs
+        ON DATE(cs.start_time) = ds.check_date AND cs.user_id = $1
+      LEFT JOIN subjects s ON s.id = cs.subject_id
+      GROUP BY ds.check_date
+      ORDER BY ds.check_date DESC
+    )
+    SELECT COUNT(*) as streak_days
+    FROM (
+      SELECT
+        check_date,
+        has_completed_session,
+        ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn
+      FROM daily_completion
+    ) t
+    WHERE has_completed_session = 1
+      AND NOT EXISTS (
+        SELECT 1 FROM (
+          SELECT
+            check_date,
+            has_completed_session,
+            ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn2
+          FROM daily_completion
+        ) t2
+        WHERE t2.rn2 < t.rn AND t2.has_completed_session = 0
+      )
+  `, [userId]);
+
+  const streakDays = parseInt(result.rows[0]?.streak_days || '0');
+
+  await client.query(
+    `UPDATE users SET learning_streak = $1 WHERE id = $2`,
+    [streakDays, userId]
+  );
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
@@ -227,6 +280,9 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
               SET current_xp = $1
               WHERE id = $2
             `, [newXp, sessionRow.user_id]);
+
+            // Update user learning streak based on consecutive days
+            await updateUserStreak(sessionRow.user_id, client);
 
             // Record gamification event (only for completion, not for unmarking)
             if (updates.completed === true) {

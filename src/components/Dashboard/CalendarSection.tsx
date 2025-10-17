@@ -21,7 +21,7 @@ export function CalendarSection({
     <div className="lg:col-span-3">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p className="text-blue-800 text-sm">
-          <strong>Kalender-Funktionen:</strong> Klicken Sie auf leere Termine, um neue Sessions zu erstellen. Rechtsklick auf
+          <strong>Kalender-Funktionen:</strong> Klicken Sie auf "+ Session", um neue Sessions zu erstellen. Rechtsklick auf
           Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für
           Schnellbearbeitung.
         </p>

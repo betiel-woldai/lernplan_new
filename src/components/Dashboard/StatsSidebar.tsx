@@ -10,6 +10,7 @@ interface StatsSidebarProps {
   realtimeLevel: number;
   nextLevelXP: number;
   selectedDate: Date | null;
+  realtimeStreak?: number;
   achievements?: Achievement[];
   showAchievements?: boolean;
   loading?: boolean;
