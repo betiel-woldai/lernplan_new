@@ -73,7 +73,27 @@ async function getUserStats(userId: string, res: NextApiResponse) {
   }
 
   if (userResult.rows.length === 0) {
-    return res.status(404).json({ error: 'User not found' });
+    // User not found - this can happen on first login if stats are fetched before init completes
+    // Return default stats instead of 404 to avoid race condition errors
+    return res.status(200).json({
+      id: userId,
+      name: 'New User',
+      email: null,
+      currentLevel: 1,
+      currentXP: 0,
+      nextLevelXP: 100,
+      learningStreak: 0,
+      dailyLearningTime: 0,
+      weeklyLearningTime: 0,
+      totalHours: 0,
+      completedTasks: 0,
+      totalCompletedTasks: 0,
+      achievements: [],
+      levelProgress: 0,
+      xpToNextLevel: 100,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+    });
   }
 
   const user = userResult.rows[0];

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { apiFetch } from '@/lib/apiClient';
 import { CalendarSession } from '../types/calendar';
-import { getActiveUserId } from '@/utils/user';
 
 export interface UseCalendarSessionsReturn {
   sessions: CalendarSession[];
@@ -25,19 +26,28 @@ export interface UseCalendarSessionsReturn {
 }
 
 export const useCalendarSessions = (): UseCalendarSessionsReturn => {
-  const userId = getActiveUserId();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const userId = session?.sub;
   const [sessions, setSessions] = useState<CalendarSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTerminplanEvents, setShowTerminplanEvents] = useState(true);
+  const [isTerminplanImported, setIsTerminplanImported] = useState(false);
 
   // Fetch sessions for a specific month
   const fetchSessionsForMonth = useCallback(async (year: number, month: number) => {
+    if (!userId) {
+      setSessions([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/calendar?userId=${userId}&year=${year}&month=${month}`);
+      const response = await apiFetch(`/api/calendar?userId=${userId}&year=${year}&month=${month}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch calendar sessions: ${response.statusText}`);
@@ -66,6 +76,12 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
 
   // Fetch sessions for a date range
   const fetchSessionsForDateRange = useCallback(async (startDate: Date, endDate: Date) => {
+    if (!userId) {
+      setSessions([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -73,7 +89,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
 
-      const response = await fetch(`/api/calendar?userId=${userId}&startDate=${startDateStr}&endDate=${endDateStr}`);
+      const response = await apiFetch(`/api/calendar?userId=${userId}&startDate=${startDateStr}&endDate=${endDateStr}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch calendar sessions: ${response.statusText}`);
@@ -116,6 +132,10 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
   const createSession = useCallback(async (
     sessionData: Omit<CalendarSession, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<CalendarSession> => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -131,7 +151,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
         location: sessionData.location,
       };
 
-      const response = await fetch('/api/calendar', {
+      const response = await apiFetch('/api/calendar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,12 +197,16 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
 
   // Force refresh when subjects are updated (for external sync)
   const syncFromSubjects = useCallback(async () => {
+    if (!userId) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
+
       // First trigger backend sync
-      const syncResponse = await fetch('/api/calendar/sync', {
+      const syncResponse = await apiFetch('/api/calendar/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -228,7 +252,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
         if (normalized.completed !== undefined) learningUpdates.completed = normalized.completed;
         if (normalized.duration !== undefined) learningUpdates.duration = normalized.duration;
 
-        const resp = await fetch(`/api/sessions/${sessionId}`, {
+        const resp = await apiFetch(`/api/sessions/${sessionId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(learningUpdates),
@@ -272,7 +296,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       }
 
       // Default path: calendar sessions API
-      const response = await fetch(`/api/calendar/${sessionId}`, {
+      const response = await apiFetch(`/api/calendar/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(normalized),
@@ -345,10 +369,14 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
 
   // Delete a calendar session
   const deleteSession = useCallback(async (sessionId: string): Promise<boolean> => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch(`/api/calendar?sessionId=${sessionId}`, {
+      const response = await apiFetch(`/api/calendar?sessionId=${sessionId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -382,7 +410,6 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
   useEffect(() => {
     const handleExternalSessionUpdate = (event: any) => {
       const { sessionId, updates } = event.detail;
-      console.log('📅 useCalendarSessions: External session update received', { sessionId, updates });
       
       // Update the session in our local state
       setSessions(prevSessions => 
@@ -395,7 +422,6 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     };
 
     const handleSessionCompleted = async (event: any) => {
-      console.log('📅 useCalendarSessions: Session completed event received', event.detail);
 
       const eventData = event.detail;
 
@@ -431,13 +457,11 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
                 actualDuration: actualDuration,
                 completed: true
               });
-              console.log('📅 Calendar session updated with actual duration');
             } catch (updateError) {
               console.warn('📅 Failed to update calendar session with actual duration:', updateError);
             }
           }
 
-          console.log('📅 Calendar session created successfully from completed session');
         } catch (calendarError) {
           console.error('📅 Failed to create calendar session from completed session:', calendarError);
         }
@@ -446,14 +470,12 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       // Refresh calendar data to show any updates
       try {
         await refreshSessions();
-        console.log('📅 Calendar refreshed after session completion');
       } catch (error) {
         console.error('📅 Failed to refresh calendar after session completion:', error);
       }
     };
 
     const handleSessionStarted = (event: any) => {
-      console.log('📅 useCalendarSessions: Session started event received', event.detail);
       // Optional: Could be used to show live session indicators
     };
 
@@ -468,19 +490,41 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
     };
   }, [refreshSessions]);
 
+  // Check terminplan import status on mount
+  useEffect(() => {
+    const checkTerminplanStatus = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await apiFetch('/api/terminplan/status');
+        if (res.ok) {
+          const data = await res.json();
+          setIsTerminplanImported(data.isImported);
+        }
+      } catch (error) {
+        console.error('Failed to check terminplan status:', error);
+      }
+    };
+
+    checkTerminplanStatus();
+  }, [userId]);
+
   // Derived collections for integration
   const terminplanSessions = sessions.filter(s => (s as any).isFixed && (s as any).fixedSource === 'terminplan');
   const userSessionsOnly = sessions.filter(s => !((s as any).isFixed && (s as any).fixedSource === 'terminplan'));
   const allSessions = showTerminplanEvents ? sessions : userSessionsOnly;
-  const isTerminplanImported = terminplanSessions.length > 0;
 
   // Import terminplan via cron endpoint
   const importTerminplan = useCallback(async (): Promise<{ added: number; updated: number; removed: number } | null> => {
     try {
-      const res = await fetch('/api/cron/terminplan', { method: 'POST' });
+      const res = await apiFetch('/api/cron/terminplan', { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Terminplan import failed');
       await refreshSessions();
+      // Mark terminplan as imported
+      if (data?.applied && (data.applied.added > 0 || data.applied.updated > 0)) {
+        setIsTerminplanImported(true);
+      }
       return data?.applied || null;
     } catch (e) {
       console.error('Terminplan import failed', e);

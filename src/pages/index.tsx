@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiClient';
+import { GetServerSideProps } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import Layout from '@/components/Layout';
 import { XPToastContainer } from '@/components/XPToast';
 import LevelUpModal from '@/components/LevelUpModal';
@@ -19,7 +23,13 @@ import { TodaysTerminplanModal } from '@/components/TodaysTerminplanModal';
 import { useTodaysTerminplanEvents } from '@/hooks/useTodaysTerminplanEvents';
 import { useTodaysTerminplanModal } from '@/hooks/useTodaysTerminplanModal';
 
-export default function Dashboard() {
+interface DashboardProps {
+  userEmail?: string;
+  userName?: string;
+}
+
+export default function Dashboard({ userEmail, userName }: DashboardProps) {
+  const [userInitialized, setUserInitialized] = useState(false);
   const { userStats, loading: userStatsLoading, refreshStats } = useUserStats();
   const gamification = useGamification();
   const { sessionStats, loading: sessionStatsLoading, refreshStats: refreshSessionStats } = useSessionStats();
@@ -28,6 +38,32 @@ export default function Dashboard() {
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
   const { subjects, refreshSubjects } = useSubjects();
   const { refreshSessions: refreshCalendarSessions, sessions: allSessions, fetchSessionsForDateRange } = useCalendarSessions();
+
+  // Initialize user in database on first load
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const response = await apiFetch('/api/users/init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+          setUserInitialized(true);
+          // Refresh user stats after initialization
+          refreshStats();
+        }
+      } catch (error) {
+        console.error('Failed to initialize user:', error);
+        // Still set as initialized to allow app to load
+        setUserInitialized(true);
+      }
+    };
+
+    if (!userInitialized) {
+      initializeUser();
+    }
+  }, [userInitialized, refreshStats]);
 
   // Today's terminplan events popup system
   const { todaysEvents, hasEvents } = useTodaysTerminplanEvents(allSessions);
@@ -78,7 +114,7 @@ export default function Dashboard() {
   useEffect(() => {
     const reconcile = async () => {
       try {
-        const res = await fetch('/api/gamification/recalculate', { method: 'POST' });
+        const res = await apiFetch('/api/gamification/recalculate', { method: 'POST' });
         if (!res.ok) return;
         const data = await res.json();
         if (typeof data?.newXP === 'number') {
@@ -105,7 +141,7 @@ export default function Dashboard() {
 
   return (
     <Layout title="Dashboard - Lernplaner">
-      <DashboardHeader level={realtimeLevel} userName={userStats?.name ?? null} />
+      <DashboardHeader level={realtimeLevel} userName={userName || userStats?.name || userEmail || null} />
 
       {/* Main Content: Calendar + Stats Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -151,3 +187,30 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+// Server-side authentication check
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Get session from NextAuth using shared Keycloak session
+  const session = await getServerSession(context.req, context.res, authOptions);
+
+  // If no session, redirect to DIAS login
+  if (!session) {
+    return {
+      redirect: {
+        destination: process.env.NODE_ENV === 'production'
+          ? 'https://lm11.hs-ansbach.de/dias_test'
+          : 'http://localhost:3001',
+        permanent: false,
+      },
+    };
+  }
+
+  // Extract real user info from Keycloak session and pass session to SessionProvider
+  return {
+    props: {
+      session: JSON.parse(JSON.stringify(session)), // Serialize for client
+      userName: session.user?.name || null,
+      userEmail: session.user?.email || null,
+    },
+  };
+};

@@ -137,7 +137,6 @@ export function useActiveSession() {
       
       // Only broadcast if not currently syncing from another instance
       if (!isSyncingRef.current) {
-        console.log('🔄 Broadcasting session sync event:', sessionToSave);
         const syncEvent = new CustomEvent('sessionSync', {
           detail: sessionToSave
         });
@@ -145,10 +144,9 @@ export function useActiveSession() {
       }
     } else {
       localStorage.removeItem(STORAGE_KEY);
-      
+
       // Only broadcast clear event if not currently syncing
       if (!isSyncingRef.current) {
-        console.log('🔄 Broadcasting session clear event');
         const syncEvent = new CustomEvent('sessionSync', {
           detail: { sessionState: 'idle' }
         });
@@ -159,13 +157,10 @@ export function useActiveSession() {
 
   // Restore session from localStorage on mount
   useEffect(() => {
-    console.log('🔄 useActiveSession: Attempting to restore session from localStorage');
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      console.log('🔄 Saved session data:', saved);
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log('🔄 Parsed session:', parsed);
         if (parsed.sessionState && parsed.sessionState !== 'completed' && parsed.sessionData) {
           setSessionState(parsed.sessionState);
           setSessionData(parsed.sessionData);
@@ -213,13 +208,11 @@ export function useActiveSession() {
   useEffect(() => {
     const handleSessionSync = (e: CustomEvent) => {
       const sessionData = e.detail;
-      console.log('🔄 Session sync event received:', sessionData);
-      
+
       // Set syncing flag to prevent circular broadcasts
       isSyncingRef.current = true;
-      
+
       if (sessionData.sessionState && sessionData.sessionState !== 'completed' && sessionData.sessionData) {
-        console.log('🔄 Syncing session state from custom event:', sessionData);
         setSessionState(sessionData.sessionState);
         setSessionData(sessionData.sessionData);
         setStartTime(sessionData.startTime);
@@ -233,7 +226,6 @@ export function useActiveSession() {
         });
       } else if (!sessionData.sessionState || sessionData.sessionState === 'idle') {
         // Session was cleared
-        console.log('🔄 Session cleared by sync event');
         setSessionState('idle');
         setSessionData(null);
         setStartTime(null);
@@ -287,7 +279,6 @@ export function useActiveSession() {
         pauseStartedAt: null,
         sessionState: 'active'
       };
-      console.log('💾 Saving session to localStorage:', sessionToSave);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionToSave));
 
       // Dispatch session started event
@@ -300,8 +291,6 @@ export function useActiveSession() {
           startTime: Date.now()
         }
       }, 'useActiveSession');
-
-      console.log(`Session started: ${sessionDataParam.subjectName} for ${sessionDataParam.targetDuration} minutes`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start session';
       setError(errorMessage);
@@ -319,8 +308,6 @@ export function useActiveSession() {
       setError(null);
       setPauseStartedAt(Date.now());
       setSessionState('paused');
-      
-      console.log('Session paused');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to pause session';
       setError(errorMessage);
@@ -347,8 +334,6 @@ export function useActiveSession() {
       setPausedDuration(prev => prev + pausedTime);
       setPauseStartedAt(null);
       setSessionState('active');
-
-      console.log('Session resumed');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to resume session';
       setError(errorMessage);
@@ -503,8 +488,6 @@ export function useActiveSession() {
 
       // Clear localStorage
       localStorage.removeItem(STORAGE_KEY);
-
-      console.log('Session cancelled');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to cancel session';
       setError(errorMessage);
@@ -537,8 +520,6 @@ export function useActiveSession() {
       setSessionData(updatedSessionData);
       setPauseStartedAt(null);
       setSessionState('active');
-
-      console.log(`Session extended: +${extensionToAdd || 'indefinite'} minutes`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to extend session';
       setError(errorMessage);
@@ -585,9 +566,6 @@ export function useActiveSession() {
       const elapsedSeconds = Math.floor(elapsedMs / 1000);
       const newProgress = calculateProgress(updatedSessionData, elapsedSeconds);
       setProgress(newProgress);
-
-      console.log(`⚙️ Session time adjusted: ${sessionData.targetDuration}min → ${newDurationMinutes}min (${reason || 'Manual adjustment'})`);
-      console.log('📝 Adjustment logged:', adjustmentEntry);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to adjust session time';
       setError(errorMessage);

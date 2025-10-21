@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 import { CalendarSession } from '../../types/calendar';
 import { useSubjects } from '../../hooks/useSubjects';
 import { X, Calendar, Clock, FileText, CheckCircle, AlertCircle, Save, MapPin, Trash2 } from 'lucide-react';
@@ -147,14 +148,14 @@ export default function CalendarSessionEditModal({
           if (updates.description !== undefined) {
             learningPayload.notes = updates.description;
           }
-          return fetch(`/api/sessions/${session.id}`, {
+          return apiFetch(`/api/sessions/${session.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(learningPayload),
           });
         }
         // Default: calendar session update
-        return fetch(`/api/calendar/${session.id}`, {
+        return apiFetch(`/api/calendar/${session.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

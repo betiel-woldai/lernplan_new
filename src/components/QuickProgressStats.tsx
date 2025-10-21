@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Target, Zap } from 'lucide-react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface QuickProgressStatsProps {
   className?: string;
@@ -27,7 +28,7 @@ export default function QuickProgressStats({ className = '' }: QuickProgressStat
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/learning-sessions/stats/today');
+      const response = await apiFetch('/api/learning-sessions/stats/today');
       if (response.ok) {
         const data = await response.json();
         setStats({

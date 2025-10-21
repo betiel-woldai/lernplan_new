@@ -1,10 +1,12 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { FaCog } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
 import { useLanguage } from '../contexts/LanguageContext';
+import { apiFetch } from '../lib/apiClient';
 import SettingsModal from './SettingsModal';
 import CompactTimer from './CompactTimer';
 import SubjectSelector from './SubjectSelector';
@@ -18,10 +20,32 @@ interface LayoutProps {
 export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) {
   const router = useRouter();
   const { t } = useLanguage();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const status = sessionData?.status || 'loading';
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
   const [completedSession, setCompletedSession] = useState<any>(null);
+
+  // Initialize user in database on first load
+  useEffect(() => {
+    const initializeUser = async () => {
+      if (status === 'authenticated' && session) {
+        try {
+          await apiFetch('/api/users/init', {
+            method: 'POST',
+          });
+        } catch (error) {
+          // Silently fail - user will be initialized on next API call
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      initializeUser();
+    }
+  }, [status, session]);
 
   const isActive = (path: string) => {
     return router.pathname === path;

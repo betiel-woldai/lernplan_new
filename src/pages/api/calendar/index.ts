@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { query } from '@/lib/db';
 import { z } from 'zod';
-import { getActiveUserId } from '@/utils/user';
 import { hasCalendarMetadataColumns, hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 
 const calendarSessionSchema = z.object({
@@ -34,10 +35,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
-  const { userId, startDate, endDate, month, year } = req.query;
+  // Check authentication
+  const authSession = await getServerSession(req, res, authOptions);
+  if (!authSession) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
-  // Use configured user id until authentication is implemented
-  const userIdToUse = (userId as string) || getActiveUserId();
+  const userIdToUse = authSession.sub;
+  if (!userIdToUse) {
+    return res.status(400).json({ error: 'User ID not found in session' });
+  }
+
+  const { startDate, endDate, month, year } = req.query;
 
   let calendarDateFilter = '';
   let learningDateFilter = '';
@@ -181,17 +190,27 @@ async function getCalendarSessions(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) {
+  // Check authentication
+  const authSession = await getServerSession(req, res, authOptions);
+  if (!authSession) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = authSession.sub;
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID not found in session' });
+  }
+
   const validation = calendarSessionSchema.safeParse(req.body);
-  
+
   if (!validation.success) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Validation failed',
-      details: validation.error.issues 
+      details: validation.error.issues
     });
   }
 
   const data = validation.data;
-  const userId = req.body.userId || getActiveUserId();
 
   // Validate that start time is before end time
   if (data.startTime >= data.endTime) {
@@ -263,8 +282,18 @@ async function createCalendarSession(req: NextApiRequest, res: NextApiResponse) 
 }
 
 async function deleteCalendarSession(req: NextApiRequest, res: NextApiResponse) {
+  // Check authentication
+  const authSession = await getServerSession(req, res, authOptions);
+  if (!authSession) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = authSession.sub;
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID not found in session' });
+  }
+
   const { sessionId } = req.query;
-  const userId = req.body?.userId || getActiveUserId();
 
   if (!sessionId || typeof sessionId !== 'string') {
     return res.status(400).json({ error: 'Session ID is required' });

@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
-import { getActiveUserId } from '@/utils/user';
 import { getLevel, getXPForLevel } from '@/utils/formatters';
 
 interface DbLearningSessionRow {
@@ -62,9 +63,18 @@ type QuerySessionsParams = z.infer<typeof querySessionsSchema>;
 
 async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Check authentication
+    const authSession = await getServerSession(req, res, authOptions);
+    if (!authSession) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = authSession.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
+
     const params = querySessionsSchema.parse(req.query);
-    const defaultUserId = getActiveUserId();
-    const userId = params.userId || defaultUserId;
 
     let whereConditions = ['ls.user_id = $1'];
     let queryParams: Array<string | number> = [userId];
@@ -178,10 +188,20 @@ async function getLearningSessions(req: NextApiRequest, res: NextApiResponse) {
 
 async function createLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const defaultUserId = getActiveUserId();
+    // Check authentication
+    const authSession = await getServerSession(req, res, authOptions);
+    if (!authSession) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = authSession.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
+
     const sessionData: CreateSessionData = {
       ...createSessionSchema.parse(req.body),
-      userId: req.body.userId || defaultUserId
+      userId
     };
 
     // Verify subject exists and belongs to user
@@ -278,7 +298,7 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
       return sessionResult.rows[0];
     });
 
-    const session = {
+    const learningSession = {
       id: result.id,
       subjectId: result.subject_id,
       userId: result.user_id,
@@ -290,7 +310,7 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
       createdAt: result.created_at.toISOString()
     };
 
-    return res.status(201).json({ session });
+    return res.status(201).json({ session: learningSession });
 
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface SessionStats {
   totalSessions: number;
@@ -30,7 +31,7 @@ export function useSessionStats() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/session-stats');
+      const response = await apiFetch('/api/session-stats');
       if (!response.ok) {
         throw new Error('Failed to fetch session stats');
       }

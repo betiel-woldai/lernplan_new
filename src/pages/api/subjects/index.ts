@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { query } from '@/lib/db';
 import { z } from 'zod';
 import { generateCalendarEventsFromSubjects } from '@/utils/calendarEventGenerator';
-import { getActiveUserId } from '@/utils/user';
 import { hasCalendarMetadataColumns, hasSubjectTypeColumn } from '@/lib/schemaMetadata';
 import { isAdministrativeSubject } from '@/lib/subjects/type';
 
@@ -36,10 +37,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
-  const { userId } = req.query;
+  // Check authentication
+  const authSession = await getServerSession(req, res, authOptions);
+  if (!authSession) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
-  // For now, use a default user ID until authentication is implemented
-  const userIdToUse = (userId as string) || getActiveUserId();
+  const userIdToUse = authSession.sub;
+  if (!userIdToUse) {
+    return res.status(400).json({ error: 'User ID not found in session' });
+  }
 
   const hasType = await hasSubjectTypeColumn();
 
@@ -92,17 +99,27 @@ async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function createSubject(req: NextApiRequest, res: NextApiResponse) {
+  // Check authentication
+  const authSession = await getServerSession(req, res, authOptions);
+  if (!authSession) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = authSession.sub;
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID not found in session' });
+  }
+
   const validation = subjectSchema.safeParse(req.body);
-  
+
   if (!validation.success) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       error: 'Validation failed',
-      details: validation.error.issues 
+      details: validation.error.issues
     });
   }
 
   const data = validation.data;
-  const userId = req.body.userId || getActiveUserId(); // Use provided userId or configured default
 
   const result = await query(`
     INSERT INTO subjects (

@@ -7,16 +7,16 @@ ALTER TABLE calendar_sessions
   ADD COLUMN IF NOT EXISTS fixed_source TEXT,
   ADD COLUMN IF NOT EXISTS fixed_source_key TEXT;
 
--- Unique key to support idempotent upserts by source
+-- Unique key to support idempotent upserts by source (per user)
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint 
+    SELECT 1 FROM pg_constraint
     WHERE conname = 'uniq_calendar_fixed_source_key'
   ) THEN
     ALTER TABLE calendar_sessions
       ADD CONSTRAINT uniq_calendar_fixed_source_key
-      UNIQUE (fixed_source, fixed_source_key);
+      UNIQUE (user_id, fixed_source, fixed_source_key);
   END IF;
 END$$;
 

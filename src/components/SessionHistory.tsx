@@ -37,6 +37,14 @@ export default function SessionHistory({
     limit: 20 
   });
 
+  // Helper function to convert session.date to Date object
+  const toDate = (date: string | Date): Date => {
+    if (date instanceof Date) {
+      return date;
+    }
+    return parseISO(date);
+  };
+
   // Filter sessions based on search and date filters
   const filteredSessions = useMemo(() => {
     let filtered = sessions;
@@ -44,7 +52,7 @@ export default function SessionHistory({
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(session => 
+      filtered = filtered.filter(session =>
         session.subject?.name.toLowerCase().includes(query) ||
         session.notes?.toLowerCase().includes(query)
       );
@@ -54,9 +62,9 @@ export default function SessionHistory({
     if (dateFilter !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       filtered = filtered.filter(session => {
-        const sessionDate = parseISO(session.date);
+        const sessionDate = toDate(session.date);
         
         switch (dateFilter) {
           case 'today':
@@ -81,9 +89,13 @@ export default function SessionHistory({
   // Group sessions by date
   const sessionsByDate = useMemo(() => {
     const groups: { [key: string]: LearningSession[] } = {};
-    
+
     filteredSessions.forEach(session => {
-      const dateKey = session.date;
+      // Convert date to string for grouping key
+      const dateKey = typeof session.date === 'string'
+        ? session.date.split('T')[0]
+        : session.date.toISOString().split('T')[0];
+
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }

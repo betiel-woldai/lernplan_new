@@ -53,20 +53,13 @@ export function useTodaysTerminplanModal(hasEvents: boolean) {
 
   // Show modal when conditions are met
   useEffect(() => {
-    console.log('DEBUG Modal: hasEvents =', hasEvents);
-    console.log('DEBUG Modal: wasDismissedToday =', wasDismissedToday());
-
     if (hasEvents && !wasDismissedToday()) {
-      console.log('DEBUG Modal: Should show modal - setting timer');
       // Small delay to ensure page is loaded
       const timer = setTimeout(() => {
-        console.log('DEBUG Modal: Opening modal now');
         setIsModalOpen(true);
       }, 1000);
 
       return () => clearTimeout(timer);
-    } else {
-      console.log('DEBUG Modal: Not showing modal - conditions not met');
     }
   }, [hasEvents]);
 

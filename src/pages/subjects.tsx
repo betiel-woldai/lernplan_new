@@ -31,7 +31,7 @@ export default function SubjectsPage() {
         {/* Simple Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800 text-sm">
-            <strong>Schnellstart:</strong> Klicken Sie auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. 
+            <strong>Schnellstart:</strong> Klicken Sie auf den grünen &quot;Start&quot;-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen.
             Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in Ihrem Kalender gespeichert, wenn sie abgeschlossen sind.
           </p>
         </div>

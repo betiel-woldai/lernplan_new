@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 import { FaClock, FaCheckCircle, FaFire } from 'react-icons/fa';
 import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
 import { getActiveUserId } from '@/utils/user';
@@ -27,16 +28,13 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
   const [loading, setLoading] = useState(true);
 
   const fetchCalendarStats = async (date: Date) => {
-    console.log('🔍 DirectCalendarStats: Fetching for date:', date.toISOString().split('T')[0]);
     setLoading(true);
 
     try {
       const userId = getActiveUserId();
       // Fetch calendar sessions directly
-      const calendarResponse = await fetch(`/api/calendar?userId=${userId}`);
+      const calendarResponse = await apiFetch(`/api/calendar?userId=${userId}`);
       const sessions: CalendarSession[] = await calendarResponse.json();
-
-      console.log('📅 DirectCalendarStats: Found', sessions.length, 'total sessions');
 
       // Filter for selected date
       const dateStr = toBerlinDateString(date);
@@ -46,8 +44,6 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
         });
         return sessionDate === dateStr;
       });
-
-      console.log('📅 DirectCalendarStats: Found', todaySessions.length, 'sessions for', dateStr);
 
       // Exclude fixed terminplan events from learning stats
       const learningSessions = todaySessions.filter((s: any) => !(s.isFixed && s.fixedSource === 'terminplan'));
@@ -78,7 +74,6 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
         isToday
       };
 
-      console.log('✅ DirectCalendarStats: Calculated stats:', newStats);
       setStats(newStats);
 
     } catch (error) {
@@ -96,7 +91,6 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
   // Listen for calendar session updates
   useEffect(() => {
     const handleSessionUpdate = () => {
-      console.log('🔄 DirectCalendarStats: Session updated, refreshing stats');
       fetchCalendarStats(selectedDate);
     };
 

@@ -3,6 +3,7 @@ import { X, Calendar, Clock, User, MapPin, FileText } from 'lucide-react';
 import { useSubjects } from '../../hooks/useSubjects';
 import { CalendarSession } from '../../types/calendar';
 import { getActiveUserId } from '@/utils/user';
+import { apiFetch } from '@/lib/apiClient';
 
 interface CreateSessionModalProps {
   isOpen: boolean;
@@ -170,7 +171,7 @@ export default function CreateSessionModal({
         location: formData.location || undefined,
       };
 
-      const response = await fetch('/api/calendar', {
+      const response = await apiFetch('/api/calendar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

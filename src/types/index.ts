@@ -52,7 +52,7 @@ export interface LearningSession {
   id: string;
   subjectId: string;
   userId: string;
-  date: Date;
+  date: string | Date; // Can be string (from API) or Date object
   actualDuration: number; // minutes - actual time spent
   plannedDuration?: number; // minutes - originally planned time
   duration: number; // DEPRECATED: use actualDuration (kept for backward compatibility)

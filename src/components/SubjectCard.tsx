@@ -7,12 +7,14 @@ export interface SubjectCardProps {
   subject: Subject;
   onEdit: (subject: Subject) => void;
   onDelete: (id: string) => void;
+  onStartSession?: (subject: Subject) => void;
 }
 
 export const SubjectCard: React.FC<SubjectCardProps> = ({
   subject,
   onEdit,
-  onDelete
+  onDelete,
+  onStartSession
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 

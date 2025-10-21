@@ -85,12 +85,9 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
           isPositive: true
         }}
       >
-        <StreakDisplay 
-          streak={gamification.streak} 
+        <StreakDisplay
+          streak={gamification.streak}
           size="sm"
-          onStreakMilestone={(milestone) => {
-            console.log(`Streak milestone reached: ${milestone}`);
-          }}
         />
       </CompactStatWidget>
 

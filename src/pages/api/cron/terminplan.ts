@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import fs from 'fs';
 import path from 'path';
 import { canonicalizer } from '@/lib/terminplan/canonicalizer';
@@ -7,13 +9,22 @@ import { normalizeDates } from '@/lib/terminplan/normalize';
 import { transformAcademicCalendar } from '@/lib/terminplan/transform';
 import { diffEngine } from '@/lib/terminplan/diff';
 import { query, withTransaction } from '@/lib/db';
-import { getActiveUserId } from '@/utils/user';
 import { hasSubjectTypeColumn } from '@/lib/schemaMetadata';
 import crypto from 'crypto';
 
 // Cron stub: dry-run only, returns diff summary without mutating DB
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Check authentication
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = session.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
     const filePath = path.join(process.cwd(), 'db', 'terminplan.json');
     const raw = fs.readFileSync(filePath, 'utf8');
     const json = JSON.parse(raw);
@@ -22,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 1) New hierarchical { academic_calendar: {...} } → flatten to legacy entries
     // 2) Legacy flat TerminplanEntry[] → pass through as-is
     const transformed = transformAcademicCalendar(json);
-    const baseInput: TerminplanEntry[] = transformed
+    const baseInput: TerminplanEntry[] | null = transformed
       ? transformed
       : (TerminplanSchema.validate(json) ? (json as TerminplanEntry[]) : null);
     if (!baseInput) return res.status(400).json({ error: 'Invalid terminplan format' });
@@ -34,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method !== 'POST') {
       // Dry run: compute diff vs DB snapshot of fixed terminplan entries
-      const old = await loadExistingCanonical();
+      const old = await loadExistingCanonical(userId);
       const diff = diffEngine.computeDiff(old, current);
       return res.status(200).json({ checksum, summary: {
         added: diff.added.length,
@@ -44,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Apply: upsert fixed calendar sessions from terminplan
-    const applyResult = await applyTerminplan(current.entries);
+    const applyResult = await applyTerminplan(current.entries, userId);
     return res.status(200).json({ checksum, applied: applyResult });
   } catch (e: any) {
     console.error('terminplan cron preview failed', e);
@@ -52,12 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function loadExistingCanonical() {
+async function loadExistingCanonical(userId: string) {
   const rows = await query(
     `SELECT fixed_source_key, title, description as details,
             to_char(start_time AT TIME ZONE 'Europe/Berlin', 'YYYY-MM-DD') as date
      FROM calendar_sessions
-     WHERE is_fixed = true AND fixed_source = 'terminplan'`
+     WHERE is_fixed = true AND fixed_source = 'terminplan' AND user_id = $1`,
+    [userId]
   );
   const entries = rows.rows.map(r => ({
     title: r.title as string,
@@ -185,17 +197,17 @@ async function ensureTerminplanSubject(userId: string) {
   return inserted.rows[0].id as string;
 }
 
-async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: string }>) {
-  const userId = getActiveUserId();
+async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: string }>, userId: string) {
   const subjectId = await ensureTerminplanSubject(userId);
 
   return await withTransaction(async (client) => {
     // allow updates on fixed rows during this transaction only
     await client.query("SET LOCAL app.bypass_fixed_guard = 'on'");
 
-    // index existing fixed entries by source_key
+    // index existing fixed entries by source_key for this user
     const existing = await client.query(
-      `SELECT id, fixed_source_key FROM calendar_sessions WHERE is_fixed = true AND fixed_source = 'terminplan'`
+      `SELECT id, fixed_source_key FROM calendar_sessions WHERE is_fixed = true AND fixed_source = 'terminplan' AND user_id = $1`,
+      [userId]
     );
     const byKey = new Map(existing.rows.map((r: any) => [r.fixed_source_key, r]));
 
@@ -215,7 +227,7 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
       const sessionType = classifyType(e.title);
       for (const w of windows) {
         const perDayKey = `${e.source_key}|${w.date}`;
-        const id = stableUUID(`terminplan:${perDayKey}`);
+        const id = stableUUID(`${userId}:terminplan:${perDayKey}`);
         const plannedMinutes = Math.max(1, Math.round((w.endISO.getTime() - w.startISO.getTime()) / 60000));
 
         // Store both details and popupMessage in description field as JSON
@@ -240,7 +252,7 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
                id, user_id, subject_id, title, start_time, end_time, planned_duration,
                session_type, completed, description, is_fixed, fixed_source, fixed_source_key, is_all_day
              ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,false,$9,true,'terminplan',$10,true)
-             ON CONFLICT (fixed_source, fixed_source_key)
+             ON CONFLICT (user_id, fixed_source, fixed_source_key)
              DO UPDATE SET title = EXCLUDED.title,
                            description = EXCLUDED.description,
                            start_time = EXCLUDED.start_time,
@@ -256,9 +268,10 @@ async function applyTerminplan(entries: Array<TerminplanEntry & { source_key: st
       }
     }
 
-    // Remove entries that are no longer present
+    // Remove entries that are no longer present for this user
     const stale = await client.query(
-      `SELECT id, fixed_source_key FROM calendar_sessions WHERE is_fixed = true AND fixed_source = 'terminplan'`
+      `SELECT id, fixed_source_key FROM calendar_sessions WHERE is_fixed = true AND fixed_source = 'terminplan' AND user_id = $1`,
+      [userId]
     );
     for (const row of stale.rows) {
       if (!currentKeys.has(row.fixed_source_key)) {

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 import type React from 'react';
 import { getLevel, getXPForLevel } from '@/utils/formatters';
 
@@ -27,7 +28,7 @@ export function useDashboardEvents({
   useEffect(() => {
     const recalcXP = async () => {
       try {
-        const res = await fetch('/api/gamification/recalculate', { method: 'POST' });
+        const res = await apiFetch('/api/gamification/recalculate', { method: 'POST' });
         if (!res.ok) return;
         const data = await res.json();
         if (typeof data?.newXP === 'number') {

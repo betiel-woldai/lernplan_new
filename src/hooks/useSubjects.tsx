@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { apiFetch } from '@/lib/apiClient';
 import { Subject } from '../types';
 import { SubjectFormData } from '../schemas/subjectSchema';
-import { getActiveUserId } from '@/utils/user';
 
 export interface UseSubjectsReturn {
   subjects: Subject[];
@@ -18,7 +19,9 @@ export interface UseSubjectsReturn {
 }
 
 export const useSubjects = (): UseSubjectsReturn => {
-  const userId = getActiveUserId();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const userId = session?.sub;
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,11 +29,17 @@ export const useSubjects = (): UseSubjectsReturn => {
 
   // Fetch subjects from API
   const fetchSubjects = useCallback(async () => {
+    if (!userId) {
+      setSubjects([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/subjects?userId=${userId}`);
+      const response = await apiFetch(`/api/subjects?userId=${userId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch subjects: ${response.statusText}`);
@@ -54,7 +63,7 @@ export const useSubjects = (): UseSubjectsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   // Load subjects on mount
   useEffect(() => {
@@ -88,6 +97,10 @@ export const useSubjects = (): UseSubjectsReturn => {
 
   // Create new subject
   const createSubject = useCallback(async (data: SubjectFormData) => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -100,7 +113,7 @@ export const useSubjects = (): UseSubjectsReturn => {
         targetHours: calculateTargetHours(data)
       };
 
-      const response = await fetch('/api/subjects', {
+      const response = await apiFetch('/api/subjects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,6 +152,10 @@ export const useSubjects = (): UseSubjectsReturn => {
 
   // Update existing subject
   const updateSubject = useCallback(async (id: string, data: SubjectFormData) => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -150,7 +167,7 @@ export const useSubjects = (): UseSubjectsReturn => {
         targetHours: calculateTargetHours(data)
       };
 
-      const response = await fetch(`/api/subjects/${id}`, {
+      const response = await apiFetch(`/api/subjects/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -195,7 +212,7 @@ export const useSubjects = (): UseSubjectsReturn => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/subjects/${id}`, {
+      const response = await apiFetch(`/api/subjects/${id}`, {
         method: 'DELETE',
       });
 

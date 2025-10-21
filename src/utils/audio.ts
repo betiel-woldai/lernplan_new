@@ -50,7 +50,7 @@ export const playNotificationSound = (type: 'success' | 'achievement' | 'levelup
         break;
     }
   } catch (error) {
-    console.log('Audio not supported or blocked:', error);
+    // Audio not supported or blocked - silently fail
   }
 };
 

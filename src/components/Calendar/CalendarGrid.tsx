@@ -76,10 +76,9 @@ export default function CalendarGrid({
   // Listen for session updates from modal to refresh visual state
   useEffect(() => {
     const handleSessionUpdate = (event: any) => {
-      console.log('📅 CalendarGrid: Session updated', event.detail);
       // Force re-render to pick up updated session data
       setRefreshKey(prev => prev + 1);
-      
+
       // If session completion status changed, clear reverted state
       if (event.detail?.completionChanged) {
         setRevertedSessions(prev => {
@@ -143,7 +142,6 @@ export default function CalendarGrid({
     
     if (isFutureSession) {
       // Future sessions are always "ausstehend" and cannot be toggled
-      console.log('Cannot mark future sessions as completed - they remain "ausstehend"');
       return;
     }
     

@@ -1,18 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiClient';
+
+import { TimeAdjustment } from '../types';
 
 export interface LearningSession {
   id: string;
   subjectId: string;
   userId: string;
-  date: string;
+  date: string | Date; // Can be string (from API) or Date object
   duration: number; // actual duration
+  actualDuration: number; // minutes - actual time spent (for type compatibility)
   plannedDuration?: number; // planned duration
   completed: boolean;
   points: number;
   notes?: string;
   createdAt: string;
   manualAdjustmentReason?: string;
-  timeAdjustmentsLog?: string; // JSON string of adjustments
+  timeAdjustmentsLog?: TimeAdjustment[]; // Array of time adjustments (or JSON string from API)
   subject?: {
     name: string;
     color: string;
@@ -86,7 +90,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
       if (params?.limit) queryParams.set('limit', params.limit.toString());
       if (params?.offset) queryParams.set('offset', params.offset.toString());
 
-      const response = await fetch(`/api/sessions?${queryParams.toString()}`);
+      const response = await apiFetch(`/api/sessions?${queryParams.toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to fetch sessions' }));
@@ -117,7 +121,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
     setError(null);
 
     try {
-      const response = await fetch('/api/sessions', {
+      const response = await apiFetch('/api/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +153,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/sessions/${sessionId}`, {
+      const response = await apiFetch(`/api/sessions/${sessionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +186,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/sessions/${sessionId}`, {
+      const response = await apiFetch(`/api/sessions/${sessionId}`, {
         method: 'DELETE',
       });
 
@@ -208,7 +212,7 @@ export function useLearningSessions(initialParams?: QueryParams) {
     setError(null);
 
     try {
-      const response = await fetch('/api/sessions/bulk-delete', {
+      const response = await apiFetch('/api/sessions/bulk-delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

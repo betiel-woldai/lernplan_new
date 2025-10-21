@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiClient';
 
 interface DateSpecificStats {
   selectedDate: string;
@@ -43,7 +44,7 @@ export function useDateSpecificStats(selectedDate: Date | null = null) {
       // Format date to YYYY-MM-DD
       const dateStr = date.toISOString().split('T')[0];
 
-      const response = await fetch(`/api/date-specific-stats?date=${dateStr}`);
+      const response = await apiFetch(`/api/date-specific-stats?date=${dateStr}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch date-specific stats: ${response.status} ${response.statusText}`);

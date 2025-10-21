@@ -1,32 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/apiClient';
 import Layout from '@/components/Layout';
+import { apiFetch } from '@/lib/apiClient';
 import { useLanguage } from '../contexts/LanguageContext';
+import { apiFetch } from '@/lib/apiClient';
 import { addEventListener } from '@/utils/eventBus';
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement, 
+import { apiFetch } from '@/lib/apiClient';
+import {
+import { apiFetch } from '@/lib/apiClient';
+  getLevel,
+  getLearningRank,
+  getRankColor,
+  getDailyMotivation
+} from '@/utils/formatters';
+import {
+import { apiFetch } from '@/lib/apiClient';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
   BarElement,
   ArcElement,
-  Title, 
-  Tooltip, 
+  Title,
+  Tooltip,
   Legend,
-  Filler 
+  Filler
 } from 'chart.js';
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { 
-  FaCalendar, 
+import { apiFetch } from '@/lib/apiClient';
+import {
+import { apiFetch } from '@/lib/apiClient';
+  FaCalendar,
   FaChartLine,
-  FaBullseye, 
-  FaAward, 
+  FaBullseye,
+  FaAward,
   FaFilter,
   FaClock,
   FaArrowUp,
   FaCheck,
-  FaPercentage 
+  FaPercentage,
+  FaLightbulb
 } from 'react-icons/fa';
 
 // Register Chart.js components
@@ -108,9 +122,10 @@ export default function AnalyticsPage() {
   // Real-time event listeners
   useEffect(() => {
     const handleSessionCompleted = (event: any) => {
+      console.log('📈 Analytics: Session completed', event.detail);
       setRealtimeUpdate(true);
       setLastUpdateTime(Date.now());
-
+      
       // Auto-refresh analytics data after a brief delay
       setTimeout(() => {
         fetchAnalyticsData();
@@ -119,9 +134,10 @@ export default function AnalyticsPage() {
     };
 
     const handleSubjectUpdated = (event: any) => {
+      console.log('📈 Analytics: Subject updated', event.detail);
       setRealtimeUpdate(true);
       setLastUpdateTime(Date.now());
-
+      
       // Refresh to update subject-related charts
       setTimeout(() => {
         fetchAnalyticsData();
@@ -130,8 +146,9 @@ export default function AnalyticsPage() {
     };
 
     const handleProgressChanged = (event: any) => {
+      console.log('📈 Analytics: Progress changed', event.detail);
       setLastUpdateTime(Date.now());
-
+      
       // For progress changes, we might want to update specific data points
       // For now, we'll do a full refresh
       setTimeout(() => {
@@ -140,8 +157,9 @@ export default function AnalyticsPage() {
     };
 
     const handleXPGained = (event: any) => {
+      console.log('📈 Analytics: XP gained', event.detail);
       setLastUpdateTime(Date.now());
-
+      
       // Update analytics data to reflect XP changes
       setTimeout(() => {
         fetchAnalyticsData();
@@ -149,9 +167,10 @@ export default function AnalyticsPage() {
     };
 
     const handleSessionUpdated = (event: any) => {
+      console.log('📈 Analytics: Session updated', event.detail);
       setRealtimeUpdate(true);
       setLastUpdateTime(Date.now());
-
+      
       // Refresh analytics after session updates to maintain timeline synchronization
       setTimeout(() => {
         fetchAnalyticsData();
@@ -413,6 +432,13 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Daily Motivation */}
+        <div className={`${getDailyMotivation().type === 'motivation' ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-500' : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500'} p-4 rounded-lg`}>
+          <p className={`${getDailyMotivation().type === 'motivation' ? 'text-purple-800' : 'text-blue-800'} font-medium text-sm`}>
+            {getDailyMotivation().text}
+          </p>
+        </div>
+
         {/* Summary Stats */}
         {analyticsData?.summary && (
           <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6">
@@ -439,10 +465,24 @@ export default function AnalyticsPage() {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('analytics.totalXP')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.totalXP}</p>
+                  <p className="text-sm font-medium text-gray-600">Rank</p>
+                  <p className="text-xl font-bold" style={{ color: getRankColor(getLevel(analyticsData.summary.totalXP)) }}>
+                    {getLearningRank(getLevel(analyticsData.summary.totalXP))}
+                  </p>
+                  <p className="text-xs text-gray-500">{analyticsData.summary.totalXP.toLocaleString()} XP Total</p>
                 </div>
-                <FaAward className="h-8 w-8 text-purple-600" />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${getRankColor(getLevel(analyticsData.summary.totalXP))}20` }}>
+                  {(() => {
+                    const level = getLevel(analyticsData.summary.totalXP);
+                    const color = getRankColor(level);
+                    if (level === 1) return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><path d="M12 2C8.14 2 5 5.14 5 9c0 3.17 2.83 6.67 7 11 4.17-4.33 7-7.83 7-11 0-3.86-3.14-7-7-7z"/></svg>;
+                    if (level === 2) return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><path d="M17 8c0-1.4-.8-2.6-2-3.2V3a1 1 0 0 0-2 0v1.8c-1.2.6-2 1.8-2 3.2s.8 2.6 2 3.2V21a1 1 0 0 0 2 0v-9.8c1.2-.6 2-1.8 2-3.2z"/></svg>;
+                    if (level === 3) return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+                    if (level === 4) return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" fill="white"/><circle cx="12" cy="12" r="2" fill={color}/></svg>;
+                    if (level === 5) return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><path d="M12 2L4 6v4c0 7 3 11 8 15 5-4 8-8 8-15V6l-8-4z"/></svg>;
+                    return <svg width="32" height="32" viewBox="0 0 24 24" fill={color}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+                  })()}
+                </div>
               </div>
             </div>
             

@@ -337,7 +337,6 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
       source: 'calendar',
     };
 
-    console.log(`Calendar session ${sessionId} updated successfully`);
     return res.status(200).json({ session: formattedSession, subjectExamUpdate });
 
   } catch (error) {

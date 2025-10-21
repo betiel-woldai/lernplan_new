@@ -34,12 +34,22 @@ export default function SessionEditModal({
   // Initialize form data when session changes
   useEffect(() => {
     if (session) {
+      // Convert date to string format for input field (YYYY-MM-DD)
+      let dateString = '';
+      if (session.date) {
+        if (typeof session.date === 'string') {
+          dateString = session.date.split('T')[0]; // Extract date part if ISO string
+        } else if (session.date instanceof Date) {
+          dateString = session.date.toISOString().split('T')[0];
+        }
+      }
+
       setFormData({
         subjectId: session.subjectId || '',
         duration: session.duration || 0,
         completed: session.completed || false,
         notes: session.notes || '',
-        date: session.date || '',
+        date: dateString,
         points: session.points || 0
       });
     }

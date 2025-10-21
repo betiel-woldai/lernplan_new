@@ -17,7 +17,14 @@ export function DashboardHeader({ level, userName }: DashboardHeaderProps) {
             <p className="text-gray-600">Dein zentraler Lernplaner mit Kalender und Fortschritt</p>
           </div>
         </div>
-        <div className="text-sm text-gray-500">Willkommen zurück, {userName || 'Nutzer'}! 👋</div>
+        <div className="flex flex-col items-end">
+          {userName && (
+            <div className="text-sm font-medium text-gray-700 mb-1">
+              Angemeldet als: {userName}
+            </div>
+          )}
+          <div className="text-sm text-gray-500">Willkommen zurück!</div>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import CreateSessionModal from './CreateSessionModal';
 import CalendarSessionEditModal from './CalendarSessionEditModal';
 import DuplicateSessionModal from './DuplicateSessionModal';
 import { FaChevronLeft, FaChevronRight, FaPlus } from 'react-icons/fa';
+import { apiFetch } from '@/lib/apiClient';
 import useCalendarSessions from '../../hooks/useCalendarSessions';
 import { useLearningSessions } from '../../hooks/useLearningSessions';
 import { getActiveUserId } from '@/utils/user';
@@ -83,12 +84,10 @@ export default function Calendar({
   // Listen for subject changes and auto-sync calendar
   useEffect(() => {
     const handleSubjectChange = async () => {
-      console.log('Subject changed, syncing calendar...');
       await syncFromSubjects();
     };
 
     const handleSessionCreated = async () => {
-      console.log('Session created, refreshing calendar...');
       const currentYear = viewState.currentDate.getFullYear();
       const currentMonth = viewState.currentDate.getMonth() + 1;
       await fetchSessionsForMonth(currentYear, currentMonth);
@@ -227,7 +226,6 @@ export default function Calendar({
           }));
         }
 
-        console.log('Session deleted successfully:', session.id, 'source:', sessionSource);
         // Refresh sessions after deletion
         const currentYear = viewState.currentDate.getFullYear();
         const currentMonth = viewState.currentDate.getMonth() + 1;
@@ -267,7 +265,6 @@ export default function Calendar({
           }));
         }
 
-        console.log('Session deleted successfully from edit modal:', sessionId, 'source:', sessionSource);
         // Refresh sessions after deletion
         const currentYear = viewState.currentDate.getFullYear();
         const currentMonth = viewState.currentDate.getMonth() + 1;
@@ -316,7 +313,7 @@ export default function Calendar({
           location: session.location || undefined,
         };
 
-        const response = await fetch('/api/calendar', {
+        const response = await apiFetch('/api/calendar', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -384,89 +381,106 @@ export default function Calendar({
   return (
     <div className="calendar-container space-y-6">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {/* Month/Year Navigation */}
-          <div className="flex items-center space-x-2">
+      <div className="space-y-3">
+        {/* Top row: Navigation and Controls */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Month/Year Navigation */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigateMonth('prev')}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                title="Vorheriger Monat"
+              >
+                <FaChevronLeft className="w-4 h-4" />
+              </button>
+
+              <h2 className="text-xl font-bold text-gray-900 min-w-[200px] text-center">
+                {currentMonth} {currentYear}
+              </h2>
+
+              <button
+                onClick={() => navigateMonth('next')}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                title="Nächster Monat"
+              >
+                <FaChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Today Button */}
             <button
-              onClick={() => navigateMonth('prev')}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
-              title="Vorheriger Monat"
+              onClick={goToToday}
+              className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
-              <FaChevronLeft className="w-4 h-4" />
-            </button>
-            
-            <h2 className="text-xl font-bold text-gray-900 min-w-[200px] text-center">
-              {currentMonth} {currentYear}
-            </h2>
-            
-            <button
-              onClick={() => navigateMonth('next')}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
-              title="Nächster Monat"
-            >
-              <FaChevronRight className="w-4 h-4" />
+              Heute
             </button>
           </div>
 
-          {/* Today Button */}
-          <button
-            onClick={goToToday}
-            className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-          >
-            Heute
-          </button>
+          {/* Right side controls - Top row */}
+          <div className="flex items-center space-x-3">
+            {/* Terminplan toggle */}
+            <label className="flex items-center space-x-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={!!showTerminplanEvents}
+                onChange={(e) => setShowTerminplanEvents?.(e.target.checked)}
+              />
+              <a
+                href="https://www.hs-ansbach.de/fileadmin/Redaktion/Terminplan_SS_25-SS_26_D.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                HS‑Termine
+              </a>
+            </label>
+
+            {/* Import terminplan CTA when not yet imported */}
+            {!isTerminplanImported && (
+              <button
+                onClick={async () => {
+                  try {
+                    const result = await importTerminplan?.();
+                    if (result) {
+                      // Refresh the currently viewed month after import
+                      const currentYear = viewState.currentDate.getFullYear();
+                      const currentMonth = viewState.currentDate.getMonth() + 1;
+                      await fetchSessionsForMonth(currentYear, currentMonth);
+                    }
+                  } catch (error) {
+                    console.error('Failed to import terminplan:', error);
+                  }
+                }}
+                className="px-3 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
+                title="Universitätstermine importieren"
+              >
+                Importieren
+              </button>
+            )}
+
+            {/* Add Session Button */}
+            <button
+              onClick={() => viewState.selectedDate && handleCreateSession(viewState.selectedDate)}
+              disabled={!viewState.selectedDate}
+              className={`
+                flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                ${viewState.selectedDate
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }
+              `}
+              title={viewState.selectedDate ? 'Session hinzufügen' : 'Wähle ein Datum aus'}
+            >
+              <FaPlus className="w-3 h-3" />
+              <span className="hidden sm:inline">Session</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right side controls */}
-        <div className="flex items-center space-x-3">
-          {/* Terminplan toggle */}
-          <label className="flex items-center space-x-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              className="h-4 w-4"
-              checked={!!showTerminplanEvents}
-              onChange={(e) => setShowTerminplanEvents?.(e.target.checked)}
-            />
-            <a
-              href="https://www.hs-ansbach.de/fileadmin/Redaktion/Terminplan_SS_25-SS_26_D.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
-            >
-              HS‑Termine
-            </a>
-          </label>
-
-          {/* Import terminplan CTA when not yet imported */}
-          {!isTerminplanImported && (
-            <button
-              onClick={async () => { try { await importTerminplan?.(); } catch {} }}
-              className="px-3 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
-              title="Universitätstermine importieren"
-            >
-              Importieren
-            </button>
-          )}
-
-          {/* Add Session Button */}
-          <button
-            onClick={() => viewState.selectedDate && handleCreateSession(viewState.selectedDate)}
-            disabled={!viewState.selectedDate}
-            className={`
-              flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors
-              ${viewState.selectedDate 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }
-            `}
-            title={viewState.selectedDate ? 'Session hinzufügen' : 'Wähle ein Datum aus'}
-          >
-            <FaPlus className="w-3 h-3" />
-            <span className="hidden sm:inline">Session</span>
-          </button>
-
-          {/* View Toggle */}
+        {/* Bottom row: View Toggle */}
+        <div className="flex justify-end">
           <CalendarViewToggle
             currentView={viewState.currentView}
             onViewChange={handleViewChange}

@@ -14,9 +14,6 @@ export function useTodaysTerminplanEvents(sessions: CalendarSession[]) {
   const todaysEvents = useMemo(() => {
     const todayBerlin = getBerlinDateString(); // Format: YYYY-MM-DD
 
-    console.log('DEBUG: Today Berlin date:', todayBerlin);
-    console.log('DEBUG: Total sessions:', sessions.length);
-
     const terminplanSessionsToday = sessions.filter(session => {
       // Only consider fixed terminplan events
       if (!session.isFixed || session.fixedSource !== 'terminplan') {
@@ -30,15 +27,6 @@ export function useTodaysTerminplanEvents(sessions: CalendarSession[]) {
         : new Date(session.startTime);
       const sessionDateBerlin = toBerlinDateString(sessionStartTime);
       const isToday = sessionDateBerlin === todayBerlin;
-
-      if (isToday) {
-        console.log('DEBUG: Found today\'s event:', {
-          title: session.title,
-          sessionDateBerlin,
-          todayBerlin,
-          popupMessage: session.popupMessage
-        });
-      }
 
       return isToday;
     });

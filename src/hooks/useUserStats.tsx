@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { apiFetch } from '@/lib/apiClient';
 import { UserStats } from '../types';
-import { getActiveUserId } from '@/utils/user';
 
 export interface UseUserStatsReturn {
   userStats: UserStats | null;
@@ -11,32 +12,34 @@ export interface UseUserStatsReturn {
 }
 
 export const useUserStats = (): UseUserStatsReturn => {
-  const userId = getActiveUserId();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const status = sessionData?.status || 'loading';
+  const userId = session?.sub;
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch user stats from API
   const fetchUserStats = useCallback(async () => {
+    if (!userId) {
+      setLoading(false);
+      setUserStats(null);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('🐛 useUserStats: Fetching user stats for ID:', userId);
-      const response = await fetch(`/api/users/${userId}`);
-      
-      console.log('🐛 useUserStats: Response status:', response.status, response.statusText);
-      
+
+      const response = await apiFetch(`/api/users/${userId}`);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.log('🐛 useUserStats: Error response:', errorText);
         throw new Error(`Failed to fetch user stats: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
-      console.log('🐛 useUserStats: Received data:', data);
-      
+
       // Convert date strings back to Date objects
       const statsWithDates = {
         ...data,
@@ -44,13 +47,12 @@ export const useUserStats = (): UseUserStatsReturn => {
         lastActiveAt: new Date(data.lastActiveAt),
       };
 
-      console.log('🐛 useUserStats: Setting user stats:', statsWithDates);
       setUserStats(statsWithDates);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load user stats';
       console.error('Failed to fetch user stats:', err);
       setError(errorMessage);
-      
+
       // No fallback data - user needs to set up their account
       setUserStats(null);
     } finally {
@@ -60,10 +62,14 @@ export const useUserStats = (): UseUserStatsReturn => {
 
   // Add XP through API
   const addXP = useCallback(async (amount: number, reason: string) => {
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch('/api/gamification/xp', {
+      const response = await apiFetch('/api/gamification/xp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +90,7 @@ export const useUserStats = (): UseUserStatsReturn => {
       }
 
       const xpResult = await response.json();
-      
+
       // Update local stats with new XP and level
       if (userStats) {
         setUserStats(prev => prev ? {
@@ -114,10 +120,15 @@ export const useUserStats = (): UseUserStatsReturn => {
     await fetchUserStats();
   }, [fetchUserStats]);
 
-  // Load stats on mount
+  // Load stats when authenticated
   useEffect(() => {
-    fetchUserStats();
-  }, [fetchUserStats]);
+    if (status === 'authenticated' && userId) {
+      fetchUserStats();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
+      setUserStats(null);
+    }
+  }, [status, userId, fetchUserStats]);
 
   return {
     userStats,
