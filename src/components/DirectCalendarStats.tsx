@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { apiFetch } from '@/lib/apiClient';
 import { FaClock, FaCheckCircle, FaFire } from 'react-icons/fa';
 import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
-import { getActiveUserId } from '@/utils/user';
 import { CalendarSession } from '@/types/calendar';
 
 interface DirectCalendarStatsProps {
@@ -18,6 +18,7 @@ interface CalendarStatsData {
 }
 
 export default function DirectCalendarStats({ selectedDate = new Date() }: DirectCalendarStatsProps) {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<CalendarStatsData>({
     completedSessions: 0,
     formattedDuration: '0h 0m',
@@ -30,8 +31,14 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
   const fetchCalendarStats = async (date: Date) => {
     setLoading(true);
 
+    // Get user ID from session (production) or fallback to default (development)
+    const userId = session?.sub;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const userId = getActiveUserId();
       // Fetch calendar sessions directly
       const calendarResponse = await apiFetch(`/api/calendar?userId=${userId}`);
       const sessions: CalendarSession[] = await calendarResponse.json();
@@ -61,8 +68,17 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
       const minutes = totalMinutes % 60;
       const formattedDuration = `${hours}h ${minutes}m`;
 
-      // Calculate streak (simplified - just check if today has completed sessions)
-      const streakDays = completedSessions > 0 ? 1 : 0;
+      // Fetch actual streak from user data (not calculated locally)
+      let streakDays = 0;
+      try {
+        const userResponse = await apiFetch(`/api/users/${userId}`);
+        const userData = await userResponse.json();
+        streakDays = userData.learningStreak || 0;
+      } catch (err) {
+        console.error('Failed to fetch user streak:', err);
+        // Fallback: simplified check if today has completed sessions
+        streakDays = completedSessions > 0 ? 1 : 0;
+      }
 
       const isToday = dateStr === getBerlinDateString();
 
@@ -83,10 +99,12 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
     }
   };
 
-  // Fetch on mount and date change
+  // Fetch on mount, date change, and when session is available
   useEffect(() => {
-    fetchCalendarStats(selectedDate);
-  }, [selectedDate]);
+    if (session?.sub) {
+      fetchCalendarStats(selectedDate);
+    }
+  }, [selectedDate, session?.sub]);
 
   // Listen for calendar session updates
   useEffect(() => {
