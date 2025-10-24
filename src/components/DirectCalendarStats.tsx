@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/apiClient';
 import { FaClock, FaCheckCircle, FaFire } from 'react-icons/fa';
 import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
 import { CalendarSession } from '@/types/calendar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DirectCalendarStatsProps {
   selectedDate?: Date;
@@ -19,6 +20,7 @@ interface CalendarStatsData {
 
 export default function DirectCalendarStats({ selectedDate = new Date() }: DirectCalendarStatsProps) {
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<CalendarStatsData>({
     completedSessions: 0,
     formattedDuration: '0h 0m',
@@ -129,7 +131,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
   }, [selectedDate]);
 
   const dateLabel = stats.isToday
-    ? 'Heute'
+    ? t('common.today')
     : selectedDate.toLocaleDateString('de-DE', {
         day: 'numeric',
         month: 'short',
@@ -147,7 +149,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
             <span className="text-xs font-medium text-blue-900">{dateLabel}</span>
           </div>
           <span className="text-sm font-bold text-blue-900">
-            {loading ? 'Laden...' : stats.formattedDuration}
+            {loading ? t('common.loading') : stats.formattedDuration}
           </span>
         </div>
         <div className="w-full bg-blue-200 rounded-full h-1">
@@ -156,7 +158,7 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
             style={{ width: loading ? '0%' : `${Math.min(100, (stats.completedMinutes / 120) * 100)}%` }}
           />
         </div>
-        <div className="text-xs text-blue-700 mt-1">von 2h Ziel</div>
+        <div className="text-xs text-blue-700 mt-1">{t('stats.of2hGoal')}</div>
       </div>
 
       {/* Completed Sessions Compact */}
@@ -171,8 +173,8 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
           </span>
         </div>
         <div className="text-xs text-green-700">
-          {stats.isToday ? 'heute abgeschlossen' :
-            selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' abgeschlossen'
+          {stats.isToday ? t('stats.completedToday') :
+            selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ' ' + t('stats.completedOn')
           }
         </div>
       </div>
@@ -182,14 +184,14 @@ export default function DirectCalendarStats({ selectedDate = new Date() }: Direc
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center space-x-1">
             <FaFire className="text-orange-500 text-sm" />
-            <span className="text-xs font-medium text-orange-900">Streak</span>
+            <span className="text-xs font-medium text-orange-900">{t('analytics.streaks')}</span>
           </div>
           <span className="text-sm font-bold text-orange-900">
             {loading ? '...' : stats.streakDays}
           </span>
         </div>
         <div className="text-xs text-orange-700">
-          {stats.isToday ? 'Tage in Folge bis heute' : 'Tage in Folge bis ' + selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
+          {stats.isToday ? t('stats.daysInARowUntilToday') : t('stats.daysInARowUntil') + ' ' + selectedDate.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })}
         </div>
       </div>
     </div>

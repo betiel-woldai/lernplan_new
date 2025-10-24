@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { hasSubjectTypeColumn, hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
-import { getActiveUserId } from '@/utils/user';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -10,7 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const defaultUserId = getActiveUserId();
+    // Get authenticated user from session
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.sub) {
+      return res.status(401).json({ error: 'Unauthorized - Please log in' });
+    }
+
+    const defaultUserId = session.sub;
     const hasType = await hasSubjectTypeColumn();
     const hasFixed = await hasFixedAppointmentColumns();
 

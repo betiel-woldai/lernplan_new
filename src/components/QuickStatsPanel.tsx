@@ -3,6 +3,7 @@ import StreakDisplay from '@/components/StreakDisplay';
 import AchievementBadge from '@/components/AchievementBadge';
 import useGamification from '@/hooks/useGamification';
 import { useDateSpecificStats } from '@/hooks/useDateSpecificStats';
+import { useLanguage } from '@/contexts/LanguageContext';
 // Progress removed; keep level/XP numbers only
 import { formatNumber } from '@/utils/format';
 
@@ -23,15 +24,16 @@ interface QuickStatsPanelProps {
 export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) {
   const { stats, loading, error } = useDateSpecificStats(selectedDate);
   const gamification = useGamification();
+  const { t } = useLanguage();
 
   // Format the date label for the UI
   const getDateLabel = () => {
-    if (!selectedDate) return 'Heutige';
-    if (stats.isToday) return 'Heutige';
-    
-    const options: Intl.DateTimeFormatOptions = { 
-      day: 'numeric', 
-      month: 'short' 
+    if (!selectedDate) return t('common.todays');
+    if (stats.isToday) return t('common.todays');
+
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'short'
     };
     return selectedDate.toLocaleDateString('de-DE', options);
   };
@@ -41,25 +43,25 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
       {/* Header */}
       <div className="flex items-center space-x-2 mb-4">
         <FaChartLine className="text-gray-600 w-4 h-4" />
-        <h2 className="text-lg font-semibold text-gray-900">Schnellübersicht</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.quickOverview')}</h2>
       </div>
 
       {/* Daily Learning Time */}
       <CompactStatWidget
-        title={`${getDateLabel()} Lernzeit`}
-        value={loading ? 'Laden...' : stats.formattedDuration}
-        subtitle={`${stats.completedSessions} Sessions abgeschlossen`}
+        title={`${getDateLabel()} ${t('stats.learningTime')}`}
+        value={loading ? t('common.loading') : stats.formattedDuration}
+        subtitle={`${stats.completedSessions} ${t('stats.sessionsCompleted')}`}
         icon={FaClock}
         iconColor="text-blue-500"
         trend={{
           value: stats.completionRate,
-          label: stats.isToday ? "heute" : "an diesem Tag",
+          label: stats.isToday ? t('common.today') : t('stats.onThisDay'),
           isPositive: stats.completionRate > 0
         }}
       >
         {!loading && (
           <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
+            <div
               className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, (stats.completedDuration / 120) * 100)}%` }}
             />
@@ -67,21 +69,21 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
         )}
         {error && (
           <div className="text-xs text-red-500 mt-1">
-            Fehler beim Laden
+            {t('common.loadError')}
           </div>
         )}
       </CompactStatWidget>
 
       {/* Learning Streak */}
       <CompactStatWidget
-        title="Lernstreak"
+        title={t('stats.learningStreak')}
         value={gamification.streak}
-        subtitle="Tage"
+        subtitle={t('common.days')}
         icon={FaFire}
         iconColor="text-orange-500"
         trend={{
           value: 20,
-          label: "Neuer Rekord!",
+          label: t('stats.newRecord'),
           isPositive: true
         }}
       >
@@ -93,8 +95,8 @@ export default function QuickStatsPanel({ selectedDate }: QuickStatsPanelProps) 
 
       {/* Level & XP (numbers only; progress removed) */}
       <CompactStatWidget
-        title="Level & XP"
-        value={`Level ${gamification.currentLevel}`}
+        title={t('stats.levelAndXP')}
+        value={`${t('stats.level')} ${gamification.currentLevel}`}
         subtitle={`${formatNumber(gamification.currentXP)} XP`}
         icon={FaTrophy}
         iconColor="text-yellow-500"

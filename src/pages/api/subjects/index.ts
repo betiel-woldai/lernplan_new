@@ -50,26 +50,29 @@ async function getSubjects(req: NextApiRequest, res: NextApiResponse) {
 
   const hasType = await hasSubjectTypeColumn();
 
+  // Calculate actual completed hours from calendar sessions instead of using stale database field
   const result = await query(
-    `SELECT 
-       id,
-       user_id as "userId",
-       name,
-       color,
-       start_date as "startDate",
-       exam_date as "examDate",
-       hours_per_week as "hoursPerWeek",
-       days_per_week as "daysPerWeek",
-       intensity_weeks as "intensityWeeks",
-       completed_hours as "completedHours",
-       target_hours as "targetHours",
-       ${hasType ? 'subject_type as "subjectType",' : ''}
-       created_at as "createdAt",
-       updated_at as "updatedAt"
-     FROM subjects 
-     WHERE user_id = $1
-     ${hasType ? "AND subject_type <> 'administrative'" : ''}
-     ORDER BY created_at DESC`,
+    `SELECT
+       s.id,
+       s.user_id as "userId",
+       s.name,
+       s.color,
+       s.start_date as "startDate",
+       s.exam_date as "examDate",
+       s.hours_per_week as "hoursPerWeek",
+       s.days_per_week as "daysPerWeek",
+       s.intensity_weeks as "intensityWeeks",
+       ROUND(COALESCE(SUM(CASE WHEN cs.completed = true THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) / 60.0, 2) as "completedHours",
+       s.target_hours as "targetHours",
+       ${hasType ? 's.subject_type as "subjectType",' : ''}
+       s.created_at as "createdAt",
+       s.updated_at as "updatedAt"
+     FROM subjects s
+     LEFT JOIN calendar_sessions cs ON s.id = cs.subject_id
+     WHERE s.user_id = $1
+     ${hasType ? "AND s.subject_type <> 'administrative'" : ''}
+     GROUP BY s.id, s.user_id, s.name, s.color, s.start_date, s.exam_date, s.hours_per_week, s.days_per_week, s.intensity_weeks, s.target_hours, ${hasType ? 's.subject_type,' : ''} s.created_at, s.updated_at
+     ORDER BY s.created_at DESC`,
     [userIdToUse]
   );
 

@@ -1,5 +1,6 @@
 import Calendar from '@/components/Calendar/Calendar';
 import { CalendarSession } from '@/types/calendar';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CalendarSectionProps {
   subjects: any[];
@@ -17,19 +18,19 @@ export function CalendarSection({
   onDateClick,
   onCreateSession,
 }: CalendarSectionProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="lg:col-span-3">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p className="text-blue-800 text-sm">
-          <strong>Kalender-Funktionen:</strong> Klicken Sie auf &quot;+ Session&quot;, um neue Sessions zu erstellen. Rechtsklick auf
-          Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für
-          Schnellbearbeitung.
+          {t('calendar.instructions')}
         </p>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Lernkalender</h2>
-          <div className="text-sm text-gray-500">Klicke auf Termine für Details</div>
+          <h2 className="text-xl font-semibold text-gray-900">{t('calendar.title')}</h2>
+          <div className="text-sm text-gray-500">{t('calendar.clickForDetails')}</div>
         </div>
         <Calendar
           onSessionClick={onSessionClick}

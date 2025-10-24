@@ -4,6 +4,7 @@ import { FaCheck, FaClock, FaEdit } from 'react-icons/fa';
 import SessionContextMenu from '../ContextMenu/SessionContextMenu';
 import { ContextMenuPosition } from '../ContextMenu/ContextMenu';
 import { getBerlinDateString, toBerlinDateString } from '@/utils/timezone';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CalendarGridProps {
   month: number;
@@ -21,11 +22,11 @@ interface CalendarGridProps {
   error: string | null;
 }
 
-export default function CalendarGrid({ 
-  month, 
-  year, 
-  selectedDate, 
-  onDateClick, 
+export default function CalendarGrid({
+  month,
+  year,
+  selectedDate,
+  onDateClick,
   onSessionClick,
   onSessionToggleComplete,
   onSessionRightClick,
@@ -36,7 +37,8 @@ export default function CalendarGrid({
   loading,
   error
 }: CalendarGridProps) {
-  
+  const { t } = useLanguage();
+
   // Track sessions that have been reverted from completed to incomplete
   const [revertedSessions, setRevertedSessions] = useState<Set<string>>(new Set());
   // Force re-render when sessions are updated via modal
@@ -409,13 +411,16 @@ export default function CalendarGrid({
   };
 
   const days = getDaysInMonth(month, year);
-  const weekDays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const weekDays = [
+    t('days.sun'), t('days.mon'), t('days.tue'), t('days.wed'),
+    t('days.thu'), t('days.fri'), t('days.sat')
+  ];
 
   // Show error state
   if (error) {
     return (
       <div className="calendar-grid bg-white rounded-xl border border-red-200 p-8 text-center">
-        <p className="text-red-600">Fehler beim Laden der Kalenderdaten: {error}</p>
+        <p className="text-red-600">{t('calendar.loadError')}: {error}</p>
       </div>
     );
   }
@@ -427,7 +432,7 @@ export default function CalendarGrid({
         <div className="absolute inset-0 bg-white/75 flex items-center justify-center z-10">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-gray-600">Lade Kalenderdaten...</span>
+            <span className="text-gray-600">{t('calendar.loadingData')}</span>
           </div>
         </div>
       )}
@@ -623,7 +628,7 @@ export default function CalendarGrid({
               {/* Show "+N more" if there are more sessions */}
               {day.sessions.length > 3 && (
                 <div className="text-xs text-gray-500 px-2">
-                  +{day.sessions.length - 3} mehr
+                  +{day.sessions.length - 3} {t('calendar.more')}
                 </div>
               )}
             </div>

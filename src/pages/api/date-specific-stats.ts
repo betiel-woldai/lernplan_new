@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { getActiveUserId } from '@/utils/user';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { hasSubjectTypeColumn, hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,12 +12,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { date } = req.query;
-    
+
     if (!date || typeof date !== 'string') {
       return res.status(400).json({ error: 'Date parameter is required (YYYY-MM-DD format)' });
     }
 
-    const defaultUserId = getActiveUserId();
+    // Get authenticated user from session
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.sub) {
+      return res.status(401).json({ error: 'Unauthorized - Please log in' });
+    }
+
+    const defaultUserId = session.sub;
     const hasType = await hasSubjectTypeColumn();
     const hasFixed = await hasFixedAppointmentColumns();
 

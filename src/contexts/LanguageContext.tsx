@@ -18,6 +18,12 @@ const translations = {
     'nav.subjects': 'Fächer',
     'nav.analytics': 'Statistiken',
     'nav.settings': 'Einstellungen',
+
+    // Header & Dashboard
+    'header.overview': 'Übersicht',
+    'header.subtitle': 'Dein zentraler Lernplaner mit Kalender und Fortschritt',
+    'header.loggedInAs': 'Angemeldet als',
+    'header.welcomeBack': 'Willkommen zurück!',
     
     // Allgemeine Begriffe
     'common.cancel': 'Abbrechen',
@@ -37,6 +43,9 @@ const translations = {
     'common.progress': 'Fortschritt',
     'common.complete': 'Abgeschlossen',
     'common.notes': 'Notizen',
+    'common.today': 'Heute',
+    'common.todays': 'Heutige',
+    'common.loadError': 'Fehler beim Laden',
     
     // Subjects
     'subjects.title': 'Meine Fächer',
@@ -53,6 +62,7 @@ const translations = {
     'subjects.noSubjectsHelp': 'Beginne mit dem Hinzufügen deines ersten Fachs.',
     'subjects.addFirst': 'Erstes Fach hinzufügen',
     'subjects.description': 'Verwalte deine Fächer mit personalisierten Einstellungen und verfolge deinen Fortschritt.',
+    'subjects.quickStart': 'Schnellstart: Klicken Sie auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in Ihrem Kalender gespeichert, wenn sie abgeschlossen sind.',
     
     // Subject Form
     'subject.name': 'Fachname',
@@ -79,6 +89,8 @@ const translations = {
     'session.notes.placeholder': 'Woran möchtest du in dieser Session arbeiten?',
     'session.noSubjects': 'Keine Fächer gefunden. Erstelle zuerst ein Fach, um eine Session zu starten.',
     'session.starting': 'Wird gestartet...',
+    'subject.yourLearningSubjects': 'Deine Lernfächer',
+    'subject.manageAndConfigureYourLearningSubjects': 'Verwalte und konfiguriere deine Lernfächer',
     
     // Duration Options
     'duration.15min': '15 Minuten',
@@ -104,14 +116,14 @@ const translations = {
     'analytics.sessions': 'Sessions',
     'analytics.totalXP': 'Gesamt-XP',
     'analytics.avgSession': 'Ø Session',
-    'analytics.completed': 'Abgeschlossen',
+    'analytics.completed': 'abgeschlossen',
     'analytics.completedSessions': 'Abgeschlossene Sessions',
     'analytics.successRate': 'Erfolgsrate',
     'analytics.completionRate': 'Abschlussrate',
     'analytics.progressOverTime': 'Lernfortschritt über Zeit',
     'analytics.timeBySubject': 'Zeitverteilung nach Fach',
-    'analytics.streaks': 'Lernstreifen',
-    'analytics.learningStreaks': 'Lernstreifen',
+    'analytics.streaks': 'Streak',
+    'analytics.learningStreaks': 'Streak',
     'analytics.goalProgress': 'Zielfortschritt',
     'analytics.subjectDetails': 'Fachdetails',
     'analytics.noData': 'Keine Daten verfügbar für ausgewählten Zeitraum',
@@ -126,7 +138,74 @@ const translations = {
     'analytics.subject': 'Fach',
     'analytics.hours': 'Stunden',
     'analytics.progress': 'Fortschritt',
-    
+
+    // Stats & Dashboard
+    'stats.of2hGoal': 'von 2h Ziel',
+    'stats.completedToday': 'heute abgeschlossen',
+    'stats.completedOn': 'abgeschlossen',
+    'stats.daysInARowUntilToday': 'Tage in Folge bis heute',
+    'stats.daysInARowUntil': 'Tage in Folge bis',
+    'stats.learningTime': 'Lernzeit',
+    'stats.sessionsCompleted': 'Sessions abgeschlossen',
+    'stats.onThisDay': 'an diesem Tag',
+    'stats.learningStreak': 'Lernstreak',
+    'stats.newRecord': 'Neuer Rekord!',
+    'stats.levelAndXP': 'Level & XP',
+    'stats.level': 'Level',
+    'stats.rank': 'Rank',
+    'dashboard.quickOverview': 'Schnellübersicht',
+
+    // Calendar
+    'calendar.errorLoadingData': 'Fehler beim Laden der Kalenderdaten',
+    'calendar.loadingData': 'Lade Kalenderdaten...',
+    'calendar.title': 'Lernkalender',
+    'calendar.clickForDetails': 'Klicke auf Termine für Details',
+    'calendar.today': 'Heute',
+    'calendar.hsTermine': 'HS‑Termine',
+    'calendar.session': 'Session',
+    'calendar.month': 'Monat',
+    'calendar.week': 'Woche',
+    'calendar.day': 'Tag',
+    'calendar.instructions': 'Kalender-Funktionen: Erstelle ein Fach, Sessions automatisiert zu generieren oder klicke auf einen Tag und auf "+ Session", um neue Sessions zu erstellen. Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für Schnellbearbeitung.',
+    'calendar.deleteConfirm': 'Sind Sie sicher, dass Sie löschen möchten',
+    'calendar.addSession': 'Session hinzufügen',
+    'calendar.selectDate': 'Wähle ein Datum aus',
+    'calendar.selectedDate': 'Ausgewähltes Datum',
+    'calendar.loadError': 'Fehler beim Laden der Kalenderdaten',
+    'calendar.more': 'mehr',
+
+    // Day names (short)
+    'days.sun': 'So',
+    'days.mon': 'Mo',
+    'days.tue': 'Di',
+    'days.wed': 'Mi',
+    'days.thu': 'Do',
+    'days.fri': 'Fr',
+    'days.sat': 'Sa',
+
+    // Months names
+    'months.january': 'Januar',
+    'months.february': 'Februar',
+    'months.march': 'März',
+    'months.april': 'April',
+    'months.may': 'Mai',
+    'months.june': 'Juni',
+    'months.july': 'Juli',
+    'months.august': 'August',
+    'months.september': 'September',
+    'months.october': 'Oktober',
+    'months.november': 'November',
+    'months.december': 'Dezember',
+
+    // Session Status & Errors
+    'session.status': 'Status',
+    'session.completed': 'Abgeschlossen',
+    'session.pending': 'Ausstehend',
+    'session.pendingReverted': 'Ausstehend (Rückgängig)',
+    'session.errorSaving': 'Fehler beim Speichern der Session',
+    'session.errorDeleting': 'Fehler beim Löschen der Session',
+    'session.errorCreating': 'Fehler beim Erstellen der Session',
+
     // Time Periods
     'period.thisWeek': 'Diese Woche',
     'period.thisMonth': 'Dieser Monat',
@@ -145,6 +224,26 @@ const translations = {
     
     // Version Info
     'version.title': 'Version und Build-Info',
+
+    // Rank & Gamification (Learning Ranks by Level)
+    'ranks.wissenshunger': 'Wissenshunger',
+    'ranks.aufsteiger': 'Aufsteiger',
+    'ranks.durchstarter': 'Durchstarter',
+    'ranks.wissensjaeger': 'Wissensjäger',
+    'ranks.lernrakete': 'Lernrakete',
+    'ranks.denkpilot': 'Denkpilot',
+    'ranks.ideensammler': 'Ideensammler',
+    'ranks.wissensarchitekt': 'Wissensarchitekt',
+    'ranks.lernmeister': 'Lernmeister',
+    'ranks.denkvirtuose': 'Denkvirtuose',
+    'ranks.wissensguru': 'Wissensguru',
+    'ranks.lernlegende': 'Lernlegende',
+    'ranks.gedaechtnistitan': 'Gedächtnistitan',
+    'ranks.wissenskoenig': 'Wissenskönig',
+    'ranks.lernphilosoph': 'Lernphilosoph',
+
+    // Footer
+    'footer.copyright': '© DIAS | Digitaler Intelligenter Assistent',
   },
   en: {
     // Navigation
@@ -152,6 +251,12 @@ const translations = {
     'nav.subjects': 'Subjects',
     'nav.analytics': 'Analytics',
     'nav.settings': 'Settings',
+
+    // Header & Dashboard
+    'header.overview': 'Overview',
+    'header.subtitle': 'Your central learning planner with calendar and progress',
+    'header.loggedInAs': 'Logged in as',
+    'header.welcomeBack': 'Welcome back!',
     
     // Common Terms
     'common.cancel': 'Cancel',
@@ -171,6 +276,9 @@ const translations = {
     'common.progress': 'Progress',
     'common.complete': 'complete',
     'common.notes': 'Notes',
+    'common.today': 'Today',
+    'common.todays': "Today's",
+    'common.loadError': 'Error loading',
     
     // Subjects
     'subjects.title': 'My Subjects',
@@ -187,6 +295,7 @@ const translations = {
     'subjects.noSubjectsHelp': 'Get started by adding your first subject.',
     'subjects.addFirst': 'Add Your First Subject',
     'subjects.description': 'Manage your subjects with personalized settings and track your progress.',
+    'subjects.quickStart': 'Quick Start: Click the green "Start" button on any subject card to begin a learning session. The compact timer appears in the header and sessions are automatically saved to your calendar when completed.',
     
     // Subject Form
     'subject.name': 'Subject Name',
@@ -201,6 +310,8 @@ const translations = {
     'subject.createDescription': 'Create a new subject with your preferred settings and color.',
     'subject.editDescription': 'Update your subject details and preferences.',
     'subject.examPassed': 'Exam passed',
+    'subject.yourLearningSubjects': 'Your Learning Subjects',
+    'subject.manageAndConfigureYourLearningSubjects': 'Manage and configure your learning subjects',
     
     // Sessions
     'session.start': 'Start Session',
@@ -240,14 +351,82 @@ const translations = {
     'analytics.avgSession': 'Avg Session',
     'analytics.progressOverTime': 'Learning Progress Over Time',
     'analytics.timeBySubject': 'Time Distribution by Subject',
-    'analytics.streaks': 'Learning Streaks',
+    'analytics.streaks': 'Streak',
     'analytics.goalProgress': 'Goal Progress',
     'analytics.subjectDetails': 'Subject Details',
     'analytics.noData': 'No progress data available for selected period',
     'analytics.noSubjectData': 'No subject data available',
     'analytics.noStreakData': 'No streak data available',
     'analytics.noGoals': 'No goals found',
-    
+    'analytics.completed': 'completed',
+
+    // Stats & Dashboard
+    'stats.of2hGoal': 'of 2h goal',
+    'stats.completedToday': 'completed today',
+    'stats.completedOn': 'completed',
+    'stats.daysInARowUntilToday': 'days in a row until today',
+    'stats.daysInARowUntil': 'days in a row until',
+    'stats.learningTime': 'Learning Time',
+    'stats.sessionsCompleted': 'sessions completed',
+    'stats.onThisDay': 'on this day',
+    'stats.learningStreak': 'Learning Streak',
+    'stats.newRecord': 'New Record!',
+    'stats.levelAndXP': 'Level & XP',
+    'stats.level': 'Level',
+    'stats.rank': 'Rank',
+    'dashboard.quickOverview': 'Quick Overview',
+
+    // Calendar
+    'calendar.errorLoadingData': 'Error loading calendar data',
+    'calendar.loadingData': 'Loading calendar data...',
+    'calendar.title': 'Learning Calendar',
+    'calendar.clickForDetails': 'Click on appointments for details',
+    'calendar.today': 'Today',
+    'calendar.hsTermine': 'University Events',
+    'calendar.session': 'Session',
+    'calendar.month': 'Month',
+    'calendar.week': 'Week',
+    'calendar.day': 'Day',
+    'calendar.instructions': 'Calendar functions: Create a subject to automatically generate sessions, or click on a day and then "+ Session" to create new sessions. Right-click on sessions to edit, duplicate, or delete. Move sessions using drag and drop. Double-click for quick editing.',
+    'calendar.deleteConfirm': 'Are you sure you want to delete',
+    'calendar.addSession': 'Add session',
+    'calendar.selectDate': 'Select a date',
+    'calendar.selectedDate': 'Selected date',
+    'calendar.loadError': 'Error loading calendar data',
+    'calendar.more': 'more',
+
+    // Day names (short)
+    'days.sun': 'Sun',
+    'days.mon': 'Mon',
+    'days.tue': 'Tue',
+    'days.wed': 'Wed',
+    'days.thu': 'Thu',
+    'days.fri': 'Fri',
+    'days.sat': 'Sat',
+
+    // Months names
+    'months.january': 'January',
+    'months.february': 'February',
+    'months.march': 'March',
+    'months.april': 'April',
+    'months.may': 'May',
+    'months.june': 'June',
+    'months.july': 'July',
+    'months.august': 'August',
+    'months.september': 'September',
+    'months.october': 'October',
+    'months.november': 'November',
+    'months.december': 'December',
+
+    // Session Status & Errors
+    'session.status': 'Status',
+    'session.completed': 'Completed',
+    'session.pending': 'Pending',
+    'session.pendingReverted': 'Pending (Reverted)',
+    'session.errorSaving': 'Error saving session',
+    'session.errorDeleting': 'Error deleting session',
+    'session.errorCreating': 'Error creating session',
+
     // Time Periods
     'period.thisWeek': 'This Week',
     'period.thisMonth': 'This Month',
@@ -266,6 +445,26 @@ const translations = {
     
     // Version Info
     'version.title': 'Version and build info',
+
+    // Rank & Gamification (Learning Ranks by Level)
+    'ranks.wissenshunger': 'Knowledge Seeker',
+    'ranks.aufsteiger': 'Rising Star',
+    'ranks.durchstarter': 'Go-Getter',
+    'ranks.wissensjaeger': 'Knowledge Hunter',
+    'ranks.lernrakete': 'Learning Rocket',
+    'ranks.denkpilot': 'Think Pilot',
+    'ranks.ideensammler': 'Idea Collector',
+    'ranks.wissensarchitekt': 'Knowledge Architect',
+    'ranks.lernmeister': 'Learning Master',
+    'ranks.denkvirtuose': 'Thinking Virtuoso',
+    'ranks.wissensguru': 'Knowledge Guru',
+    'ranks.lernlegende': 'Learning Legend',
+    'ranks.gedaechtnistitan': 'Memory Titan',
+    'ranks.wissenskoenig': 'Knowledge King',
+    'ranks.lernphilosoph': 'Learning Philosopher',
+
+    // Footer
+    'footer.copyright': '© DIAS | Digital Intelligent Assistant',
   }
 };
 

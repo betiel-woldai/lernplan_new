@@ -13,6 +13,7 @@ import useCalendarSessions from '../../hooks/useCalendarSessions';
 import { useLearningSessions } from '../../hooks/useLearningSessions';
 import { getActiveUserId } from '@/utils/user';
 import { getBerlinTimestamp } from '@/utils/timezone';
+import { useLanguage } from '@/contexts/LanguageContext';
 import useTerminplanReminders from '@/hooks/useTerminplanReminders';
 
 interface CalendarProps {
@@ -23,14 +24,14 @@ interface CalendarProps {
   subjects?: any[];
 }
 
-export default function Calendar({ 
-  onSessionClick = () => {}, 
+export default function Calendar({
+  onSessionClick = () => {},
   onDateClick = () => {},
   onCreateSession = () => {},
   selectedSession,
   subjects
 }: CalendarProps) {
-  
+  const { t } = useLanguage();
   const activeUserId = getActiveUserId();
   const [viewState, setViewState] = useState<CalendarViewState>({
     currentView: 'month',
@@ -202,7 +203,7 @@ export default function Calendar({
 
   const handleDeleteSession = useCallback(async (session: CalendarSession) => {
     try {
-      const confirmed = window.confirm(`Sind Sie sicher, dass Sie "${session.title}" löschen möchten?`);
+      const confirmed = window.confirm(`${t('calendar.deleteConfirm')} "${session.title}"?`);
       if (!confirmed) return;
 
       // Check session source to determine which delete function to use
@@ -368,8 +369,10 @@ export default function Calendar({
   }, []);
 
   const monthNames = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+    t('months.january'), t('months.february'), t('months.march'),
+    t('months.april'), t('months.may'), t('months.june'),
+    t('months.july'), t('months.august'), t('months.september'),
+    t('months.october'), t('months.november'), t('months.december')
   ];
 
   const currentMonth = monthNames[viewState.currentDate.getMonth()];
@@ -413,7 +416,7 @@ export default function Calendar({
               onClick={goToToday}
               className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
-              Heute
+              {t('calendar.today')}
             </button>
           </div>
 
@@ -433,7 +436,7 @@ export default function Calendar({
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
               >
-                HS‑Termine
+                {t('calendar.hsTermine')}
               </a>
             </label>
 
@@ -471,10 +474,10 @@ export default function Calendar({
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }
               `}
-              title={viewState.selectedDate ? 'Session hinzufügen' : 'Wähle ein Datum aus'}
+              title={viewState.selectedDate ? t('calendar.addSession') : t('calendar.selectDate')}
             >
               <FaPlus className="w-3 h-3" />
-              <span className="hidden sm:inline">Session</span>
+              <span className="hidden sm:inline">{t('calendar.session')}</span>
             </button>
           </div>
         </div>
@@ -540,10 +543,10 @@ export default function Calendar({
       {viewState.selectedDate && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-700">
-            <span className="font-medium">Ausgewähltes Datum:</span>{' '}
+            <span className="font-medium">{t('calendar.selectedDate')}:</span>{' '}
             {viewState.selectedDate.toLocaleDateString('de-DE', {
               weekday: 'long',
-              year: 'numeric', 
+              year: 'numeric',
               month: 'long',
               day: 'numeric'
             })}

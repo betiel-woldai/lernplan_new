@@ -3,7 +3,8 @@ import { query } from '@/lib/db';
 import { hasSubjectTypeColumn, hasFixedAppointmentColumns } from '@/lib/schemaMetadata';
 import { z } from 'zod';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, parseISO, subDays, eachDayOfInterval } from 'date-fns';
-import { getActiveUserId } from '@/utils/user';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 // Analytics query validation schema
 const analyticsQuerySchema = z.object({
@@ -97,7 +98,7 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
     SELECT
       DATE(cs.start_time) as session_date,
       SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END) as total_minutes,
-      COUNT(cs.id) as session_count,
+      COUNT(cs.id) FILTER (WHERE cs.completed = true) as session_count,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count,
       SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) * 2 ELSE 0 END) as total_xp
     FROM calendar_sessions cs
@@ -160,7 +161,7 @@ async function getSubjectsAnalytics(userId: string): Promise<SubjectData[]> {
     : '';
 
   const minutesExpr = `COALESCE(SUM(CASE WHEN cs.completed${fixedExclude} THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) as total_minutes`;
-  const sessionCountExpr = `COUNT(cs.id) FILTER (WHERE 1=1${fixedExclude}) as session_count`;
+  const sessionCountExpr = `COUNT(cs.id) FILTER (WHERE cs.completed = true${fixedExclude}) as session_count`;
   const completedCountExpr = `COUNT(cs.id) FILTER (WHERE cs.completed = true${fixedExclude}) as completed_session_count`;
 
   const whereSubjects = `WHERE s.user_id = $1 ${academicFilter}`;
@@ -374,9 +375,15 @@ async function getGoalsAnalytics(userId: string, period: string = 'month', start
 
 async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Get authenticated user from session
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.sub) {
+      return res.status(401).json({ error: 'Unauthorized - Please log in' });
+    }
+
     const params = analyticsQuerySchema.parse(req.query);
-    const defaultUserId = getActiveUserId();
-    const userId = params.userId || defaultUserId;
+    // Use authenticated user ID (ignore params.userId to prevent users viewing others' data)
+    const userId = session.sub;
 
     let analyticsData: any = {};
 

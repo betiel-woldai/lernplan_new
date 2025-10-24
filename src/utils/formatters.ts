@@ -33,23 +33,23 @@ export function calculateXP(minutes: number, onTime: boolean = true, streak: num
   return baseXP + streakBonus + punctualityBonus;
 }
 
-// German learning ranks - Fun but professional progression
-export const LEARNING_RANKS: Record<number, string> = {
-  1: 'Wissenshunger', // Knowledge hunger
-  2: 'Aufsteiger', // Rising star
-  3: 'Durchstarter', // Go-getter
-  4: 'Wissensjäger', // Knowledge hunter
-  5: 'Lernrakete', // Learning rocket
-  6: 'Denkpilot', // Think pilot
-  7: 'Ideensammler', // Idea collector
-  8: 'Wissensarchitekt', // Knowledge architect
-  9: 'Lernmeister', // Learning master
-  10: 'Denkvirtuose', // Thinking virtuoso
-  11: 'Wissensguru', // Knowledge guru
-  12: 'Lernlegende', // Learning legend
-  13: 'Gedächtnistitan', // Memory titan
-  14: 'Wissenskönig', // Knowledge king
-  15: 'Lernphilosoph' // Learning philosopher
+// Learning ranks - Returns translation keys for i18n support
+export const LEARNING_RANK_KEYS: Record<number, string> = {
+  1: 'ranks.wissenshunger',
+  2: 'ranks.aufsteiger',
+  3: 'ranks.durchstarter',
+  4: 'ranks.wissensjaeger',
+  5: 'ranks.lernrakete',
+  6: 'ranks.denkpilot',
+  7: 'ranks.ideensammler',
+  8: 'ranks.wissensarchitekt',
+  9: 'ranks.lernmeister',
+  10: 'ranks.denkvirtuose',
+  11: 'ranks.wissensguru',
+  12: 'ranks.lernlegende',
+  13: 'ranks.gedaechtnistitan',
+  14: 'ranks.wissenskoenig',
+  15: 'ranks.lernphilosoph'
 };
 
 export function getLevel(totalXP: number): number {
@@ -72,8 +72,9 @@ export function getXPForLevel(level: number): number {
   return 500 + (level - 3) * 500;
 }
 
+// Returns a translation key for the rank. Components should use t() to translate.
 export function getLearningRank(level: number): string {
-  return LEARNING_RANKS[level] || `Level ${level}`;
+  return LEARNING_RANK_KEYS[level] || `Level ${level}`;
 }
 
 export function getXPProgress(currentXP: number, currentLevel: number): {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CalendarView } from '../../types/calendar';
 import { FaCalendarAlt, FaCalendarWeek, FaCalendarDay } from 'react-icons/fa';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CalendarViewToggleProps {
   currentView: CalendarView;
@@ -8,10 +9,12 @@ interface CalendarViewToggleProps {
 }
 
 export default function CalendarViewToggle({ currentView, onViewChange }: CalendarViewToggleProps) {
+  const { t } = useLanguage();
+
   const views: { value: CalendarView; label: string; icon: React.ReactNode }[] = [
-    { value: 'month', label: 'Monat', icon: <FaCalendarAlt className="w-4 h-4" /> },
-    { value: 'week', label: 'Woche', icon: <FaCalendarWeek className="w-4 h-4" /> },
-    { value: 'day', label: 'Tag', icon: <FaCalendarDay className="w-4 h-4" /> }
+    { value: 'month', label: t('calendar.month'), icon: <FaCalendarAlt className="w-4 h-4" /> },
+    { value: 'week', label: t('calendar.week'), icon: <FaCalendarWeek className="w-4 h-4" /> },
+    { value: 'day', label: t('calendar.day'), icon: <FaCalendarDay className="w-4 h-4" /> }
   ];
 
   return (

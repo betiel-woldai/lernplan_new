@@ -446,7 +446,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            {/* <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('analytics.avgSession')}</p>
@@ -454,7 +454,7 @@ export default function AnalyticsPage() {
                 </div>
                 <FaBullseye className="h-8 w-8 text-orange-600" />
               </div>
-            </div>
+            </div> */}
 
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <div className="flex items-center justify-between">
