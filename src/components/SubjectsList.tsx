@@ -4,7 +4,9 @@ import { Subject } from '../types';
 import { SubjectFormData } from '../schemas/subjectSchema';
 import SubjectCard from './SubjectCard';
 import SubjectModal from './SubjectModal';
+import LernplanFeedbackModal from './LernplanFeedbackModal';
 import useSubjects from '../hooks/useSubjects';
+import { useFeedbackCooldown } from '../hooks/useFeedbackCooldown';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface SubjectsListProps {
@@ -24,9 +26,12 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
     deleteSubject
   } = useSubjects();
 
+  const { canShowFeedback, recheckCooldown } = useFeedbackCooldown();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   const handleCreateNew = () => {
     setModalMode('create');
@@ -52,6 +57,11 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
     try {
       if (modalMode === 'create') {
         await createSubject(data);
+
+        // Show feedback modal after successful subject creation (if cooldown allows)
+        if (canShowFeedback) {
+          setFeedbackModalOpen(true);
+        }
       } else if (editingSubject) {
         await updateSubject(editingSubject.id, data);
       }
@@ -60,6 +70,11 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
     } catch (err) {
       console.error('Failed to save subject:', err);
     }
+  };
+
+  const handleFeedbackSubmit = () => {
+    // Recheck cooldown after feedback submission
+    recheckCooldown();
   };
 
   const handleCloseModal = () => {
@@ -155,13 +170,21 @@ export const SubjectsList: React.FC<SubjectsListProps> = ({ onStartSession }) =>
         </div>
       )}
 
-      {/* Modal */}
+      {/* Subject Modal */}
       <SubjectModal
         isOpen={modalOpen}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
         initialData={editingSubject || undefined}
         mode={modalMode}
+      />
+
+      {/* Feedback Modal */}
+      <LernplanFeedbackModal
+        isOpen={feedbackModalOpen}
+        onClose={() => setFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
+        triggerAction="subject_created"
       />
     </div>
   );

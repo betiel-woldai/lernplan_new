@@ -1,61 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
-import { getActiveUserId } from '@/utils/user';
 import { calculateXP } from '@/utils/formatters';
-
-// Helper function to update user's learning streak based on actual consecutive days
-async function updateUserStreak(userId: string, client: any) {
-  const result = await client.query(`
-    WITH RECURSIVE date_series AS (
-      SELECT CURRENT_DATE as check_date
-      UNION ALL
-      SELECT (check_date - INTERVAL '1 day')::date
-      FROM date_series
-      WHERE check_date > (CURRENT_DATE - INTERVAL '365 days')
-    ),
-    daily_completion AS (
-      SELECT
-        ds.check_date,
-        CASE WHEN COUNT(cs.id) FILTER (
-          WHERE cs.completed = true
-          AND (s.name IS NULL OR s.name <> 'Termine & Fristen')
-        ) > 0 THEN 1 ELSE 0 END as has_completed_session
-      FROM date_series ds
-      LEFT JOIN calendar_sessions cs
-        ON DATE(cs.start_time) = ds.check_date AND cs.user_id = $1
-      LEFT JOIN subjects s ON s.id = cs.subject_id
-      GROUP BY ds.check_date
-      ORDER BY ds.check_date DESC
-    )
-    SELECT COUNT(*) as streak_days
-    FROM (
-      SELECT
-        check_date,
-        has_completed_session,
-        ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn
-      FROM daily_completion
-    ) t
-    WHERE has_completed_session = 1
-      AND NOT EXISTS (
-        SELECT 1 FROM (
-          SELECT
-            check_date,
-            has_completed_session,
-            ROW_NUMBER() OVER (ORDER BY check_date DESC) as rn2
-          FROM daily_completion
-        ) t2
-        WHERE t2.rn2 < t.rn AND t2.has_completed_session = 0
-      )
-  `, [userId]);
-
-  const streakDays = parseInt(result.rows[0]?.streak_days || '0');
-
-  await client.query(
-    `UPDATE users SET learning_streak = $1 WHERE id = $2`,
-    [streakDays, userId]
-  );
-}
+import { calculateStreak } from '@/utils/streakCalculator';
 
 // Session update validation schema
 const updateSessionSchema = z.object({
@@ -69,9 +18,18 @@ type UpdateSessionData = z.infer<typeof updateSessionSchema>;
 
 async function getLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Check authentication
+    const authSession = await getServerSession(req, res, authOptions);
+    if (!authSession) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = authSession.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
+
     const { id } = req.query;
-    const defaultUserId = getActiveUserId();
-    const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {
       return res.status(400).json({
@@ -132,9 +90,18 @@ async function getLearningSession(req: NextApiRequest, res: NextApiResponse) {
 
 async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Check authentication
+    const authSession = await getServerSession(req, res, authOptions);
+    if (!authSession) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = authSession.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
+
     const { id } = req.query;
-    const defaultUserId = getActiveUserId();
-    const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {
       return res.status(400).json({
@@ -291,7 +258,20 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
         `, [newXp, newDailyTime, newWeeklyTime, newTotalHours, newCompletedTasks, newTotalCompletedTasks, userId]);
 
         // Update user learning streak based on consecutive days
-        await updateUserStreak(userId, client);
+        const allSessionsResult = await client.query(`
+          SELECT date, completed
+          FROM learning_sessions
+          WHERE user_id = $1
+          ORDER BY date DESC
+        `, [userId]);
+
+        const newStreak = calculateStreak(allSessionsResult.rows);
+
+        await client.query(`
+          UPDATE users
+          SET learning_streak = $1
+          WHERE id = $2
+        `, [newStreak, userId]);
 
         // Record gamification event for both completion and incompletion
         const eventType = nowCompleted ? 'session_complete' : 'xp_gain';
@@ -346,9 +326,18 @@ async function updateLearningSession(req: NextApiRequest, res: NextApiResponse) 
 
 async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) {
   try {
+    // Check authentication
+    const authSession = await getServerSession(req, res, authOptions);
+    if (!authSession) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = authSession.sub;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found in session' });
+    }
+
     const { id } = req.query;
-    const defaultUserId = getActiveUserId();
-    const userId = (req.query.userId as string) || defaultUserId;
 
     if (!id || typeof id !== 'string') {
       return res.status(400).json({
@@ -432,6 +421,22 @@ async function deleteLearningSession(req: NextApiRequest, res: NextApiResponse) 
           }),
           0 // No XP awarded for deletion
         ]);
+
+        // Recalculate learning streak after deletion
+        const allSessionsResult = await client.query(`
+          SELECT date, completed
+          FROM learning_sessions
+          WHERE user_id = $1
+          ORDER BY date DESC
+        `, [userId]);
+
+        const newStreak = calculateStreak(allSessionsResult.rows);
+
+        await client.query(`
+          UPDATE users
+          SET learning_streak = $1
+          WHERE id = $2
+        `, [newStreak, userId]);
       }
     });
 

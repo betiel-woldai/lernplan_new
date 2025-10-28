@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiFetch } from '@/lib/apiClient';
 import { UserStats } from '../types';
+import { addEventListener } from '@/utils/eventBus';
 
 export interface UseUserStatsReturn {
   userStats: UserStats | null;
@@ -129,6 +130,16 @@ export const useUserStats = (): UseUserStatsReturn => {
       setUserStats(null);
     }
   }, [status, userId, fetchUserStats]);
+
+  // Listen for stats updates and refresh automatically
+  useEffect(() => {
+    const cleanup = addEventListener('statsUpdated', () => {
+      // Refresh stats when notified
+      refreshStats();
+    });
+
+    return cleanup;
+  }, [refreshStats]);
 
   return {
     userStats,

@@ -420,6 +420,20 @@ export function useActiveSession() {
         setPendingSessionData(null);
         setSessionState('completed');
 
+        // Dispatch events to notify UI components to refresh
+        dispatchEvent('sessionCompleted', {
+          session: savedSession,
+          xpGained: savedSession.points || 0,
+          completedAt: Date.now(),
+          elapsedMinutes: savedSession.duration
+        }, 'useActiveSession');
+
+        dispatchEvent('statsUpdated', {
+          stats: {},
+          changedFields: ['learning_streak', 'current_xp', 'completed_tasks'],
+          trigger: 'session_completed'
+        }, 'useActiveSession');
+
         // Clear localStorage and session state
         localStorage.removeItem(STORAGE_KEY);
         setTimeout(() => {

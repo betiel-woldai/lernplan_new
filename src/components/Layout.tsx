@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { FaCog } from 'react-icons/fa';
+import { FaCog, FaArrowLeft } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../lib/apiClient';
@@ -11,6 +11,7 @@ import SettingsModal from './SettingsModal';
 import CompactTimer from './CompactTimer';
 import SubjectSelector from './SubjectSelector';
 import SessionSummary from './SessionSummary';
+import { useActiveSession } from '../hooks/useActiveSession';
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,6 +28,9 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
   const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
   const [completedSession, setCompletedSession] = useState<any>(null);
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const [pendingNavigationPath, setPendingNavigationPath] = useState<string>('');
+  const { sessionState, sessionData: activeSessionData } = useActiveSession();
 
   // Initialize user in database on first load
   useEffect(() => {
@@ -56,6 +60,38 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
     setShowSessionSummary(true);
   };
 
+  const handleNavigation = (path: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // Check if already on this page
+    if (router.pathname === path) {
+      return;
+    }
+
+    // Check if timer is running
+    const isTimerRunning = sessionState === 'active' && activeSessionData !== null;
+
+    if (isTimerRunning) {
+      // Show warning modal
+      setPendingNavigationPath(path);
+      setShowNavigationWarning(true);
+    } else {
+      // Navigate directly
+      router.push(path);
+    }
+  };
+
+  const confirmNavigation = () => {
+    setShowNavigationWarning(false);
+    router.push(pendingNavigationPath);
+    setPendingNavigationPath('');
+  };
+
+  const cancelNavigation = () => {
+    setShowNavigationWarning(false);
+    setPendingNavigationPath('');
+  };
+
   return (
     <>
       <Head>
@@ -68,42 +104,62 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-16 gap-6">
+              {/* Back to DIAS button - Very Left */}
+              <a
+                href={process.env.NODE_ENV === 'production'
+                  ? 'https://dias.hs-ansbach.de/dias_test/dias-overview'
+                  : 'http://localhost:3001/dias-overview'
+                }
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors group flex-shrink-0"
+                title={t('nav.backToDias')}
+              >
+                <FaArrowLeft className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" />
+                <span className="hidden sm:inline font-medium whitespace-nowrap">{t('nav.backToDias')}</span>
+              </a>
+
+              {/* Lernplaner Logo */}
+              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">L</span>
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Lernplaner</h1>
               </Link>
+
+              {/* Spacer to push navigation to the right */}
+              <div className="flex-grow"></div>
               
               {/* Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
+                  onClick={handleNavigation('/')}
                   className={`transition-colors ${
-                    isActive('/') 
-                      ? 'text-blue-600 font-medium' 
+                    isActive('/')
+                      ? 'text-blue-600 font-medium'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   {t('nav.dashboard')}
                 </Link>
-                <Link 
-                  href="/subjects" 
+                <Link
+                  href="/subjects"
+                  onClick={handleNavigation('/subjects')}
                   className={`transition-colors ${
-                    isActive('/subjects') 
-                      ? 'text-blue-600 font-medium' 
+                    isActive('/subjects')
+                      ? 'text-blue-600 font-medium'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   {t('nav.subjects')}
                 </Link>
-                <Link 
-                  href="/analytics" 
+                <Link
+                  href="/analytics"
+                  onClick={handleNavigation('/analytics')}
                   className={`transition-colors ${
-                    isActive('/analytics') 
-                      ? 'text-blue-600 font-medium' 
+                    isActive('/analytics')
+                      ? 'text-blue-600 font-medium'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -168,6 +224,40 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
           }}
           session={completedSession}
         />
+
+        {/* Navigation Warning Modal */}
+        {showNavigationWarning && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                {t('nav.timerRunning')}
+              </h3>
+              <p className="text-gray-600 mb-3">
+                {t('nav.timerRunningMessage')} <strong>{activeSessionData?.subjectName}</strong>.
+              </p>
+              <p className="text-gray-600 mb-3">
+                {t('nav.timerRunningWarning')}
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                {t('nav.timerRunningConfirm')}
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={cancelNavigation}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                >
+                  {t('nav.timerRunningCancel')}
+                </button>
+                <button
+                  onClick={confirmNavigation}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  {t('nav.timerRunningContinue')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

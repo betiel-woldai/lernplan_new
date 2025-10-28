@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock, CheckCircle, XCircle, Edit3 } from 'lucide-react';
 
 interface SessionCompletionModalProps {
@@ -48,12 +49,13 @@ export default function SessionCompletionModal({
     onApprove(editedDuration, editedNotes);
   };
 
-  return (
+  const modalContent = (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        {/* Modal */}
-        <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] overflow-y-auto">
+        <div className="min-h-screen flex items-center justify-center p-4">
+          {/* Modal */}
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full transform transition-all">
           {/* Header */}
           <div className="flex items-center mb-6">
             <div
@@ -90,7 +92,7 @@ export default function SessionCompletionModal({
               max="480"
               value={editedDuration}
               onChange={(e) => setEditedDuration(parseInt(e.target.value) || actualDuration)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             />
           </div>
 
@@ -104,7 +106,7 @@ export default function SessionCompletionModal({
               onChange={(e) => setEditedNotes(e.target.value)}
               placeholder="Session-Notizen hinzufügen..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-900 placeholder-gray-400"
             />
           </div>
 
@@ -126,7 +128,13 @@ export default function SessionCompletionModal({
             </button>
           </div>
         </div>
+        </div>
       </div>
     </>
   );
+
+  // Use portal to render modal at body level, ensuring it appears above everything
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : null;
 }

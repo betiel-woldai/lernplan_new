@@ -29,9 +29,9 @@ class TypedEventBus {
       
       // Log for debugging
       if (this.config.enableDebugLogging) {
-        console.group(`🚀 Event Dispatched: ${eventType}`);
-        console.log('Detail:', detail);
-        console.log('Source:', source || 'unknown');
+        // console.group(`🚀 Event Dispatched: ${eventType}`);
+        // console.log('Detail:', detail);
+        // console.log('Source:', source || 'unknown');
         console.groupEnd();
       }
 

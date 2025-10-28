@@ -100,7 +100,7 @@ async function getProgressAnalytics(userId: string, period: string, startDate?: 
       SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END) as total_minutes,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as session_count,
       COUNT(cs.id) FILTER (WHERE cs.completed = true) as completed_session_count,
-      SUM(CASE WHEN cs.completed THEN COALESCE(cs.actual_duration, cs.planned_duration) * 2 ELSE 0 END) as total_xp
+      SUM(CASE WHEN cs.completed THEN COALESCE(cs.xp_awarded, 0) ELSE 0 END) as total_xp
     FROM calendar_sessions cs
     ${joinSubjects}
     WHERE cs.user_id = $1
@@ -418,8 +418,13 @@ async function getAnalytics(req: NextApiRequest, res: NextApiResponse) {
       const totalHours = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.hours, 0);
       const totalSessions = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.sessions, 0);
       const completedSessions = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.completedSessions, 0);
-      const totalXP = analyticsData.progress.reduce((sum: number, day: ProgressData) => sum + day.xp, 0);
-      
+
+      // Fetch user's actual total XP from users table (authoritative source)
+      const userXPResult = await query(`
+        SELECT current_xp FROM users WHERE id = $1
+      `, [userId]);
+      const totalXP = userXPResult.rows[0]?.current_xp || 0;
+
       analyticsData.summary = {
         totalHours: Math.round(totalHours * 100) / 100,
         totalSessions,

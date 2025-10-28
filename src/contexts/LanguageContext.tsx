@@ -14,10 +14,17 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations = {
   de: {
     // Navigation
+    'nav.backToDias': 'Zurück zur DIAS Übersicht',
     'nav.dashboard': 'Übersicht',
     'nav.subjects': 'Fächer',
     'nav.analytics': 'Statistiken',
     'nav.settings': 'Einstellungen',
+    'nav.timerRunning': 'Timer läuft noch',
+    'nav.timerRunningMessage': 'Du hast gerade eine Lernsession aktiv für',
+    'nav.timerRunningWarning': 'Wenn du die Seite verlässt, wird die laufende Session beendet und nicht gespeichert.',
+    'nav.timerRunningConfirm': 'Möchtest du wirklich fortfahren?',
+    'nav.timerRunningCancel': 'Abbrechen',
+    'nav.timerRunningContinue': 'Fortfahren und Session beenden',
 
     // Header & Dashboard
     'header.overview': 'Übersicht',
@@ -63,6 +70,7 @@ const translations = {
     'subjects.addFirst': 'Erstes Fach hinzufügen',
     'subjects.description': 'Verwalte deine Fächer mit personalisierten Einstellungen und verfolge deinen Fortschritt.',
     'subjects.quickStart': 'Schnellstart: Klicken Sie auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in Ihrem Kalender gespeichert, wenn sie abgeschlossen sind.',
+    'subjects.quickStartForSubjects': 'Schnellstart: Klicke auf "Fach hinzufügen", lege dein Lernfach an und lass dir automatisiert Lernsessions im Kalendar generieren bis zu deiner Prüfung.',
     
     // Subject Form
     'subject.name': 'Fachname',
@@ -247,10 +255,17 @@ const translations = {
   },
   en: {
     // Navigation
+    'nav.backToDias': 'Back to DIAS overview',
     'nav.dashboard': 'Dashboard',
     'nav.subjects': 'Subjects',
     'nav.analytics': 'Analytics',
     'nav.settings': 'Settings',
+    'nav.timerRunning': 'Timer still running',
+    'nav.timerRunningMessage': 'You have an active learning session for',
+    'nav.timerRunningWarning': 'If you leave this page, the running session will be ended and not saved.',
+    'nav.timerRunningConfirm': 'Do you really want to continue?',
+    'nav.timerRunningCancel': 'Cancel',
+    'nav.timerRunningContinue': 'Continue and end session',
 
     // Header & Dashboard
     'header.overview': 'Overview',
@@ -296,7 +311,8 @@ const translations = {
     'subjects.addFirst': 'Add Your First Subject',
     'subjects.description': 'Manage your subjects with personalized settings and track your progress.',
     'subjects.quickStart': 'Quick Start: Click the green "Start" button on any subject card to begin a learning session. The compact timer appears in the header and sessions are automatically saved to your calendar when completed.',
-    
+    'subjects.quickStartForSubjects': 'Quick start: Click on "Add subject", create your learning subject, and have learning sessions automatically generated in your calendar until your exam.',
+
     // Subject Form
     'subject.name': 'Subject Name',
     'subject.name.placeholder': 'e.g., Mathematics, Physics, Chemistry',

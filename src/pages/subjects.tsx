@@ -33,7 +33,7 @@ export default function SubjectsPage() {
         {/* Simple Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800 text-sm">
-            {t('subjects.quickStart')}
+            {t('subjects.quickStartForSubjects')}
           </p>
         </div>
 

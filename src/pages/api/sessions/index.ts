@@ -4,6 +4,7 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { query, withTransaction } from '@/lib/db';
 import { z } from 'zod';
 import { getLevel, getXPForLevel } from '@/utils/formatters';
+import { calculateStreak } from '@/utils/streakCalculator';
 
 interface DbLearningSessionRow {
   id: string;
@@ -291,6 +292,61 @@ async function createLearningSession(req: NextApiRequest, res: NextApiResponse) 
             subjectId: sessionData.subjectId,
             duration: sessionData.duration
           }),
+          totalPoints
+        ]);
+
+        // Calculate and update learning streak
+        const allSessionsResult = await client.query(`
+          SELECT date, completed
+          FROM learning_sessions
+          WHERE user_id = $1
+          ORDER BY date DESC
+        `, [sessionData.userId]);
+
+        const newStreak = calculateStreak(allSessionsResult.rows);
+
+        await client.query(`
+          UPDATE users
+          SET learning_streak = $1
+          WHERE id = $2
+        `, [newStreak, sessionData.userId]);
+
+        // Sync to calendar_sessions so completed sessions appear in calendar and statistics
+        // Get subject name for calendar entry title
+        const subjectResult = await client.query(`
+          SELECT name FROM subjects WHERE id = $1
+        `, [sessionData.subjectId]);
+
+        const subjectName = subjectResult.rows[0]?.name || 'Learning Session';
+
+        // Calculate start and end times for calendar entry
+        // Use the session date at current time, then add duration
+        const sessionDate = new Date(sessionData.date);
+        const now = new Date();
+        const startTime = new Date(sessionDate);
+        startTime.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+        const endTime = new Date(startTime);
+        endTime.setMinutes(endTime.getMinutes() + sessionData.duration);
+
+        // Insert into calendar_sessions
+        await client.query(`
+          INSERT INTO calendar_sessions (
+            subject_id, user_id, title, start_time, end_time,
+            planned_duration, actual_duration, session_type, completed,
+            is_auto_generated, xp_awarded
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
+          sessionData.subjectId,
+          sessionData.userId,
+          subjectName,
+          startTime.toISOString(),
+          endTime.toISOString(),
+          sessionData.plannedDuration || sessionData.duration,
+          sessionData.duration,
+          'study',
+          true, // completed
+          false, // not auto-generated (user tracked it)
           totalPoints
         ]);
       }

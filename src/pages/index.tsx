@@ -193,12 +193,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   // Get session from NextAuth using shared Keycloak session
   const session = await getServerSession(context.req, context.res, authOptions);
 
-  // If no session, redirect to DIAS login
+  // If no session, redirect to DIAS login/overview page
   if (!session) {
     return {
       redirect: {
         destination: process.env.NODE_ENV === 'production'
-          ? 'https://lm11.hs-ansbach.de/dias_test'
+          ? 'https://dias.hs-ansbach.de/dias_test/'
           : 'http://localhost:3001',
         permanent: false,
       },
