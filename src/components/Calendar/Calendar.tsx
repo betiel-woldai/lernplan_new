@@ -386,8 +386,8 @@ export default function Calendar({
       {/* Calendar Header */}
       <div className="space-y-3">
         {/* Top row: Navigation and Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center justify-between sm:justify-start space-x-2 sm:space-x-4">
             {/* Month/Year Navigation */}
             <div className="flex items-center space-x-2">
               <button
@@ -398,7 +398,7 @@ export default function Calendar({
                 <FaChevronLeft className="w-4 h-4" />
               </button>
 
-              <h2 className="text-xl font-bold text-gray-900 min-w-[200px] text-center">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 min-w-[150px] sm:min-w-[200px] text-center">
                 {currentMonth} {currentYear}
               </h2>
 
@@ -414,19 +414,19 @@ export default function Calendar({
             {/* Today Button */}
             <button
               onClick={goToToday}
-              className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors whitespace-nowrap"
             >
               {t('calendar.today')}
             </button>
           </div>
 
-          {/* Right side controls - Top row */}
-          <div className="flex items-center space-x-3">
+          {/* Right side controls - Responsive row */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-end">
             {/* Terminplan toggle */}
-            <label className="flex items-center space-x-2 text-sm text-gray-700">
+            <label className="flex items-center space-x-2 text-xs sm:text-sm text-gray-700">
               <input
                 type="checkbox"
-                className="h-4 w-4"
+                className="h-4 w-4 flex-shrink-0"
                 checked={!!showTerminplanEvents}
                 onChange={(e) => setShowTerminplanEvents?.(e.target.checked)}
               />
@@ -434,7 +434,7 @@ export default function Calendar({
                 href="https://www.hs-ansbach.de/fileadmin/Redaktion/Terminplan_SS_25-SS_26_D.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline"
+                className="text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
               >
                 {t('calendar.hsTermine')}
               </a>
@@ -456,7 +456,7 @@ export default function Calendar({
                     console.error('Failed to import terminplan:', error);
                   }
                 }}
-                className="px-3 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
+                className="px-2 sm:px-3 py-2 text-xs sm:text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg whitespace-nowrap"
                 title="Universitätstermine importieren"
               >
                 Importieren
@@ -468,7 +468,7 @@ export default function Calendar({
               onClick={() => viewState.selectedDate && handleCreateSession(viewState.selectedDate)}
               disabled={!viewState.selectedDate}
               className={`
-                flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap
                 ${viewState.selectedDate
                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -477,13 +477,13 @@ export default function Calendar({
               title={viewState.selectedDate ? t('calendar.addSession') : t('calendar.selectDate')}
             >
               <FaPlus className="w-3 h-3" />
-              <span className="hidden sm:inline">{t('calendar.session')}</span>
+              <span>{t('calendar.session')}</span>
             </button>
           </div>
         </div>
 
         {/* Bottom row: View Toggle */}
-        <div className="flex justify-end">
+        <div className="flex justify-center sm:justify-end">
           <CalendarViewToggle
             currentView={viewState.currentView}
             onViewChange={handleViewChange}

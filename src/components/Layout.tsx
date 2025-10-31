@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { FaCog, FaArrowLeft } from 'react-icons/fa';
+import { FaCog, FaArrowLeft, FaBars, FaTimes } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
 import { useLanguage } from '../contexts/LanguageContext';
 import { apiFetch } from '../lib/apiClient';
@@ -30,6 +30,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
   const [completedSession, setCompletedSession] = useState<any>(null);
   const [showNavigationWarning, setShowNavigationWarning] = useState(false);
   const [pendingNavigationPath, setPendingNavigationPath] = useState<string>('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { sessionState, sessionData: activeSessionData } = useActiveSession();
 
   // Initialize user in database on first load
@@ -65,6 +66,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
 
     // Check if already on this page
     if (router.pathname === path) {
+      setIsMobileMenuOpen(false); // Close mobile menu
       return;
     }
 
@@ -75,9 +77,11 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
       // Show warning modal
       setPendingNavigationPath(path);
       setShowNavigationWarning(true);
+      setIsMobileMenuOpen(false); // Close mobile menu
     } else {
       // Navigate directly
       router.push(path);
+      setIsMobileMenuOpen(false); // Close mobile menu
     }
   };
 
@@ -105,7 +109,7 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center h-16 gap-6">
+            <div className="flex items-center h-16 gap-2 sm:gap-6">
               {/* Back to DIAS button - Very Left */}
               <a
                 href={process.env.NODE_ENV === 'production'
@@ -124,13 +128,13 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">L</span>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Lernplaner</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">Lernplaner</h1>
               </Link>
 
               {/* Spacer to push navigation to the right */}
               <div className="flex-grow"></div>
-              
-              {/* Navigation */}
+
+              {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
                 <Link
                   href="/"
@@ -166,11 +170,11 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                   {t('nav.analytics')}
                 </Link>
                 {/* Compact Timer */}
-                <CompactTimer 
+                <CompactTimer
                   onShowSubjectSelector={() => setShowSubjectSelector(true)}
                   onShowSessionSummary={handleSessionCompleted}
                 />
-                
+
                 {/* Settings Button */}
                 <button
                   onClick={() => setIsSettingsOpen(true)}
@@ -179,12 +183,86 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 >
                   <FaCog className="w-4 h-4" />
                 </button>
-                
+
                 <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title={t('version.title')}>
                   {getVersionString()}
                 </div>
               </nav>
+
+              {/* Mobile Hamburger Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Menu"
+              >
+                {isMobileMenuOpen ? <FaTimes className="w-5 h-5" /> : <FaBars className="w-5 h-5" />}
+              </button>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {isMobileMenuOpen && (
+              <div className="md:hidden border-t border-gray-200 py-4 space-y-3">
+                <Link
+                  href="/"
+                  onClick={handleNavigation('/')}
+                  className={`block px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/')
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {t('nav.dashboard')}
+                </Link>
+                <Link
+                  href="/subjects"
+                  onClick={handleNavigation('/subjects')}
+                  className={`block px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/subjects')
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {t('nav.subjects')}
+                </Link>
+                <Link
+                  href="/analytics"
+                  onClick={handleNavigation('/analytics')}
+                  className={`block px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/analytics')
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {t('nav.analytics')}
+                </Link>
+
+                {/* Mobile Timer & Settings */}
+                <div className="border-t border-gray-200 pt-3 px-4 space-y-3">
+                  <CompactTimer
+                    onShowSubjectSelector={() => {
+                      setShowSubjectSelector(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    onShowSessionSummary={handleSessionCompleted}
+                  />
+
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <FaCog className="w-4 h-4" />
+                    <span>{t('nav.settings')}</span>
+                  </button>
+
+                  <div className="text-xs text-gray-400 text-center">
+                    {getVersionString()}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 

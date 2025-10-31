@@ -24,7 +24,7 @@ export default function CalendarViewToggle({ currentView, onViewChange }: Calend
           key={value}
           onClick={() => onViewChange(value)}
           className={`
-            flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all
+            flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all
             ${currentView === value
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -32,7 +32,7 @@ export default function CalendarViewToggle({ currentView, onViewChange }: Calend
           `}
         >
           {icon}
-          <span className="hidden sm:inline">{label}</span>
+          <span>{label}</span>
         </button>
       ))}
     </div>

@@ -174,7 +174,7 @@ const translations = {
     'calendar.month': 'Monat',
     'calendar.week': 'Woche',
     'calendar.day': 'Tag',
-    'calendar.instructions': 'Kalender-Funktionen: Erstelle ein Fach, Sessions automatisiert zu generieren oder klicke auf einen Tag und auf "+ Session", um neue Sessions zu erstellen. Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für Schnellbearbeitung.',
+    'calendar.instructions': 'Kalender-Funktionen: Erstelle ein Fach, um Sessions automatisiert zu generieren oder klicke auf einen Tag und auf "+ Session", um neue Sessions zu erstellen. Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für Schnellbearbeitung.',
     'calendar.deleteConfirm': 'Sind Sie sicher, dass Sie löschen möchten',
     'calendar.addSession': 'Session hinzufügen',
     'calendar.selectDate': 'Wähle ein Datum aus',

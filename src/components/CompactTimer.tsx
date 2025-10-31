@@ -93,7 +93,7 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
         <div className={`flex items-center space-x-2 ${className}`}>
           <button
             onClick={onShowSubjectSelector}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md z-10"
             title="Schnellstart: Klicke auf den grünen 'Start'-Button, um direkt eine Lernsession zu beginnen und zu tracken."
           >
             <Play size={16} />
@@ -106,18 +106,18 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
               onClick={() => setShowTooltip(!showTooltip)}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors z-10"
               aria-label="Informationen zum Start-Button"
             >
               <Info size={18} className="text-gray-500 hover:text-gray-700" />
             </button>
 
             {showTooltip && (
-              <div className="absolute left-0 top-8 z-50 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl">
+              <div className="absolute right-0 md:left-0 top-8 z-50 w-64 md:w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl">
                 <p>
                   {t('subjects.quickStart')}
                 </p>
-                <div className="absolute -top-2 left-4 w-4 h-4 bg-gray-900 transform rotate-45"></div>
+                <div className="absolute -top-2 right-4 md:left-4 w-4 h-4 bg-gray-900 transform rotate-45"></div>
               </div>
             )}
           </div>
