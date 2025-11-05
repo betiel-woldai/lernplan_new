@@ -100,3 +100,19 @@ export function formatStreak(days: number): string {
   if (days === 1) return '1 Tag';
   return `${days} Tage`;
 }
+
+/**
+ * Converts decimal hours to human-readable format (e.g., 1.67 -> "1h 40m")
+ * @param decimalHours - Hours in decimal format (e.g., 1.67)
+ * @returns Formatted string (e.g., "1h 40m")
+ */
+export function formatHours(decimalHours: number): string {
+  if (decimalHours === 0) return '0h';
+
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+
+  if (hours === 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
+}

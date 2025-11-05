@@ -70,7 +70,7 @@ const translations = {
     'subjects.addFirst': 'Erstes Fach hinzufügen',
     'subjects.description': 'Verwalte deine Fächer mit personalisierten Einstellungen und verfolge deinen Fortschritt.',
     'subjects.quickStart': 'Schnellstart: Klicken Sie auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in Ihrem Kalender gespeichert, wenn sie abgeschlossen sind.',
-    'subjects.quickStartForSubjects': 'Schnellstart: Klicke auf "Fach hinzufügen", lege dein Lernfach an und lass dir automatisiert Lernsessions im Kalendar generieren bis zu deiner Prüfung.',
+    'subjects.quickStartForSubjects': 'Schnellstart: Klicke auf "Fach hinzufügen", lege dein Lernfach an und lass dir automatisiert Lernsessions im Kalender generieren bis zu deiner Prüfung.',
     
     // Subject Form
     'subject.name': 'Fachname',

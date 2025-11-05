@@ -306,6 +306,77 @@ async function updateCalendarSession(req: NextApiRequest, res: NextApiResponse, 
         }
       }
 
+      // Handle XP changes when duration changes on ALREADY COMPLETED sessions
+      // Only run this if completion status didn't just change (to avoid double-counting)
+      const completionStatusChanged = updates.completed !== undefined && updates.completed !== oldSessionRow.completed;
+      const wasAlreadyCompleted = oldSessionRow.completed === true && sessionRow.completed === true;
+      const durationChanged = (
+        (updates.duration !== undefined && updates.duration !== oldSessionRow.planned_duration) ||
+        (updates.actualDuration !== undefined && updates.actualDuration !== oldSessionRow.actual_duration) ||
+        (updates.plannedDuration !== undefined && updates.plannedDuration !== oldSessionRow.planned_duration)
+      );
+
+      if (!completionStatusChanged && wasAlreadyCompleted && durationChanged) {
+        // Calculate OLD XP (from before the edit)
+        const oldDuration = oldSessionRow.actual_duration || oldSessionRow.planned_duration;
+        const currentUserResult = await client.query(`
+          SELECT learning_streak
+          FROM users WHERE id = $1
+        `, [sessionRow.user_id]);
+        const userStreak = currentUserResult.rows[0]?.learning_streak || 0;
+        const oldXP = calculateXP(oldDuration, true, userStreak);
+
+        // Calculate NEW XP (with updated duration)
+        const newDuration = sessionRow.actual_duration || sessionRow.planned_duration;
+        const newXP = calculateXP(newDuration, true, userStreak);
+
+        // Calculate the difference
+        const xpDifference = newXP - oldXP;
+
+        if (xpDifference !== 0) {
+          // Update user's total XP
+          const userXPResult = await client.query(`
+            SELECT current_xp FROM users WHERE id = $1
+          `, [sessionRow.user_id]);
+
+          const currentXP = userXPResult.rows[0].current_xp;
+          const updatedXP = Math.max(0, currentXP + xpDifference);
+
+          await client.query(`
+            UPDATE users
+            SET current_xp = $1
+            WHERE id = $2
+          `, [updatedXP, sessionRow.user_id]);
+
+          // Update the session's xp_awarded field
+          await client.query(`
+            UPDATE calendar_sessions
+            SET xp_awarded = $1
+            WHERE id = $2
+          `, [newXP, sessionRow.id]);
+
+          // Record gamification event for the XP adjustment
+          await client.query(`
+            INSERT INTO gamification_events (user_id, event_type, event_data, xp_awarded)
+            VALUES ($1, $2, $3, $4)
+          `, [
+            sessionRow.user_id,
+            'session_complete',
+            JSON.stringify({
+              sessionId: sessionRow.id,
+              duration: newDuration,
+              sessionType: sessionRow.session_type,
+              source: 'calendar',
+              action: 'edit_duration',
+              oldDuration: oldDuration,
+              newDuration: newDuration,
+              xpAdjustment: xpDifference
+            }),
+            Math.abs(xpDifference)
+          ]);
+        }
+      }
+
       return { session: sessionRow, subjectExamUpdate: examUpdate };
     });
 

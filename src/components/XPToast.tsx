@@ -49,9 +49,11 @@ export const XPToast: React.FC<XPToastProps> = ({
           </div>
         );
       default:
+        const sign = xpGained >= 0 ? '+' : '';
+        const color = xpGained >= 0 ? 'text-green-400' : 'text-red-400';
         return (
           <div className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-green-400">+{xpGained} XP</span>
+            <span className={`text-xl font-bold ${color}`}>{sign}{xpGained} XP</span>
             <span className="text-lg">⭐</span>
           </div>
         );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Target, Zap } from 'lucide-react';
 import { apiFetch } from '@/lib/apiClient';
+import { formatHours } from '@/utils/formatters';
 
 interface QuickProgressStatsProps {
   className?: string;
@@ -63,13 +64,6 @@ export default function QuickProgressStats({ className = '' }: QuickProgressStat
       window.removeEventListener('sessionUpdated', handleSessionUpdate);
     };
   }, []);
-
-  const formatHours = (hours: number): string => {
-    if (hours === 0) return '0h';
-    if (hours < 1) return `${Math.round(hours * 60)}m`;
-    if (hours % 1 === 0) return `${hours}h`;
-    return `${Math.floor(hours)}h ${Math.round((hours % 1) * 60)}m`;
-  };
 
   const getProgressColor = (completed: number, total: number): string => {
     if (total === 0) return 'text-gray-500';

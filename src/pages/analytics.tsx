@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/apiClient';
 import Layout from '@/components/Layout';
 import { useLanguage } from '../contexts/LanguageContext';
 import { addEventListener } from '@/utils/eventBus';
+import { formatHours } from '@/utils/formatters';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -420,7 +421,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('analytics.totalHours')}</p>
-                  <p className="text-2xl font-bold text-gray-900">{analyticsData.summary.totalHours}h</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatHours(analyticsData.summary.totalHours)}</p>
                 </div>
                 <FaArrowUp className="h-8 w-8 text-blue-600" />
               </div>
@@ -535,7 +536,7 @@ export default function AnalyticsPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-gray-700">{goal.name}</span>
                         <span className="text-sm text-gray-500">
-                          {goal.completedHours}h / {goal.targetHours}h ({goal.progress}%)
+                          {formatHours(goal.completedHours)} / {formatHours(goal.targetHours)} ({goal.progress}%)
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -588,7 +589,7 @@ export default function AnalyticsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {subject.hours}h
+                        {formatHours(subject.hours)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {subject.sessions}

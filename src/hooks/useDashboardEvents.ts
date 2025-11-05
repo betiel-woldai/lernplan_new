@@ -51,18 +51,20 @@ export function useDashboardEvents({
       updateTimestamp();
 
       const detail: any = event.detail;
-      const gained = typeof detail?.xpDelta === 'number' ? Math.max(0, Number(detail.xpDelta)) : Number(detail?.xpGained || 0);
+      const xpChange = typeof detail?.xpDelta === 'number' ? Number(detail.xpDelta) : Number(detail?.xpGained || 0);
 
-      // Optimistically bump XP and derived level for instant UI feedback
-      if (!Number.isNaN(gained) && gained > 0) {
+      // Optimistically update XP (can be positive or negative)
+      if (!Number.isNaN(xpChange) && xpChange !== 0) {
         setRealtimeXP(prev => {
-          const nextXP = (typeof prev === 'number' ? prev : 0) + gained;
+          const nextXP = Math.max(0, (typeof prev === 'number' ? prev : 0) + xpChange);
           setRealtimeLevel(getLevel(nextXP));
           return nextXP;
         });
-      }
-      if ((window as any).triggerXPToast) {
-        (window as any).triggerXPToast(gained, 'session_complete', `Session completed! +${gained} XP`);
+
+        // Only trigger toast if XP actually changed
+        if ((window as any).triggerXPToast) {
+          (window as any).triggerXPToast(xpChange, 'xp');  // Pass actual value with sign
+        }
       }
       // Ensure persisted XP stays in sync with accomplished sessions only
       recalcXP();
@@ -74,17 +76,19 @@ export function useDashboardEvents({
       updateTimestamp();
 
       const detail: any = event.detail;
-      const delta = typeof detail?.xpDelta === 'number' ? Number(detail.xpDelta) : -Number(detail?.xpGained || 0);
-      if (!Number.isNaN(delta) && delta < 0) {
+      const xpChange = typeof detail?.xpDelta === 'number' ? Number(detail.xpDelta) : -Number(detail?.xpGained || 0);
+
+      if (!Number.isNaN(xpChange) && xpChange !== 0) {
         setRealtimeXP(prev => {
-          const nextXP = Math.max(0, (typeof prev === 'number' ? prev : 0) + delta);
+          const nextXP = Math.max(0, (typeof prev === 'number' ? prev : 0) + xpChange);
           setRealtimeLevel(getLevel(nextXP));
           return nextXP;
         });
-      }
 
-      if ((window as any).triggerXPToast) {
-        (window as any).triggerXPToast(0, 'session_incomplete', 'Session marked as pending');
+        // Only trigger toast if XP actually changed
+        if ((window as any).triggerXPToast) {
+          (window as any).triggerXPToast(xpChange, 'xp');  // Pass actual value with sign
+        }
       }
       // Ensure persisted XP is corrected when reversing completion
       recalcXP();

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { calculateStreak } from '@/utils/streakCalculator';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -98,6 +99,17 @@ async function getUserStats(userId: string, res: NextApiResponse) {
 
   const user = userResult.rows[0];
 
+  // Calculate current streak from actual session data (not from stale database value)
+  // Use calendar_sessions for consistency with analytics endpoint
+  const sessionsResult = await query(`
+    SELECT DATE(start_time) as date, completed
+    FROM calendar_sessions
+    WHERE user_id = $1 AND completed = true
+    ORDER BY date DESC
+  `, [user.id]);
+
+  const calculatedStreak = calculateStreak(sessionsResult.rows);
+
   // Get user's achievements
   const achievementsResult = await query(`
     SELECT 
@@ -126,6 +138,7 @@ async function getUserStats(userId: string, res: NextApiResponse) {
 
   const userStats = {
     ...user,
+    learningStreak: calculatedStreak, // Use calculated streak instead of database value
     achievements,
     levelProgress,
     xpToNextLevel,

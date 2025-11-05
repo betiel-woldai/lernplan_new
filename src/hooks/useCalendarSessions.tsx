@@ -313,6 +313,7 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
       };
 
       const payload: UpdateResponse = await response.json().catch(() => ({} as UpdateResponse));
+
       const responseSession = payload?.session;
       const normalizedSession = responseSession
         ? {
@@ -342,21 +343,6 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
           wasCompleted: updates.completed,
         }
       }));
-
-      if (updates.completed !== undefined) {
-        const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
-        const approxXP = Math.floor((updates.duration || 0) * 2);
-        const xpDelta = updates.completed ? approxXP : -approxXP;
-        window.dispatchEvent(new CustomEvent(eventName, {
-          detail: {
-            sessionId,
-            completed: updates.completed,
-            xpGained: updates.completed ? approxXP : 0,
-            xpDelta,
-            timestamp: Date.now(),
-          }
-        }));
-      }
 
       return true;
     } catch (err) {

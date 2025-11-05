@@ -285,35 +285,8 @@ async function getGoalsAnalytics(userId: string, period: string = 'month', start
     ? " AND NOT (cs.is_fixed = TRUE AND cs.fixed_source = 'terminplan')"
     : '';
 
-  // Calculate date range based on period
-  let dateRange: { start: Date; end: Date };
-  if (startDate && endDate) {
-    dateRange = {
-      start: parseISO(startDate),
-      end: parseISO(endDate)
-    };
-  } else {
-    const now = new Date();
-    switch (period) {
-      case 'week':
-        dateRange = {
-          start: startOfWeek(now, { weekStartsOn: 1 }),
-          end: endOfWeek(now, { weekStartsOn: 1 })
-        };
-        break;
-      case 'year':
-        dateRange = {
-          start: new Date(now.getFullYear(), 0, 1),
-          end: new Date(now.getFullYear(), 11, 31)
-        };
-        break;
-      default: // month
-        dateRange = {
-          start: startOfMonth(now),
-          end: endOfMonth(now)
-        };
-    }
-  }
+  // Note: period, startDate, endDate parameters are kept for API compatibility
+  // but Goal Progress now shows TOTAL progress, not period-specific
 
   const goalsQuery = `
     SELECT
@@ -328,7 +301,7 @@ async function getGoalsAnalytics(userId: string, period: string = 'month', start
         THEN (s.exam_date - CURRENT_DATE)
         ELSE NULL
       END as days_remaining,
-      COALESCE(SUM(CASE WHEN cs.completed${fixedExclude} AND DATE(cs.start_time) >= $2::date AND DATE(cs.start_time) <= $3::date THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) as period_minutes
+      COALESCE(SUM(CASE WHEN cs.completed${fixedExclude} THEN COALESCE(cs.actual_duration, cs.planned_duration) ELSE 0 END), 0) as total_minutes
     FROM subjects s
     LEFT JOIN calendar_sessions cs ON s.id = cs.subject_id
     WHERE s.user_id = $1
@@ -340,33 +313,22 @@ async function getGoalsAnalytics(userId: string, period: string = 'month', start
       s.name ASC
   `;
 
-  const result = await query(goalsQuery, [
-    userId,
-    format(dateRange.start, 'yyyy-MM-dd'),
-    format(dateRange.end, 'yyyy-MM-dd')
-  ]);
+  const result = await query(goalsQuery, [userId]);
 
   return result.rows.map(row => {
-    // Calculate completed hours for the selected period from actual calendar sessions
-    const periodCompletedHours = Math.round((row.period_minutes / 60) * 100) / 100;
+    // Calculate TOTAL completed hours from actual calendar sessions (not period-specific)
+    const totalCompletedHours = Math.round((row.total_minutes / 60) * 100) / 100;
 
-    // Determine target hours based on period
-    let targetHours: number;
-    if (period === 'week') {
-      // For weekly view, use hours_per_week
-      targetHours = parseFloat(row.hours_per_week) || 0;
-    } else {
-      // For month/year view, use total target_hours
-      targetHours = parseFloat(row.target_hours);
-    }
+    // Always use total target_hours for goal progress
+    const targetHours = parseFloat(row.target_hours);
 
-    const progress = targetHours > 0 ? Math.round((periodCompletedHours / targetHours) * 100) : 0;
+    const progress = targetHours > 0 ? Math.round((totalCompletedHours / targetHours) * 100) : 0;
 
     return {
       id: row.id,
       name: row.name,
       targetHours: targetHours,
-      completedHours: periodCompletedHours,
+      completedHours: totalCompletedHours,
       progress: progress,
       daysRemaining: row.days_remaining ? parseInt(row.days_remaining) : undefined
     };

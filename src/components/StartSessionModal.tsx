@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Play, Clock } from 'lucide-react';
 import { useSubjects } from '../hooks/useSubjects';
 import { useActiveSession } from '../hooks/useActiveSession';
+import { formatHours } from '../utils/formatters';
 
 interface StartSessionModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ export default function StartSessionModal({
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">{subject.name}</div>
                     <div className="text-sm text-gray-500">
-                      {Math.round(subject.completedHours)}h / {Math.round(subject.targetHours)}h completed
+                      {formatHours(subject.completedHours)} / {formatHours(subject.targetHours)} completed
                     </div>
                   </div>
                   {selectedSubjectId === subject.id && (

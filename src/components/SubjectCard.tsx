@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Subject } from '../types';
 import { FaEdit, FaTrash, FaCalendarAlt, FaClock, FaCalendarWeek, FaFire } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
+import { formatHours } from '../utils/formatters';
 
 export interface SubjectCardProps {
   subject: Subject;
@@ -139,7 +140,7 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">Progress</span>
             <span className="text-xs text-gray-500">
-              {subject.completedHours}/{subject.targetHours} hours
+              {formatHours(subject.completedHours)}/{formatHours(subject.targetHours)}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
