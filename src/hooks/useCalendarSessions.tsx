@@ -344,6 +344,23 @@ export const useCalendarSessions = (): UseCalendarSessionsReturn => {
         }
       }));
 
+      // Dispatch sessionCompleted/Incomplete events for marking complete/incomplete
+      // (Don't do this for duration edits - only for completion status changes)
+      if (updates.completed !== undefined) {
+        const eventName = updates.completed ? 'sessionCompleted' : 'sessionIncomplete';
+        const approxXP = Math.floor((updates.duration || normalized.duration || 0) * 2);
+        const xpDelta = updates.completed ? approxXP : -approxXP;
+        window.dispatchEvent(new CustomEvent(eventName, {
+          detail: {
+            sessionId,
+            completed: updates.completed,
+            xpGained: updates.completed ? approxXP : 0,
+            xpDelta,
+            timestamp: Date.now(),
+          }
+        }));
+      }
+
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update session';

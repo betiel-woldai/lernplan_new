@@ -99,15 +99,8 @@ export function useDashboardEvents({
       refreshStats();
       updateTimestamp();
 
-      const detail: any = event.detail;
-      if (detail?.completionChanged && detail?.updates?.completed && (window as any).triggerXPToast) {
-        const xpGained = detail?.updates?.points || 0;
-        (window as any).triggerXPToast(
-          xpGained,
-          'session_complete',
-          `Session marked complete! +${xpGained} XP`
-        );
-      }
+      // Don't show XP toast for edits - only sessionCompleted/sessionIncomplete show toasts
+      // Total XP updates correctly in real-time (user can see the number change on dashboard)
     };
 
     const handleSessionDeleted = () => {

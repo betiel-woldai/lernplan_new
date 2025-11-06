@@ -49,12 +49,15 @@ export const XPToast: React.FC<XPToastProps> = ({
           </div>
         );
       default:
-        const sign = xpGained >= 0 ? '+' : '';
-        const color = xpGained >= 0 ? 'text-green-400' : 'text-red-400';
+        // Show only colored indicator, no number (avoids mismatch between approximate and actual XP)
+        const isPositive = xpGained >= 0;
+        const bgColor = isPositive ? 'bg-green-400' : 'bg-red-400';
+        const arrow = isPositive ? '⭐' : '⭐';
         return (
-          <div className="flex items-center space-x-2">
-            <span className={`text-xl font-bold ${color}`}>{sign}{xpGained} XP</span>
-            <span className="text-lg">⭐</span>
+          <div className="flex items-center justify-center">
+            <div className={`${bgColor} rounded-full w-12 h-12 flex items-center justify-center`}>
+              <span className="text-white text-2xl font-bold">{arrow}</span>
+            </div>
           </div>
         );
     }
