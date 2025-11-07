@@ -3,15 +3,15 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import { FaCog, FaArrowLeft, FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes } from 'react-icons/fa';
 import { getVersionString } from '../utils/version';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage, Language } from '../contexts/LanguageContext';
 import { apiFetch } from '../lib/apiClient';
-import SettingsModal from './SettingsModal';
 import CompactTimer from './CompactTimer';
 import SubjectSelector from './SubjectSelector';
 import SessionSummary from './SessionSummary';
 import { useActiveSession } from '../hooks/useActiveSession';
+import SimplifiedHeader from './SimplifiedHeader';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,11 +20,10 @@ interface LayoutProps {
 
 export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status || 'loading';
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showSubjectSelector, setShowSubjectSelector] = useState(false);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
   const [completedSession, setCompletedSession] = useState<any>(null);
@@ -106,23 +105,13 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
       </Head>
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Simplified Header - DIAS back button and logo */}
+        <SimplifiedHeader />
+
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16 gap-2 sm:gap-6">
-              {/* Back to DIAS button - Very Left */}
-              <a
-                href={process.env.NODE_ENV === 'production'
-                  ? 'https://dias.hs-ansbach.de/dias_test/dias-overview'
-                  : 'http://localhost:3001/dias-overview'
-                }
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors group flex-shrink-0"
-                title={t('nav.backToDias')}
-              >
-                <FaArrowLeft className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" />
-                <span className="hidden sm:inline font-medium whitespace-nowrap">{t('nav.backToDias')}</span>
-              </a>
-
               {/* Lernplaner Logo */}
               <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -133,6 +122,32 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
 
               {/* Spacer to push navigation to the right */}
               <div className="flex-grow"></div>
+
+              {/* Language Selector - visible on all screen sizes */}
+              <div className="flex items-center space-x-1 mr-4">
+                <button
+                  onClick={() => setLanguage('de')}
+                  className={`px-2 py-1 text-xl rounded transition-all ${
+                    language === 'de'
+                      ? 'bg-blue-100 scale-110'
+                      : 'opacity-50 hover:opacity-100'
+                  }`}
+                  title="Deutsch"
+                >
+                  🇩🇪
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-2 py-1 text-xl rounded transition-all ${
+                    language === 'en'
+                      ? 'bg-blue-100 scale-110'
+                      : 'opacity-50 hover:opacity-100'
+                  }`}
+                  title="English"
+                >
+                  🇺🇸
+                </button>
+              </div>
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
@@ -175,15 +190,6 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                   onShowSessionSummary={handleSessionCompleted}
                 />
 
-                {/* Settings Button */}
-                <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                  title={t('nav.settings')}
-                >
-                  <FaCog className="w-4 h-4" />
-                </button>
-
                 <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded" title={t('version.title')}>
                   {getVersionString()}
                 </div>
@@ -202,6 +208,38 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
             {/* Mobile Navigation Menu */}
             {isMobileMenuOpen && (
               <div className="md:hidden border-t border-gray-200 py-4 space-y-3">
+                {/* Language Selector in Mobile Menu */}
+                <div className="flex items-center justify-center space-x-2 px-4 pb-3 border-b border-gray-200">
+                  <button
+                    onClick={() => {
+                      setLanguage('de');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`px-3 py-2 text-2xl rounded transition-all ${
+                      language === 'de'
+                        ? 'bg-blue-100 scale-110'
+                        : 'opacity-50 hover:opacity-100'
+                    }`}
+                    title="Deutsch"
+                  >
+                    🇩🇪
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLanguage('en');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`px-3 py-2 text-2xl rounded transition-all ${
+                      language === 'en'
+                        ? 'bg-blue-100 scale-110'
+                        : 'opacity-50 hover:opacity-100'
+                    }`}
+                    title="English"
+                  >
+                    🇺🇸
+                  </button>
+                </div>
+
                 <Link
                   href="/"
                   onClick={handleNavigation('/')}
@@ -235,32 +273,6 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
                 >
                   {t('nav.analytics')}
                 </Link>
-
-                {/* Mobile Timer & Settings */}
-                <div className="border-t border-gray-200 pt-3 px-4 space-y-3">
-                  <CompactTimer
-                    onShowSubjectSelector={() => {
-                      setShowSubjectSelector(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    onShowSessionSummary={handleSessionCompleted}
-                  />
-
-                  <button
-                    onClick={() => {
-                      setIsSettingsOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    <FaCog className="w-4 h-4" />
-                    <span>{t('nav.settings')}</span>
-                  </button>
-
-                  <div className="text-xs text-gray-400 text-center">
-                    {getVersionString()}
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -279,12 +291,6 @@ export default function Layout({ children, title = 'Lernplaner' }: LayoutProps) 
             </div>
           </div>
         </footer>
-
-        {/* Settings Modal */}
-        <SettingsModal 
-          isOpen={isSettingsOpen} 
-          onClose={() => setIsSettingsOpen(false)} 
-        />
 
         {/* Subject Selector Modal */}
         <SubjectSelector

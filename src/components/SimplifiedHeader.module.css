@@ -1,0 +1,129 @@
+.header {
+  background-color: #ffffff;
+  color: white;
+  padding: 15px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.headerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.5rem;
+}
+
+.backButton:hover {
+  color: #4f8cff;
+  background: #f8fafc;
+}
+
+.backArrow {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.backButton:hover .backArrow {
+  transform: translateX(-4px);
+}
+
+.backText {
+  font-size: 0.8rem;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.logoImage {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  line-height: 1.2;
+}
+
+.line1 {
+  display: block;
+  font-weight: bold;
+  font-size: 1em;
+  color: black;
+}
+
+.line2 {
+  display: block;
+  font-size: 0.8em;
+  color: black;
+  font-weight: 100;
+}
+
+.pageTitle {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 15px;
+  }
+
+  .line1 {
+    font-size: 14px;
+  }
+
+  .line2 {
+    font-size: 11px;
+  }
+
+  .pageTitle {
+    font-size: 16px;
+  }
+
+  .logoImage {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+/* Hide back button text on mobile, show only arrow */
+@media (max-width: 640px) {
+  .backText {
+    display: none;
+  }
+
+  .backButton {
+    padding: 0.5rem;
+  }
+}

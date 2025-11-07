@@ -94,7 +94,7 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
           <button
             onClick={onShowSubjectSelector}
             className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md z-10"
-            title="Schnellstart: Klicke auf den grünen 'Start'-Button, um direkt eine Lernsession zu beginnen und zu tracken."
+            title="Schnellstart: Klicke auf den grünen 'Start'-Button, um direkt eine Lernsession zu beginnen und zu tracken. Der Tracker erscheint in der Kopfzeile und Sessions werden automatisch in deinem Kalender gespeichert, wenn sie abgeschlossen sind."
           >
             <Play size={16} />
             <span>Start</span>
@@ -113,7 +113,7 @@ export default function CompactTimer({ className = '', onShowSubjectSelector, on
             </button>
 
             {showTooltip && (
-              <div className="absolute right-0 md:left-0 top-8 z-50 w-64 md:w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl">
+              <div className="absolute right-0 md:-left-32 top-8 z-50 w-64 md:w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl">
                 <p>
                   {t('subjects.quickStart')}
                 </p>

@@ -17,11 +17,14 @@ import { getXPProgress, getLevel, getXPForLevel } from '@/utils/formatters';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import CalendarSection from '@/components/Dashboard/CalendarSection';
 import StatsSidebar from '@/components/Dashboard/StatsSidebar';
+import CompactTimer from '@/components/CompactTimer';
 import useDashboardEvents from '@/hooks/useDashboardEvents';
 import TerminplanReminderToasts from '@/components/TerminplanReminderToasts';
 import { TodaysTerminplanModal } from '@/components/TodaysTerminplanModal';
 import { useTodaysTerminplanEvents } from '@/hooks/useTodaysTerminplanEvents';
 import { useTodaysTerminplanModal } from '@/hooks/useTodaysTerminplanModal';
+import SubjectSelector from '@/components/SubjectSelector';
+import SessionSummary from '@/components/SessionSummary';
 
 interface DashboardProps {
   userEmail?: string;
@@ -38,6 +41,11 @@ export default function Dashboard({ userEmail, userName }: DashboardProps) {
   const [selectedSession, setSelectedSession] = useState<CalendarSession | null>(null);
   const { subjects, refreshSubjects } = useSubjects();
   const { refreshSessions: refreshCalendarSessions, sessions: allSessions, fetchSessionsForDateRange } = useCalendarSessions();
+
+  // Modal states for CompactTimer
+  const [showSubjectSelector, setShowSubjectSelector] = useState(false);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
+  const [completedSession, setCompletedSession] = useState<any>(null);
 
   // Initialize user in database on first load
   useEffect(() => {
@@ -139,9 +147,22 @@ export default function Dashboard({ userEmail, userName }: DashboardProps) {
 
   const handleCreateSession = () => {};
 
+  const handleSessionCompleted = (session: any) => {
+    setCompletedSession(session);
+    setShowSessionSummary(true);
+  };
+
   return (
     <Layout title="Dashboard - Lernplaner">
       <DashboardHeader level={realtimeLevel} userName={userName || userStats?.name || userEmail || null} />
+
+      {/* Compact Timer - Mobile Only (above stats cards) */}
+      <div className="lg:hidden mb-6 flex justify-center">
+        <CompactTimer
+          onShowSubjectSelector={() => setShowSubjectSelector(true)}
+          onShowSessionSummary={handleSessionCompleted}
+        />
+      </div>
 
       {/* Main Content: Calendar + Stats Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -182,6 +203,23 @@ export default function Dashboard({ userEmail, userName }: DashboardProps) {
         events={todaysEvents}
         onClose={dismissModal}
         onDismissForToday={dismissForToday}
+      />
+
+      {/* Subject Selector Modal */}
+      <SubjectSelector
+        isOpen={showSubjectSelector}
+        onClose={() => setShowSubjectSelector(false)}
+        onSessionStarted={() => setShowSubjectSelector(false)}
+      />
+
+      {/* Session Summary Modal */}
+      <SessionSummary
+        isOpen={showSessionSummary}
+        onClose={() => {
+          setShowSessionSummary(false);
+          setCompletedSession(null);
+        }}
+        session={completedSession}
       />
 
     </Layout>
