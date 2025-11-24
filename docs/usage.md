@@ -4,8 +4,7 @@
 
 The Lernplaner application includes a comprehensive gamification system and subject management interface that helps users organize their learning with motivation and structure.
 
-**Current Version**: 1.6.0
-**Latest Features**: Complete Data Reset System + Comprehensive Data Architecture Documentation + Calendar Session Management System (Issue #16)
+**Latest Features**: XP & Leveling System + Learning Streaks + Achievement Badges + Calendar Session Management + Smart Scheduling
 
 ## Gamification Features
 

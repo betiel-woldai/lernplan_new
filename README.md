@@ -1,237 +1,1004 @@
 # 🎓 Lernplaner - Gamified Learning Management Platform
 
-> Gamifizierte Lernplattform mit XP-System, Streaks und intelligentem Scheduling für strukturiertes und motivierendes Lernen.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
+[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](CHANGELOG.md)
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+A gamified learning management platform with XP system, learning streaks, and intelligent scheduling. Part of the DIAS (Digital Assistant) ecosystem at Hochschule Ansbach.
 
-## 📝 Recent Updates
-
-### 2025-10-27 - Feedback System Integration (Session 3)
-**Implemented comprehensive feedback system for learning reflection:**
-
-**UPDATE:** Fixed basePath issue for production deployment
-- Added basePath prefix (`/dias_test/lernplaner`) to all fetch() calls
-- Pattern: `const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';`
-- Fixed files: `useFeedbackCooldown.tsx`, `LernplanFeedbackModal.tsx`, `feedback-dashboard-lernplaner.tsx`
-- **UPDATE 2:** Fixed NextAuth basePath configuration in `_app.tsx`
-- Added `basePath={authBasePath}` prop to SessionProvider to fix `/api/auth/session` 502 errors
-- **Status:** Ready for production testing (rebuild required)
-
-**New Feature: Lernreflexion Feedback**
-- Question: "DIAS unterstützt mich meinen Lernfortschritt zu reflektieren" (5-point Likert scale)
-- Triggers after successful subject creation and session save
-- Once-per-day cooldown to prevent feedback fatigue
-- Optional anonymous feedback with comment field
-- Tracks trigger action (subject_created vs session_saved)
-- **New files:**
-  - `/db/migrations/009_create_feedback_table.sql` - Database schema
-  - `/src/components/LernplanFeedbackModal.tsx` - Feedback modal component
-  - `/src/hooks/useFeedbackCooldown.tsx` - Cooldown logic hook
-  - `/src/pages/api/feedback/submit.ts` - Feedback submission endpoint
-  - `/src/pages/api/feedback/check-submission.ts` - Cooldown check endpoint
-  - `/src/pages/api/admin/lernplan-auth.ts` - Admin authentication
-  - `/src/pages/api/admin/lernplan-feedback.ts` - Admin data management
-  - `/src/pages/admin/feedback-dashboard-lernplaner.tsx` - Admin dashboard
-- **Modified files:**
-  - `/src/components/SubjectsList.tsx` - Added feedback trigger after subject creation
-  - `/src/components/CompactTimer.tsx` - Added feedback trigger after session save
-  - `/.env.local` - Added admin credentials
-
-**Admin Dashboard Features:**
-- URL: `/admin/feedback-dashboard-lernplaner`
-- Authentication: Username/passkey protection (1-hour session)
-- Real-time summary statistics (total submissions, avg rating, comments count, anonymous count)
-- Filtering by trigger action, comment presence, date range
-- Pagination support (50 items per page)
-- Delete functionality with confirmation modal
-- Responsive design with Tailwind CSS
-
-**Technical Implementation:**
-- Database: `lernplan_feedback` table with UNIQUE constraint on (user_sub, session_id)
-- Cooldown: 24-hour limit per user (checked via API before showing modal)
-- Anonymous: Optional flag to exclude user email from storage
-- Authentication: Cookie-based admin session (httpOnly, secure, 1-hour expiry)
-- Integration: React Portal for proper modal rendering above all content
-
-**Impact:** Provides valuable user feedback about DIAS's effectiveness in supporting learning reflection, enabling data-driven improvements to the learning experience.
+🇩🇪 **[Deutsche Version](README.de.md)**
 
 ---
 
-### 2025-10-27 - Bug Fixes (Session 1 & 2)
-**Fixed thirteen critical bugs and improvements reported by users:**
+## 📚 Table of Contents
 
-1. **Streak Display UI Update (Bug #1)**
-   - Added automatic streak calculation when sessions are saved
-   - Created new `streakCalculator.ts` utility for consistent streak logic
-   - Streak now updates immediately when a session is completed
-   - Database properly tracks consecutive learning days
-   - **Files modified:** `/src/utils/streakCalculator.ts` (new), `/src/pages/api/sessions/index.ts`
-
-2. **Start Button Information Tooltip (Bug #2)**
-   - Added info icon with German tooltip next to Start button
-   - Tooltip text: "Schnellstart: Klicke auf den grünen 'Start'-Button, um direkt eine Lernsession zu beginnen und zu tracken. Der Tracker erscheint in der Kopfzeile und Sessions werden automatisch in deinem Kalender gespeichert, wenn sie abgeschlossen sind."
-   - Hover and click interactions for better user guidance
-   - **Files modified:** `/src/components/CompactTimer.tsx`
-
-3. **Session Completion Modal Improvements (Bug #3)**
-   - Fixed white text visibility issue by explicitly setting dark text colors
-   - Added `text-gray-900` class to input and textarea fields
-   - Improved placeholder text contrast with `placeholder-gray-400`
-   - Removed Deep Work option - users must now create subjects before starting sessions
-   - Added helpful message when no subjects are available
-   - **Files modified:** `/src/components/SessionCompletionModal.tsx`, `/src/components/SubjectSelector.tsx`
-
-4. **Session Toggle Authentication Fix (Bug #4)**
-   - Fixed 404 error when toggling session completion checkbox in calendar
-   - Replaced `getActiveUserId()` with proper NextAuth session authentication
-   - All users now can toggle their own sessions correctly
-   - **Files modified:** `/src/pages/api/sessions/[id].ts`
-
-5. **Streak Not Updating on Toggle Fix (Bug #5)**
-   - Fixed streak staying at 0 when toggling session checkbox
-   - Replaced old `updateUserStreak()` function (calendar-based) with new `calculateStreak()` (session-based)
-   - Streak now correctly recalculates when marking sessions complete/incomplete
-   - **Files modified:** `/src/pages/api/sessions/[id].ts`
-
-6. **Real-time UI Refresh After Session Save (Bug #6)**
-   - UI now updates automatically without manual page refresh
-   - Added event dispatching after session save (`sessionCompleted`, `statsUpdated`)
-   - Added event listeners in `useUserStats` hook to refresh data automatically
-   - Streak and session count update immediately in UI
-   - **Files modified:** `/src/hooks/useActiveSession.tsx`, `/src/hooks/useUserStats.tsx`
-
-7. **Statistics Tab Not Showing Tracked Sessions (Bug #7)**
-   - Fixed architecture mismatch between `learning_sessions` and `calendar_sessions` tables
-   - Implemented automatic calendar sync when saving tracked sessions
-   - Tracked sessions now appear in both Übersicht (calendar) and Statistiken (statistics) tabs
-   - Session details properly stored with start/end times for calendar display
-   - **Files modified:** `/src/pages/api/sessions/index.ts`
-
-8. **Streak Not Recalculating After Session Deletion (Bug #8)**
-   - Fixed streak counter not updating when deleting all sessions
-   - Added streak recalculation to DELETE endpoint
-   - Streak now correctly updates to 0 when all sessions are removed
-   - Consistent streak calculation across create, update, and delete operations
-   - **Files modified:** `/src/pages/api/sessions/[id].ts`
-
-9. **Duplicate Calendar Entries After Session Save (Bug #9)**
-   - Fixed duplicate sessions appearing in calendar after completing tracked session
-   - Removed `learning_sessions` from calendar UNION query since tracked sessions now sync to `calendar_sessions`
-   - Calendar now displays only `calendar_sessions` table (includes both planned and tracked sessions)
-   - Clean single-source display without duplicates
-   - **Files modified:** `/src/pages/api/calendar/index.ts`
-
-10. **Subject Selector Modal Not Scrollable (CSS Issue)**
-    - Fixed modal overflow issue preventing scrolling when many subjects exist
-    - Changed modal to responsive height (`max-h-[90vh]`) with proper flexbox layout
-    - Subject list area now scrolls smoothly when content exceeds available space
-    - Improved UX for users with many subjects
-    - **Files modified:** `/src/components/SubjectSelector.tsx`
-
-11. **Tab Navigation While Timer Running (UX Improvement)**
-    - Implemented navigation blocking when active timer is running
-    - Added warning modal before leaving page with active session
-    - Users now see confirmation dialog with multilingual support (German/English)
-    - German: "Timer läuft noch - Möchtest du wirklich fortfahren?"
-    - English: "Timer still running - Do you really want to continue?"
-    - Prevents accidental session loss when switching to Fächer or Statistiken tabs
-    - Session data is protected until user explicitly confirms navigation
-    - **Files modified:** `/src/components/Layout.tsx`, `/src/contexts/LanguageContext.tsx`
-
-12. **XP Discrepancy Between Übersicht and Statistiken (Bug #12)**
-    - Fixed XP calculation in Analytics tab to match Dashboard
-    - Analytics was using simplified formula (`minutes * 2`) instead of actual XP values
-    - Changed progress query to use `xp_awarded` column from `calendar_sessions`
-    - Analytics "Total XP" now fetches from `users.current_xp` (authoritative source)
-    - Both tabs now display consistent XP values (e.g., 1285 XP for User1)
-    - **Files modified:** `/src/pages/api/analytics/index.ts`
-
-13. **Session Completion Modal Positioning (CSS Issue)**
-    - Fixed modal appearing hidden behind header/page content instead of as overlay
-    - Root cause: Modal was trapped in header's DOM tree stacking context
-    - Implemented React Portal (`createPortal`) to render modal at document.body level
-    - Modal now appears as full-screen overlay above all page content
-    - Proper centering with `min-h-screen flex items-center justify-center`
-    - Dark backdrop covers entire page with modal centered in middle
-    - **Files modified:** `/src/components/SessionCompletionModal.tsx`
-
-**Impact:** These fixes ensure correct multi-user session handling, accurate streak tracking across all actions (create, update, delete), seamless real-time UI updates, proper data sync between calendar and statistics, improved user experience with scrollable and properly positioned modals, protection against accidental session loss during navigation, and consistent XP display across all tabs.
+- [Overview](#-overview)
+- [Integration with DIAS](#-integration-with-dias)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Docker Setup](#-docker-setup-recommended)
+- [Keycloak SSO](#-keycloak-sso-integration)
+- [Environment Configuration](#-environment-configuration)
+- [Development Guide](#-development-guide)
+- [Gamification System](#-gamification-system)
+- [API Documentation](#-api-documentation)
+- [Database Schema](#-database-schema)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
 
 ---
 
-## 📁 Projektstruktur (Beginner-freundlich)
+## 🌟 Overview
+
+Lernplaner is a **gamified learning management system** that motivates students through:
+- **XP & Leveling:** Earn 10-15 XP per minute of studying, progress through 100 levels
+- **Learning Streaks:** Build daily habits with consecutive study day tracking
+- **Smart Scheduling:** Automatic session generation based on exam dates
+- **Visual Progress:** Charts, statistics, and achievement badges
+
+**Institution:** Hochschule Ansbach
+**License:** MIT
+**Version:** 1.8.0
+
+---
+
+## 🔗 Integration with DIAS
+
+Lernplaner is part of the **DIAS ecosystem** and integrates seamlessly with the main DIAS frontend.
+
+### How They Work Together
+
+```
+┌─────────────────────────────────────────┐
+│         Keycloak SSO                     │
+│      (Single Sign-On)                    │
+└──────────┬──────────────┬────────────────┘
+           │              │
+           ▼              ▼
+   ┌──────────────┐   ┌────────────┐
+   │ DIAS Frontend│   │ Lernplaner │
+   │ (Port 3001)  │   │(Port 3002) │
+   └──────┬───────┘   └─────┬──────┘
+          │                 │
+          ▼                 ▼
+   ┌──────────────┐   ┌────────────┐
+   │ User Database│   │Lernplaner  │
+   │  (Timer,     │   │  Database  │
+   │  Lernplattf) │   │(XP,Calendar)│
+   └──────────────┘   └────────────┘
+```
+
+**Key Integration Points:**
+- **Single Sign-On:** Users log in once via Keycloak and access both apps
+- **Shared Authentication:** Same Keycloak realm (`dias`) for unified user identity
+- **Cross-Navigation:** Direct links between DIAS overview and Lernplaner
+- **Unified Deployment:** Both apps run from single `docker-compose.yml` in diasv31_frontend
+
+**Important:** Lernplaner is deployed alongside DIAS Frontend using the docker-compose.yml file located in `../diasv31_frontend/my-app/`. See [Docker Setup](#-docker-setup-recommended) below.
+
+---
+
+## ✨ Features
+
+### 🎮 Gamification System
+
+**XP & Levels:**
+- Earn **10-15 XP per minute** of learning (base 10 XP + 5 XP bonus for subjects with exam dates)
+- Progress through **100 levels** with German learning titles ("Lernling" → "Wissensguru" → "Lernlegende")
+- Level requirements increase progressively (Level 4+ = 500 XP increments)
+- Real-time XP notifications with floating toasts
+- Level-up celebrations with confetti animation
+
+**Learning Streaks:**
+- Track consecutive days with at least one learning session
+- Streak resets if a day is skipped
+- Fire emoji display with current streak count
+- Milestone achievements for streak milestones (7, 30, 100, 365 days)
+- Berlin timezone (UTC+1/+2) for accurate day calculations
+
+**Achievements & Badges:**
+- **Categories:** Streak, Time, Tasks, Level
+- **Unlocking System:** Threshold-based (e.g., "7-Day Streak", "100 Hours Studied")
+- **Badge Display:** Emoji-based badges with unlock notifications
+- **Event Logging:** All achievements logged in `gamification_events` table
+
+### 📅 Smart Calendar & Planning
+
+**Subject Management:**
+- Create subjects with custom names and color coding (16 colors available)
+- Set exam dates for deadline-driven planning
+- Configure weekly hours target and study intensity
+- Track completed vs. target hours per subject
+- Archive or delete subjects when finished
+
+**Intelligent Scheduling:**
+- **Automatic Session Generation:** Creates study sessions based on:
+  - Exam date proximity
+  - Weekly hour goals
+  - Study days per week
+  - Session duration preferences
+- **Calendar Views:** Month, week, and day views
+- **Session Types:** Study, Exam, Break, Assignment
+- **Drag & Drop:** Reschedule sessions visually
+- **Conflict Detection:** Warns about overlapping sessions
+
+**Terminplan Integration:**
+- Import fixed appointments from DIAS terminplan (school calendar)
+- Read-only terminplan events (protected by database trigger)
+- User-specific terminplan sync with unique stable UUIDs
+- Multi-user support (each user gets independent terminplan copy)
+
+### ⏱️ Compact Timer
+
+**Always-Visible Header Timer:**
+- Sticky timer in header available on all pages
+- One-click start for quick study sessions
+- Subject selection during or after session
+- Pause/resume functionality
+- Session completion modal with:
+  - Duration adjustment
+  - Notes field
+  - Subject assignment
+  - XP calculation display
+
+**Session Tracking:**
+- Automatic time tracking in background
+- Manual duration corrections with audit log (`manual_adjustment_reason`)
+- Session types: Study, Exam, Break, Assignment
+- Auto-save to calendar
+- Integration with gamification (auto-awards XP)
+
+### 📊 Analytics & Insights
+
+**XP Progress:**
+- Line charts showing XP growth over time
+- Weekly/monthly/yearly breakdowns
+- Progress to next level visualization
+- XP bar with percentage complete
+
+**Session Statistics:**
+- Total hours studied (all-time and period-specific)
+- Session count and averages
+- Subject-wise time distribution
+- Completion rates for planned vs. actual sessions
+
+**Subject Performance:**
+- Time spent per subject comparison (bar charts)
+- Progress toward subject hour goals
+- Exam date proximity indicators
+- Subject completion percentages
+
+**Streak Monitoring:**
+- Current streak display
+- Longest streak record
+- Streak history calendar heatmap
+- Daily activity patterns
+
+### 🎨 User Experience
+
+**Design & Interface:**
+- **Responsive:** Fully functional on desktop, tablet, and mobile
+- **Dark Mode:** Built-in dark mode support
+- **German Language:** Native German interface with i18n support
+- **Smooth Animations:** Canvas confetti, slide transitions, fade effects
+- **Color Picker:** Intuitive color selection for subjects
+- **Context Menus:** Right-click actions for quick operations
+
+**Feedback System:**
+- Daily reflection modal: "DIAS unterstützt mich beim Selbstmanagement" (1-5 Likert scale)
+- Optional comments with anonymous submission option
+- 24-hour cooldown per user
+- Admin dashboard for feedback review with filters and statistics
+
+---
+
+## 🚀 Quick Start
+
+### Option 1: Docker Setup with DIAS (Recommended)
+
+Lernplaner is designed to run alongside DIAS Frontend. Follow these steps:
+
+```bash
+# 1. Clone both repositories
+mkdir dias-project && cd dias-project
+git clone https://github.com/dias-digital-assistant/diasv31_frontend.git
+git clone https://github.com/dias-digital-assistant/lernplan_new.git
+
+# 2. Navigate to docker-compose location
+cd diasv31_frontend/my-app
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# 4. Create Docker network
+docker network create app_network
+
+# 5. Start all services (DIAS + Lernplaner + Databases)
+docker-compose up -d --build
+
+# 6. Access Lernplaner
+# http://localhost:3002
+```
+
+**See full Docker setup instructions in [Docker Setup](#-docker-setup-recommended) section.**
+
+### Option 2: Standalone Local Development
+
+```bash
+# 1. Clone repository
+git clone https://github.com/dias-digital-assistant/lernplan_new.git
+cd lernplan_new
+
+# 2. Install dependencies
+npm install
+
+# 3. Set up PostgreSQL database
+createdb lernplaner_data
+# Run migrations (see Database Setup section)
+
+# 4. Configure environment
+cp .env.example .env
+# Edit .env with database and Keycloak credentials
+
+# 5. Start development server
+npm run dev
+# → http://localhost:3000
+```
+
+**Note:** Standalone mode requires manual Keycloak setup for authentication.
+
+---
+
+## 🐳 Docker Setup (Recommended)
+
+### Architecture
+
+Lernplaner is part of the DIAS docker-compose setup located in `../diasv31_frontend/my-app/docker-compose.yml`.
+
+**Services in docker-compose.yml:**
+
+| Service | Purpose | Port |
+|---------|---------|------|
+| **lernplaner_frontend** | Lernplaner Next.js app | 3002:3000 |
+| **lernplaner_postgres** | Lernplaner database | 5432 (internal) |
+| **web_test** | DIAS Frontend | 3001:3000 |
+| **user_postgres** | DIAS user database | 5432 (internal) |
+| **postgres** | Keycloak database | 5432 (internal) |
+
+### Docker Configuration
+
+**lernplaner_frontend service:**
+```yaml
+lernplaner_frontend:
+  container_name: dias_lernplaner_frontend
+  build:
+    context: ../../lernplan_new  # Builds from lernplan_new directory
+    dockerfile: Dockerfile.prod
+  ports:
+    - '3002:3000'
+  depends_on:
+    - lernplaner_postgres
+  environment:
+    - DATABASE_HOST=dias_lernplaner_postgres
+    - DATABASE_NAME=lernplaner_data
+    - DATABASE_USER=lernplaner_user
+    - DATABASE_PASSWORD=${LERNPLANER_DB_PASSWORD}
+    - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+    - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+    - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+    - NEXTAUTH_URL=https://dias.hs-ansbach.de/dias_test/lernplaner
+    - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+  networks:
+    - app_network
+```
+
+**lernplaner_postgres service:**
+```yaml
+lernplaner_postgres:
+  image: postgres:15
+  container_name: dias_lernplaner_postgres
+  environment:
+    POSTGRES_DB: lernplaner_data
+    POSTGRES_USER: lernplaner_user
+    POSTGRES_PASSWORD: ${LERNPLANER_DB_PASSWORD}
+  volumes:
+    - lernplaner_postgres_data:/var/lib/postgresql/data
+    - ./init-lernplaner-db.sql:/docker-entrypoint-initdb.d/init-lernplaner-db.sql
+  networks:
+    - app_network
+```
+
+### Docker Commands
+
+```bash
+# Start Lernplaner only
+cd diasv31_frontend/my-app
+docker-compose up -d lernplaner_frontend lernplaner_postgres
+
+# Start all services (DIAS + Lernplaner)
+docker-compose up -d
+
+# View Lernplaner logs
+docker-compose logs -f lernplaner_frontend
+
+# Restart Lernplaner
+docker-compose restart lernplaner_frontend
+
+# Rebuild after code changes
+docker-compose up -d --build lernplaner_frontend
+
+# Access database
+docker-compose exec lernplaner_postgres psql -U lernplaner_user -d lernplaner_data
+
+# Stop all services
+docker-compose down
+```
+
+---
+
+## 🔐 Keycloak SSO Integration
+
+Lernplaner uses Keycloak for authentication and shares SSO with DIAS Frontend.
+
+### Why Keycloak?
+
+- **Single Sign-On:** Users log in once and access both DIAS and Lernplaner
+- **Centralized Users:** User management in one place
+- **Security:** Industry-standard OAuth2/OpenID Connect
+- **User Isolation:** Data separated by Keycloak user ID (`user_sub`)
+
+### Keycloak Configuration
+
+**Prerequisites:**
+- Keycloak instance running (e.g., at `https://dias.hs-ansbach.de/keycloak`)
+- Realm created (e.g., `dias`)
+- OAuth2 client configured
+
+**Client Setup:**
+1. Create client in Keycloak admin console
+2. **Client ID:** `dias` (can be shared with DIAS Frontend) or `lernplaner-client`
+3. **Client Type:** OpenID Connect
+4. **Client Authentication:** ON
+5. **Valid Redirect URIs:**
+   - `http://localhost:3002/api/auth/callback/keycloak`
+   - `https://your-domain.com/dias_test/lernplaner/api/auth/callback/keycloak`
+6. **Web Origins:** `http://localhost:3002` or your production domain
+
+**Environment Variables:**
+```env
+KEYCLOAK_CLIENT_ID=dias
+KEYCLOAK_CLIENT_SECRET=<from_keycloak_credentials_tab>
+KEYCLOAK_ISSUER=https://dias.hs-ansbach.de/keycloak/realms/dias
+```
+
+### Authentication Flow
+
+1. User navigates to Lernplaner (`http://localhost:3002`)
+2. NextAuth.js checks for existing session
+3. If no session, redirects to Keycloak login
+4. User authenticates with Keycloak
+5. Keycloak redirects back with authorization code
+6. NextAuth exchanges code for JWT token
+7. User profile created/updated in `users` table (auto-initialization)
+8. Session stored with `user_sub` as primary identifier
+
+**Session Management:**
+- JWT-based sessions (maxAge: 1 hour)
+- Secure cookies with `httpOnly` and `sameSite` flags
+- Session scoped to `/dias_test/lernplaner` path
+- Automatic user initialization on first login
+
+**Detailed Keycloak setup:** See [diasv31_frontend README](../diasv31_frontend/my-app/README.md#-keycloak-setup)
+
+---
+
+## ⚙️ Environment Configuration
+
+Create `.env` file in `lernplan_new/` root:
+
+```env
+# ============================================
+# DATABASE CONFIGURATION
+# ============================================
+DATABASE_HOST=localhost            # or dias_lernplaner_postgres (Docker)
+DATABASE_PORT=5432
+DATABASE_NAME=lernplaner_data
+DATABASE_USER=lernplaner_user
+DATABASE_PASSWORD=your_secure_password
+
+# ============================================
+# NEXTAUTH CONFIGURATION
+# ============================================
+# NextAuth URL (must match deployment)
+NEXTAUTH_URL=http://localhost:3000/api/auth  # Development
+# NEXTAUTH_URL=https://dias.hs-ansbach.de/dias_test/lernplaner  # Production
+
+# NextAuth Secret (generate with: openssl rand -base64 32)
+NEXTAUTH_SECRET=your_generated_secret_key
+
+# ============================================
+# KEYCLOAK OAUTH2/OIDC
+# ============================================
+KEYCLOAK_CLIENT_ID=dias               # or lernplaner-client
+KEYCLOAK_CLIENT_SECRET=your_client_secret
+KEYCLOAK_ISSUER=http://localhost:8180/keycloak/realms/dias
+
+# ============================================
+# OPTIONAL: FEEDBACK ADMIN DASHBOARD
+# ============================================
+FEEDBACK_ADMIN_USERNAME=admin
+FEEDBACK_ADMIN_PASSKEY=your_admin_password
+
+# ============================================
+# DEVELOPMENT ONLY (optional)
+# ============================================
+NEXT_PUBLIC_DEFAULT_USER_ID=demo-user-123
+DEFAULT_USER_ID=demo-user-123
+```
+
+### Environment Variable Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DATABASE_HOST` | Yes | localhost | PostgreSQL host |
+| `DATABASE_PASSWORD` | Yes | - | Database password |
+| `NEXTAUTH_URL` | Yes | - | NextAuth callback URL |
+| `NEXTAUTH_SECRET` | Yes | - | Secret for JWT encryption |
+| `KEYCLOAK_CLIENT_ID` | Yes | - | OAuth2 client ID |
+| `KEYCLOAK_CLIENT_SECRET` | Yes | - | OAuth2 client secret |
+| `KEYCLOAK_ISSUER` | Yes | - | Keycloak realm URL |
+| `FEEDBACK_ADMIN_USERNAME` | No | admin | Admin dashboard username |
+| `FEEDBACK_ADMIN_PASSKEY` | No | - | Admin dashboard password |
+
+### Generating Secrets
+
+```bash
+# Generate NEXTAUTH_SECRET
+openssl rand -base64 32
+
+# Generate DATABASE_PASSWORD
+openssl rand -base64 24
+
+# Generate FEEDBACK_ADMIN_PASSKEY
+openssl rand -base64 20
+```
+
+---
+
+## 💻 Development Guide
+
+### Local Development Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start PostgreSQL (via Docker or local instance)
+docker-compose -f docker-compose.dev.yml up -d postgres
+
+# Run database migrations
+npm run db:migrate
+
+# Start development server
+npm run dev
+# → http://localhost:3000
+```
+
+### Project Structure
 
 ```
 lernplan_new/
-├── README.md              # Diese Datei - Projektübersicht
-├── CLAUDE.md             # Anweisungen für Claude Code
-│
-├── docs/                 # 📚 DOKUMENTATION
-│   ├── README.md         # Ausführliche Projektdokumentation  
-│   ├── frontend-first-roadmap.md  # 10-Sprint Entwicklungsplan
-│   └── github-issues.md  # Alle geplanten GitHub Issues
-│
-├── setup/               # ⚙️ SETUP & INSTALLATION
-│   ├── repository-setup.md      # Komplette Setup-Anleitung
-│   ├── docker-compose.yml       # Docker Services (DB + Keycloak)
-│   └── docker/                  # Docker Konfigurationen
-│       └── Dockerfile.dev       # Development Container
-│
-├── config/              # 🔧 KONFIGURATION
-│   └── next-i18next.config.js  # Internationalisierung (DE/EN)
-│
-└── specs/               # 📋 SPEZIFIKATIONEN
-    ├── idea.md          # Original Projektidee
-    └── structure.md     # Technische Spezifikationen
+├── src/
+│   ├── pages/              # Next.js pages and API routes
+│   │   ├── index.tsx       # Main dashboard
+│   │   ├── subjects.tsx    # Subject management
+│   │   ├── analytics.tsx   # Analytics page
+│   │   └── api/            # Backend API endpoints
+│   ├── components/         # React components
+│   │   ├── Dashboard/      # Dashboard components
+│   │   ├── Calendar/       # Calendar components
+│   │   ├── CompactTimer.tsx  # Header timer
+│   │   └── ...
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useActiveSession.tsx
+│   │   ├── useGamification.tsx
+│   │   └── ...
+│   ├── lib/                # Utility libraries
+│   │   ├── db.ts           # PostgreSQL connection pool
+│   │   ├── apiClient.ts    # API request wrapper
+│   │   └── ...
+│   ├── types/              # TypeScript type definitions
+│   ├── utils/              # Utility functions
+│   └── contexts/           # React Context providers
+├── db/
+│   └── migrations/         # SQL migration files (001-009)
+├── docs/                   # Documentation
+├── tests/                  # Playwright E2E tests
+└── scripts/                # Database management scripts
 ```
 
-## 🚀 Schnellstart
+### Key Files
 
-### 1. Repository klonen
+- **`src/pages/api/auth/[...nextauth].ts`** - NextAuth.js configuration
+- **`src/lib/db.ts`** - PostgreSQL connection pool (max 10 connections)
+- **`src/utils/formatters.ts`** - XP/level calculations
+- **`src/utils/streakCalculator.ts`** - Streak logic
+- **`db/migrations/`** - Database schema migrations (9 files)
+
+### Development Scripts
+
 ```bash
-git clone https://github.com/betiel-woldai/lernplan_new.git
-cd lernplan_new
-```
-
-### 2. Dokumentation lesen
-- **[docs/README.md](docs/README.md)** - Vollständige Projektdokumentation
-- **[setup/repository-setup.md](setup/repository-setup.md)** - Detaillierte Setup-Anleitung
-- **[docs/frontend-first-roadmap.md](docs/frontend-first-roadmap.md)** - Entwicklungsroadmap
-
-### 3. Setup starten
-```bash
-# Alle Dependencies installieren
-npm install
-
-# Docker Services starten (PostgreSQL + Keycloak)
-docker-compose -f setup/docker-compose.yml up -d
-
-# Development Server starten
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linter
+npm run lint
+
+# Type checking
+npm run watch:dev
+
+# Run E2E tests
+npm run test
+npm run test:session  # Session/calendar tests specifically
+
+# Database operations
+npm run db:migrate    # Run migrations
+npm run db:seed       # Seed database
+npm run db:reset      # Reset database
 ```
-
-## 🎯 Nächste Schritte
-
-1. **Setup durchführen:** Folge der Anleitung in `setup/repository-setup.md`
-2. **Issues bearbeiten:** Beginne mit [Issue #1](https://github.com/betiel-woldai/lernplan_new/issues/1) (Dashboard UI)
-3. **Roadmap folgen:** Nutze `docs/frontend-first-roadmap.md` für Sprint-Planung
-
-## 🛠 Technologie-Stack
-
-- **Frontend:** Next.js 14 (Pages Router), React 18, TypeScript, Tailwind CSS
-- **Backend:** PostgreSQL, Keycloak Auth, Node.js API Routes
-- **Infrastructure:** Docker Compose, Multi-Service Setup
-- **Gamification:** XP-System, Levels, Badges, Streaks
-
-## 📞 Support
-
-- **Issues:** [GitHub Issues](https://github.com/betiel-woldai/lernplan_new/issues)
-- **Dokumentation:** [docs/README.md](docs/README.md)
-- **Setup-Hilfe:** [setup/repository-setup.md](setup/repository-setup.md)
 
 ---
 
-**🎓 Für besseres Lernen - Mit Gamification zum Erfolg!**
+## 🎮 Gamification System
+
+### XP Calculation
+
+**Formula:**
+```
+XP earned = minutes * base_rate + bonus
+where:
+  base_rate = 10 XP/min
+  bonus = 5 XP/min (if subject has exam date)
+
+Example:
+  30 min study session (no exam date): 30 * 10 = 300 XP
+  30 min study session (with exam date): 30 * 15 = 450 XP
+```
+
+**Implementation:** `src/utils/formatters.ts`
+
+### Level System
+
+**Level Progression:**
+- **Level 1:** 0-100 XP
+- **Level 2:** 100-500 XP (400 XP needed)
+- **Level 3:** 500-1000 XP (500 XP needed)
+- **Level 4+:** +500 XP per level
+
+**Examples:**
+- Level 5: 2000 XP
+- Level 10: 4500 XP
+- Level 20: 9500 XP
+- Level 50: 24,500 XP
+- Level 100: 49,500 XP
+
+**Level Titles (German):**
+```
+Level 1-5: Lernling (Learner)
+Level 6-10: Wissensjäger (Knowledge Hunter)
+Level 11-20: Studienkönig (Study King)
+Level 21-50: Weiser (Sage)
+Level 51-99: Wissensguru (Knowledge Guru)
+Level 100: Lernlegende (Learning Legend)
+```
+
+### Streak Calculation
+
+**Algorithm:**
+1. Fetch all completed learning sessions for user
+2. Extract unique session dates (multiple sessions same day = 1 streak day)
+3. Sort dates in descending order
+4. Check if today or yesterday has a session (otherwise streak = 0)
+5. Count consecutive days backward from today
+
+**Timezone:** Berlin (UTC+1 standard, UTC+2 daylight saving)
+
+**Implementation:** `src/utils/streakCalculator.ts`
+
+### Achievement System
+
+**Categories:**
+- **Streak:** Daily consistency (7, 30, 100, 365 days)
+- **Time:** Total hours (10h, 50h, 100h, 500h)
+- **Level:** Progression (Level 10, 25, 50, 100)
+- **Tasks:** Completion count (50, 100, 500, 1000 sessions)
+
+**Unlocking:**
+- Automatic checks after XP award or session completion
+- Threshold-based (e.g., "First Session" unlocks on session 1)
+- Event logging in `gamification_events` table
+- UI notification with "New" badge
+
+---
+
+## 📖 API Documentation
+
+### Authentication
+
+All API routes require authentication:
+
+```typescript
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]';
+
+export default async function handler(req, res) {
+  const session = await getServerSession(req, res, authOptions);
+
+  if (!session) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = session.sub; // Keycloak user ID
+  // ... handle request
+}
+```
+
+### Key Endpoints
+
+#### Sessions
+
+```bash
+# List sessions
+GET /api/sessions?limit=10&offset=0
+
+# Create session
+POST /api/sessions
+Body: { subject_id: "uuid", duration: 60, completed: true, notes: "..." }
+
+# Update session
+PUT /api/sessions/[id]
+Body: { duration: 90, notes: "Updated notes" }
+
+# Delete sessions
+DELETE /api/sessions/bulk-delete
+Body: { session_ids: ["uuid1", "uuid2"] }
+```
+
+#### Subjects
+
+```bash
+# List subjects
+GET /api/subjects
+
+# Create subject
+POST /api/subjects
+Body: { name: "Math", color: "#FF6B6B", exam_date: "2024-06-15", hours_per_week: 10 }
+
+# Update subject
+PUT /api/subjects/[id]
+Body: { name: "Mathematics", color: "#4ECDC4" }
+
+# Delete subject
+DELETE /api/subjects/[id]
+```
+
+#### Calendar
+
+```bash
+# Get calendar sessions
+GET /api/calendar?start=2024-01-01&end=2024-12-31
+
+# Create calendar session
+POST /api/calendar
+Body: { subject_id: "uuid", start_time: "2024-06-01T10:00", end_time: "2024-06-01T11:00", session_type: "study" }
+
+# Update calendar session
+PUT /api/calendar/[id]
+
+# Delete calendar session
+DELETE /api/calendar/[id]
+```
+
+#### Gamification
+
+```bash
+# Award XP
+POST /api/gamification/xp
+Body: { xpGain: 300 }
+Response: { newLevel, leveledUp, currentXP, nextLevelXP, achievements }
+
+# Recalculate all stats (admin)
+POST /api/gamification/recalculate
+```
+
+#### Analytics
+
+```bash
+# Get analytics
+GET /api/analytics?period=week
+Query params: period (week|month|year), start_date, end_date
+
+Response: {
+  progress: { totalXP, currentLevel, streak, totalHours },
+  subjects: [ { name, time_spent, completed_hours, target_hours } ],
+  streaks: { current, longest, dates },
+  goals: { weekly_target, actual_hours }
+}
+```
+
+#### Feedback
+
+```bash
+# Submit feedback
+POST /api/feedback/submit
+Body: { self_management_support: 5, comment: "Great!", trigger_action: "session_saved" }
+
+# Check submission status
+GET /api/feedback/check-submission
+Response: { canSubmit: boolean, lastSubmission: date }
+
+# Admin: Get all feedback
+GET /api/admin/lernplan-feedback?page=1&limit=20&filter=all
+```
+
+---
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+**users**
+```sql
+- id (UUID, PK) - Keycloak user ID
+- email (VARCHAR, UNIQUE)
+- current_level (INT, default 1)
+- current_xp (INT, default 0)
+- next_level_xp (INT, default 100)
+- learning_streak (INT, default 0)
+- daily_learning_time (INT, default 0) - minutes
+- total_hours (NUMERIC, default 0)
+- last_active_at (TIMESTAMP)
+- created_at, updated_at (TIMESTAMP)
+```
+
+**subjects**
+```sql
+- id (UUID, PK)
+- user_id (UUID, FK → users)
+- name (VARCHAR)
+- color (VARCHAR) - #hex format
+- start_date, exam_date (DATE)
+- hours_per_week, days_per_week (INT)
+- intensity_weeks (INT)
+- completed_hours, target_hours (NUMERIC)
+- created_at, updated_at (TIMESTAMP)
+```
+
+**learning_sessions**
+```sql
+- id (UUID, PK)
+- subject_id (UUID, FK → subjects)
+- user_id (UUID, FK → users)
+- date (DATE)
+- duration (INT) - minutes
+- completed (BOOLEAN)
+- points (INT) - XP earned
+- notes, manual_adjustment_reason (TEXT)
+- created_at, updated_at (TIMESTAMP)
+```
+
+**calendar_sessions**
+```sql
+- id (UUID, PK)
+- subject_id (UUID, FK → subjects)
+- user_id (UUID, FK → users)
+- title (VARCHAR)
+- start_time, end_time (TIMESTAMP)
+- session_type (ENUM: study|exam|break|assignment)
+- completed (BOOLEAN)
+- description, location (TEXT)
+- is_fixed (BOOLEAN) - for terminplan
+- fixed_source, fixed_source_key (VARCHAR)
+- planned_duration, actual_duration (INT)
+- created_at, updated_at (TIMESTAMP)
+```
+
+**achievements**
+```sql
+- id (UUID, PK)
+- name (VARCHAR)
+- description (TEXT)
+- icon (VARCHAR) - emoji
+- category (ENUM: streak|time|tasks|level)
+- threshold_value (INT, nullable)
+- created_at (TIMESTAMP)
+```
+
+**user_achievements**
+```sql
+- id (UUID, PK)
+- user_id (UUID, FK → users)
+- achievement_id (UUID, FK → achievements)
+- unlocked_at (TIMESTAMP)
+- is_new (BOOLEAN, default true)
+- UNIQUE(user_id, achievement_id)
+```
+
+**gamification_events**
+```sql
+- id (UUID, PK)
+- user_id (UUID, FK → users)
+- event_type (ENUM: xp_gain|level_up|achievement_unlock|streak_milestone|session_complete)
+- event_data (JSONB)
+- xp_awarded (INT)
+- created_at (TIMESTAMP)
+```
+
+**lernplan_feedback**
+```sql
+- id (UUID, PK)
+- user_sub (VARCHAR)
+- user_email (VARCHAR)
+- user_role (VARCHAR)
+- self_management_support (INT) - 1-5 Likert scale
+- comment (TEXT)
+- is_anonymous (BOOLEAN)
+- trigger_action (VARCHAR)
+- session_id (UUID, nullable)
+- created_at (TIMESTAMP)
+- UNIQUE(user_sub, session_id) per 24 hours
+```
+
+### Indexes
+
+40+ indexes for performance optimization on:
+- user_id columns (all tables)
+- date/timestamp columns
+- completed flags
+- Fixed appointment queries
+- Composite indexes for calendar date ranges
+
+---
+
+## 🔧 Troubleshooting
+
+### Issue: Container won't start
+
+```bash
+# Check if lernplan_new is cloned in correct location
+ls -la ../lernplan_new
+
+# Check docker-compose logs
+cd ../diasv31_frontend/my-app
+docker-compose logs lernplaner_frontend
+
+# Rebuild container
+docker-compose up -d --build lernplaner_frontend
+```
+
+### Issue: Database connection failed
+
+```bash
+# Check if database is running
+docker-compose ps lernplaner_postgres
+
+# Test connection
+docker-compose exec lernplaner_postgres psql -U lernplaner_user -d lernplaner_data -c "SELECT 1;"
+
+# Check environment variables
+docker-compose exec lernplaner_frontend env | grep DATABASE
+```
+
+### Issue: Keycloak authentication fails
+
+```bash
+# Verify Keycloak is accessible
+curl http://localhost:8180/keycloak/realms/dias/.well-known/openid-configuration
+
+# Check redirect URIs in Keycloak
+# Admin Console → Clients → dias → Valid redirect URIs
+# Should include: http://localhost:3002/api/auth/callback/keycloak
+
+# Check logs
+docker-compose logs -f lernplaner_frontend | grep "nextauth"
+```
+
+### Issue: XP not awarded
+
+```bash
+# Check gamification API
+curl -X POST http://localhost:3002/api/gamification/xp \
+  -H "Content-Type: application/json" \
+  -d '{"xpGain": 100}'
+
+# Check user XP in database
+docker-compose exec lernplaner_postgres psql -U lernplaner_user -d lernplaner_data \
+  -c "SELECT current_xp, current_level FROM users WHERE email = 'user@example.com';"
+```
+
+### Issue: Streak not updating
+
+```bash
+# Check streak calculator
+# Verify Berlin timezone is correctly handled
+# Check last session date matches current date
+
+# Manually recalculate
+# Call POST /api/gamification/recalculate
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions!
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Make changes and test
+4. Commit (`git commit -m 'feat: add amazing feature'`)
+5. Push (`git push origin feature/amazing-feature`)
+6. Open Pull Request
+
+**Commit Convention:**
+```
+feat: Add new feature
+fix: Fix bug
+docs: Update documentation
+style: Format code
+refactor: Refactor code
+test: Add tests
+chore: Update build scripts
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Hochschule Ansbach** - Institution
+- **Next.js & React** - Framework
+- **PostgreSQL** - Database
+- **Keycloak** - Authentication
+- **Chart.js** - Data visualization
+
+---
+
+## 📞 Support
+
+- **GitHub Issues:** [Report bugs](https://github.com/dias-digital-assistant/lernplan_new/issues)
+- **Email:** dias@hs-ansbach.de
+- **Documentation:** [docs/](docs/)
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] Study groups & collaboration
+- [ ] AI-powered study recommendations
+- [ ] Integration with more university systems
+- [ ] Offline mode with sync
+- [ ] Advanced analytics dashboard
+
+---
+
+**For complete DIAS ecosystem documentation, see [diasv31_frontend README](../diasv31_frontend/my-app/README.md)**
+
+**Made with ❤️ by the DIAS team at Hochschule Ansbach**

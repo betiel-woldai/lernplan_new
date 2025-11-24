@@ -1,73 +1,175 @@
-# Dependencies
+# ============================================
+# Lernplaner - Git Ignore Rules
+# ============================================
+# This file specifies intentionally untracked files that Git should ignore
+# IMPORTANT: Never commit secrets, credentials, or sensitive data!
+
+# ============================================
+# DEPENDENCIES
+# ============================================
 /node_modules
 /.pnp
 .pnp.js
 
-# Testing
-/coverage
-
-# Next.js
+# ============================================
+# NEXT.JS BUILD OUTPUT
+# ============================================
 /.next/
 /out/
-
-# Production
 /build
+dist/
 
-# Misc
-.DS_Store
+# ============================================
+# ENVIRONMENT VARIABLES & SECRETS
+# ============================================
+# CRITICAL: Never commit these files!
+.env
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+!.env.example
+
+# Secrets and credentials
+secrets/
+credentials/
 *.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+config/secrets.json
+.secrets
 
-# Debug
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Environment files (DO NOT COMMIT SECRETS!)
-.env
-.env.production
-.env*.local
-.env.development.local
-.env.test.local
-.env.production.local
+# ============================================
+# DATABASES
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+postgres-data/
+mysql-data/
 
-# Vercel
-.vercel
+# ============================================
+# TESTING & COVERAGE
+# ============================================
+/coverage
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
 
-# TypeScript
+# ============================================
+# TYPESCRIPT
+# ============================================
 *.tsbuildinfo
 next-env.d.ts
 
-# Database
-*.db
-*.sqlite
-
-# Uploads
-/uploads/*
-!/uploads/.gitkeep
-
-# Docker
-.dockerignore
-
-# IDE
+# ============================================
+# IDE & EDITORS
+# ============================================
+# VSCode
 .vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
 *.swp
 *.swo
 *~
+.vim/
 
-# OS generated files
+# Emacs
+*~
+\#*\#
+.#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# OPERATING SYSTEM FILES
+# ============================================
+# macOS
 .DS_Store
 .DS_Store?
+.AppleDouble
+.LSOverride
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Logs
-logs
-*.log
+# Linux
+.directory
+.Trash-*
 
-# PostgreSQL
-*.dump
-*.sql.gztmp/
+# ============================================
+# DEPLOYMENT & HOSTING
+# ============================================
+.vercel
+.netlify
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+
+# ============================================
+# UPLOADS & USER CONTENT
+# ============================================
+/uploads/*
+!/uploads/.gitkeep
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.old
+
+# ============================================
+# MISC
+# ============================================
+.eslintcache
+.stylelintcache
+
+# Package manager lock files (uncomment if needed)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
