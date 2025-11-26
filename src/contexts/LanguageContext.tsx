@@ -163,6 +163,9 @@ const translations = {
     'stats.rank': 'Rank',
     'dashboard.quickOverview': 'Schnellübersicht',
 
+    // Lerntipp
+    'lerntipp.title': 'Lerntipp des Tages',
+
     // Calendar
     'calendar.errorLoadingData': 'Fehler beim Laden der Kalenderdaten',
     'calendar.loadingData': 'Lade Kalenderdaten...',
@@ -391,6 +394,9 @@ const translations = {
     'stats.level': 'Level',
     'stats.rank': 'Rank',
     'dashboard.quickOverview': 'Quick Overview',
+
+    // Lerntipp
+    'lerntipp.title': 'Learning Tip of the Day',
 
     // Calendar
     'calendar.errorLoadingData': 'Error loading calendar data',

@@ -1,5 +1,6 @@
 import DirectCalendarStats from '@/components/DirectCalendarStats';
 import AchievementBadge from '@/components/AchievementBadge';
+import LerntippBox from '@/components/LerntippBox';
 import { Achievement } from '@/types';
 import { formatXPTotal } from '@/utils/format';
 import { getLearningRank } from '@/utils/formatters';
@@ -48,6 +49,8 @@ export function StatsSidebar({
       </div>
 
       <DirectCalendarStats selectedDate={selectedDate || undefined} />
+
+      <LerntippBox />
 
       {showAchievements && (
         <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border border-yellow-200">
