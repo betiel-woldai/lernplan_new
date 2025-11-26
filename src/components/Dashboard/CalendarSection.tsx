@@ -1,4 +1,5 @@
 import Calendar from '@/components/Calendar/Calendar';
+import MotivationalQuoteBox from '@/components/MotivationalQuoteBox';
 import { CalendarSession } from '@/types/calendar';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -22,6 +23,8 @@ export function CalendarSection({
 
   return (
     <div className="lg:col-span-3">
+      <MotivationalQuoteBox />
+
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p className="text-blue-800 text-sm">
           {t('calendar.instructions')}
