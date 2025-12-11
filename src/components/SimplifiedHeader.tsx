@@ -15,10 +15,7 @@ const SimplifiedHeader = ({ title }: SimplifiedHeaderProps) => {
     <header className={styles.header}>
       <div className={styles.headerWrapper}>
         <Link
-          href={process.env.NODE_ENV === 'production'
-            ? 'https://dias.hs-ansbach.de/dias_test/dias-overview'
-            : 'http://localhost:3001/dias-overview'
-          }
+          href={`${process.env.NEXT_PUBLIC_DIAS_BASE_URL || 'http://localhost:3001'}/dias-overview`}
           className={styles.backButton}
           title="Zurück zur DIAS Übersicht"
         >

@@ -1,5 +1,5 @@
 import NextAuth,{type AuthOptions} from "next-auth";
-const baseUrl = "https://dias.hs-ansbach.de";
+const baseUrl = process.env.KEYCLOAK_BASE_URL;
 const realmPath = "/keycloak/realms/dias";
 
 export const authOptions: AuthOptions = {

@@ -69,7 +69,7 @@ const translations = {
     'subjects.noSubjectsHelp': 'Beginne mit dem Hinzufügen deines ersten Fachs.',
     'subjects.addFirst': 'Erstes Fach hinzufügen',
     'subjects.description': 'Verwalte deine Fächer mit personalisierten Einstellungen und verfolge deinen Fortschritt.',
-    'subjects.quickStart': 'Schnellstart: Klicken Sie auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in Ihrem Kalender gespeichert, wenn sie abgeschlossen sind.',
+    'subjects.quickStart': 'Schnellstart: Klicke auf den grünen "Start"-Button auf einer beliebigen Fach-Karte, um eine Lernsession zu beginnen. Der kompakte Timer erscheint in der Kopfzeile und Sessions werden automatisch in deinem Kalender gespeichert, wenn sie abgeschlossen sind.',
     'subjects.quickStartForSubjects': 'Schnellstart: Klicke auf "Fach hinzufügen", lege dein Lernfach an und lass dir automatisiert Lernsessions im Kalender generieren bis zu deiner Prüfung.',
     
     // Subject Form
@@ -178,7 +178,7 @@ const translations = {
     'calendar.week': 'Woche',
     'calendar.day': 'Tag',
     'calendar.instructions': 'Kalender-Funktionen: Erstelle ein Fach, um Sessions automatisiert zu generieren oder klicke auf einen Tag und auf "+ Session", um neue Sessions zu erstellen. Rechtsklick auf Sessions für Bearbeiten, Duplizieren oder Löschen. Sessions per Drag-and-Drop verschieben. Doppelklick für Schnellbearbeitung.',
-    'calendar.deleteConfirm': 'Sind Sie sicher, dass Sie löschen möchten',
+    'calendar.deleteConfirm': 'Bist du sicher, dass du löschen möchtest',
     'calendar.addSession': 'Session hinzufügen',
     'calendar.selectDate': 'Wähle ein Datum aus',
     'calendar.selectedDate': 'Ausgewähltes Datum',

@@ -235,9 +235,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (!session) {
     return {
       redirect: {
-        destination: process.env.NODE_ENV === 'production'
-          ? 'https://dias.hs-ansbach.de/dias_test/'
-          : 'http://localhost:3001',
+        destination: process.env.DIAS_BASE_URL || 'http://localhost:3001',
         permanent: false,
       },
     };
