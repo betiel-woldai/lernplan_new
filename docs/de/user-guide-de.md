@@ -34,7 +34,7 @@ Lernplaner ist ein **gamifiziertes Lernmanagementsystem**, das dich motiviert, r
 
 ### Erste Anmeldung
 
-1. **Lernplaner öffnen:** `http://localhost:3002` (Entwicklung) oder `https://dias.hs-ansbach.de/dias_test/lernplaner` (Produktion)
+1. **Lernplaner öffnen:** `http://localhost:3002` (Entwicklung) oder `https://your-domain.com/lernplaner` (Produktion)
 2. **"Sign In" klicken:** Weiterleitung zu Keycloak
 3. **Mit Hochschul-Account anmelden:** E-Mail & Passwort
 4. **Dashboard erscheint:** Du startest bei Level 1 mit 0 XP

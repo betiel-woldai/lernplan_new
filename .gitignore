@@ -69,6 +69,12 @@ postgres-data/
 mysql-data/
 
 # ============================================
+# APPLICATION DATA FILES
+# ============================================
+# Institution-specific data files (contain internal schedules/dates)
+db/terminplan.json
+
+# ============================================
 # TESTING & COVERAGE
 # ============================================
 /coverage

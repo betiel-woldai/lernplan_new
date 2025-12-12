@@ -289,7 +289,7 @@ lernplaner_frontend:
     - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
     - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
     - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
-    - NEXTAUTH_URL=https://dias.hs-ansbach.de/dias_test/lernplaner
+    - NEXTAUTH_URL=https://your-domain.com/lernplaner
     - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
   networks:
     - app_network
@@ -353,7 +353,7 @@ Lernplaner uses Keycloak for authentication and shares SSO with DIAS Frontend.
 ### Keycloak Configuration
 
 **Prerequisites:**
-- Keycloak instance running (e.g., at `https://dias.hs-ansbach.de/keycloak`)
+- Keycloak instance running (e.g., at `https://your-domain.com/keycloak`)
 - Realm created (e.g., `dias`)
 - OAuth2 client configured
 
@@ -371,7 +371,7 @@ Lernplaner uses Keycloak for authentication and shares SSO with DIAS Frontend.
 ```env
 KEYCLOAK_CLIENT_ID=dias
 KEYCLOAK_CLIENT_SECRET=<from_keycloak_credentials_tab>
-KEYCLOAK_ISSUER=https://dias.hs-ansbach.de/keycloak/realms/dias
+KEYCLOAK_ISSUER=https://your-domain.com/keycloak/realms/your-realm
 ```
 
 ### Authentication Flow
@@ -414,7 +414,7 @@ DATABASE_PASSWORD=your_secure_password
 # ============================================
 # NextAuth URL (must match deployment)
 NEXTAUTH_URL=http://localhost:3000/api/auth  # Development
-# NEXTAUTH_URL=https://dias.hs-ansbach.de/dias_test/lernplaner  # Production
+# NEXTAUTH_URL=https://your-domain.com/lernplaner  # Production
 
 # NextAuth Secret (generate with: openssl rand -base64 32)
 NEXTAUTH_SECRET=your_generated_secret_key

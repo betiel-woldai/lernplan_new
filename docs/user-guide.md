@@ -34,7 +34,7 @@ Lernplaner is a **gamified learning management system** that motivates you to st
 
 ### First Login
 
-1. **Open Lernplaner:** `http://localhost:3002` (development) or `https://dias.hs-ansbach.de/dias_test/lernplaner` (production)
+1. **Open Lernplaner:** `http://localhost:3002` (development) or `https://your-domain.com/lernplaner` (production)
 2. **Click "Sign In":** Redirect to Keycloak
 3. **Log in with university account:** Email & password
 4. **Dashboard appears:** You start at Level 1 with 0 XP
