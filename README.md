@@ -203,8 +203,8 @@ Lernplaner is designed to run alongside DIAS Frontend. Follow these steps:
 ```bash
 # 1. Clone both repositories
 mkdir dias-project && cd dias-project
-git clone https://github.com/dias-digital-assistant/diasv31_frontend.git
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
+git clone https://github.com/dias-digitial-assistant/diasv31_frontend.git
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
 
 # 2. Navigate to docker-compose location
 cd diasv31_frontend/my-app
@@ -229,8 +229,8 @@ docker-compose up -d --build
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
-cd lernplan_new
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
+cd lernplaner
 
 # 2. Install dependencies
 npm install
@@ -275,7 +275,7 @@ Lernplaner is part of the DIAS docker-compose setup located in `../diasv31_front
 lernplaner_frontend:
   container_name: dias_lernplaner_frontend
   build:
-    context: ../../lernplan_new  # Builds from lernplan_new directory
+    context: ../../lernplaner  # Builds from lernplaner directory
     dockerfile: Dockerfile.prod
   ports:
     - '3002:3000'
@@ -397,7 +397,7 @@ KEYCLOAK_ISSUER=https://your-domain.com/keycloak/realms/your-realm
 
 ## ⚙️ Environment Configuration
 
-Create `.env` file in `lernplan_new/` root:
+Create `.env` file in `lernplaner/` root:
 
 ```env
 # ============================================
@@ -490,7 +490,7 @@ npm run dev
 ### Project Structure
 
 ```
-lernplan_new/
+lernplaner/
 ├── src/
 │   ├── pages/              # Next.js pages and API routes
 │   │   ├── index.tsx       # Main dashboard
@@ -874,8 +874,8 @@ GET /api/admin/lernplan-feedback?page=1&limit=20&filter=all
 ### Issue: Container won't start
 
 ```bash
-# Check if lernplan_new is cloned in correct location
-ls -la ../lernplan_new
+# Check if lernplaner is cloned in correct location
+ls -la ../lernplaner
 
 # Check docker-compose logs
 cd ../diasv31_frontend/my-app
@@ -982,7 +982,7 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ## 📞 Support
 
-- **GitHub Issues:** [Report bugs](https://github.com/dias-digital-assistant/lernplan_new/issues)
+- **GitHub Issues:** [Report bugs](https://github.com/dias-digitial-assistant/lernplaner/issues)
 - **Email:** dias@hs-ansbach.de
 - **Documentation:** [docs/](docs/)
 

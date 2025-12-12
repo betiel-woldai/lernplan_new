@@ -94,8 +94,8 @@ user_postgres    lernplaner_postgres
 ```bash
 # 1. Beide Repositories klonen
 mkdir dias-projekt && cd dias-projekt
-git clone https://github.com/dias-digital-assistant/diasv31_frontend.git
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
+git clone https://github.com/dias-digitial-assistant/diasv31_frontend.git
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
 
 # 2. Zu docker-compose navigieren
 cd diasv31_frontend/my-app
@@ -117,8 +117,8 @@ docker-compose up -d --build
 ### Option 2: Lokale Entwicklung
 
 ```bash
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
-cd lernplan_new
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
+cd lernplaner
 npm install
 
 # PostgreSQL-Datenbank einrichten
@@ -190,7 +190,7 @@ Lernplaner nutzt Keycloak für Authentifizierung und teilt SSO mit DIAS Frontend
 
 ## ⚙️ Umgebungskonfiguration
 
-`.env` Datei in `lernplan_new/` erstellen:
+`.env` Datei in `lernplaner/` erstellen:
 
 ```env
 # Datenbank
@@ -246,7 +246,7 @@ npm run db:reset    # Datenbank zurücksetzen
 ### Projekt-Struktur
 
 ```
-lernplan_new/
+lernplaner/
 ├── src/
 │   ├── pages/          # Next.js Seiten & API-Routen
 │   ├── components/     # React-Komponenten (38 Komponenten)
@@ -317,8 +317,8 @@ Beispiel:
 
 ### Container startet nicht
 ```bash
-# lernplan_new korrekt geklont?
-ls -la ../lernplan_new
+# lernplaner korrekt geklont?
+ls -la ../lernplaner
 
 # Logs prüfen
 docker-compose logs lernplaner_frontend
@@ -410,7 +410,7 @@ MIT-Lizenz - siehe [LICENSE](LICENSE)-Datei.
 
 ## 📞 Support
 
-- **GitHub Issues:** [Fehler melden](https://github.com/dias-digital-assistant/lernplan_new/issues)
+- **GitHub Issues:** [Fehler melden](https://github.com/dias-digitial-assistant/lernplaner/issues)
 - **E-Mail:** dias@hs-ansbach.de
 - **Dokumentation:** [docs/](docs/)
 

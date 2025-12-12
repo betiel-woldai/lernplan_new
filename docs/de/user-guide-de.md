@@ -1070,7 +1070,7 @@ A: Nein! Deine Daten sind privat. Optional: Anonymisierte Statistiken für Forsc
 ---
 
 **Du hast weitere Fragen?**
-- **GitHub Issues:** https://github.com/dias-digital-assistant/lernplan_new/issues
+- **GitHub Issues:** https://github.com/dias-digitial-assistant/lernplaner/issues
 - **E-Mail:** dias@hs-ansbach.de
 - **Dokumentation:** [README.md](../README.md)
 

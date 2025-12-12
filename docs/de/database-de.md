@@ -138,7 +138,7 @@ LERNPLANER_DB_PASSWORD=lernplaner_password
 # - Benutzer: lernplaner_user
 ```
 
-### Lernplaner-Anwendung (.env in lernplan_new/)
+### Lernplaner-Anwendung (.env in lernplaner/)
 
 Die `.env`-Datei der Lernplaner-App referenziert die Docker-Datenbank:
 
@@ -171,7 +171,7 @@ NEXTAUTH_SECRET=ihr_nextauth_secret_hier
 ### Voraussetzungen
 
 - Docker & Docker Compose installiert
-- Beide Repositories `diasv31_frontend` und `lernplan_new` geklont
+- Beide Repositories `diasv31_frontend` und `lernplaner` geklont
 
 ### Datenbank starten
 
@@ -250,7 +250,7 @@ docker-compose exec lernplaner_frontend npm run db:migrate
 
 **Lokale Entwicklung:**
 ```bash
-cd lernplan_new
+cd lernplaner
 
 # Alle ausstehenden Migrationen ausführen
 npm run db:migrate
@@ -408,7 +408,7 @@ docker-compose restart lernplaner_postgres
 **Lösung:**
 ```bash
 # Zugangsdaten in beiden .env-Dateien prüfen
-grep DATABASE_PASSWORD lernplan_new/.env
+grep DATABASE_PASSWORD lernplaner/.env
 grep LERNPLANER_DB_PASSWORD diasv31_frontend/my-app/.env
 
 # Datenbank mit korrektem Passwort neu erstellen

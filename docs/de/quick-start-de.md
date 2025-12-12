@@ -47,14 +47,14 @@ Falls du nur Lernplaner nutzen möchtest:
 mkdir -p ~/dias-projekt
 cd ~/dias-projekt
 
-git clone https://github.com/dias-digital-assistant/diasv31_frontend.git
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
+git clone https://github.com/dias-digitial-assistant/diasv31_frontend.git
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
 ```
 
 ### Schritt 2: Umgebungsvariablen konfigurieren
 
 ```bash
-cd lernplan_new
+cd lernplaner
 
 # .env.example als Vorlage
 cp .env.example .env
@@ -133,8 +133,8 @@ Falls du Lernplaner unabhängig von DIAS betreiben möchtest:
 ### Schritt 1: Repository klonen
 
 ```bash
-git clone https://github.com/dias-digital-assistant/lernplan_new.git
-cd lernplan_new
+git clone https://github.com/dias-digitial-assistant/lernplaner.git
+cd lernplaner
 ```
 
 ### Schritt 2: .env konfigurieren
@@ -466,7 +466,7 @@ SELECT * FROM gamification_events WHERE user_id = 'deine_user_id' ORDER BY creat
 
 ## Support
 
-- **GitHub Issues:** https://github.com/dias-digital-assistant/lernplan_new/issues
+- **GitHub Issues:** https://github.com/dias-digitial-assistant/lernplaner/issues
 - **E-Mail:** dias@hs-ansbach.de
 - **Dokumentation:** [README.md](../README.md)
 

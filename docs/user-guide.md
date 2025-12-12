@@ -1070,7 +1070,7 @@ A: No! Your data is private. Optional: Anonymized statistics for research (opt-i
 ---
 
 **Have more questions?**
-- **GitHub Issues:** https://github.com/dias-digital-assistant/lernplan_new/issues
+- **GitHub Issues:** https://github.com/dias-digitial-assistant/lernplaner/issues
 - **Email:** dias@hs-ansbach.de
 - **Documentation:** [README.md](../README.md)
 
