@@ -48,7 +48,7 @@ export const authOptions: AuthOptions = {
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
-        path: '/dias_test/lernplaner',
+        path: '/dias/lernplaner',
         secure: true,
         maxAge: 3600 // 1 hour in seconds
       }
@@ -57,7 +57,7 @@ export const authOptions: AuthOptions = {
       name: `__Secure-next-auth.callback-url`,
       options: {
         sameSite: 'none' as const,
-        path: '/dias_test/lernplaner',
+        path: '/dias/lernplaner',
         secure: true
       }
     },
@@ -66,7 +66,7 @@ export const authOptions: AuthOptions = {
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
-        path: '/dias_test/lernplaner',
+        path: '/dias/lernplaner',
         secure: true
       }
     },
@@ -75,7 +75,7 @@ export const authOptions: AuthOptions = {
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
-        path: '/dias_test/lernplaner',
+        path: '/dias/lernplaner',
         secure: true,
         maxAge: 900 // 15 minutes
       }
@@ -85,7 +85,7 @@ export const authOptions: AuthOptions = {
       options: {
         httpOnly: true,
         sameSite: 'none' as const,
-        path: '/dias_test/lernplaner',
+        path: '/dias/lernplaner',
         secure: true,
         maxAge: 900 // 15 minutes
       }

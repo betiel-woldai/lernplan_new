@@ -49,7 +49,7 @@ export default function LernplanFeedbackModal({
       // Generate unique session ID based on timestamp and trigger action
       const sessionId = `${triggerAction}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/feedback/submit`, {
         method: 'POST',
         headers: {

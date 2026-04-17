@@ -23,7 +23,7 @@ export function useFeedbackCooldown() {
     setState(prev => ({ ...prev, isChecking: true }));
 
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/feedback/check-submission`, {
         method: 'POST',
         headers: {

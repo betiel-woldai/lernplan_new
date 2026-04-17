@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
-const basePathValue = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+const basePathValue = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
 
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   // Use basePath for all routes including static assets
-  // This tells Next.js the app is mounted at /dias_test/lernplaner
+  // This tells Next.js the app is mounted at /dias/lernplaner
   basePath: basePathValue,
   // assetPrefix is automatically set to basePath if not specified
 

@@ -66,7 +66,7 @@ export default function FeedbackDashboardLernplaner() {
 
   const checkAuthStatus = async () => {
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/admin/lernplan-feedback`);
       if (response.ok) {
         setIsAuthenticated(true);
@@ -83,7 +83,7 @@ export default function FeedbackDashboardLernplaner() {
     setAuthError('');
 
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/admin/lernplan-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ export default function FeedbackDashboardLernplaner() {
         }
       });
 
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/admin/lernplan-feedback?${params}`);
       if (response.ok) {
         const data = await response.json();
@@ -142,7 +142,7 @@ export default function FeedbackDashboardLernplaner() {
 
     setDeleting(true);
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/dias_test/lernplaner' : '';
+      const basePath = process.env.NODE_ENV === 'production' ? '/dias/lernplaner' : '';
       const response = await fetch(`${basePath}/api/admin/lernplan-feedback?feedback_id=${feedbackToDelete}`, {
         method: 'DELETE'
       });
